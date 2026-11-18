@@ -138,6 +138,19 @@ const COMPRAS_CON_RESENIA = [
   { evento: 6, tipo: 0, comprador: 3, cantidad: 1, puntuacion: 2, detalle: "Mucha espera en el ingreso y poco lugar para sentarse." },
 ];
 
+// Compras de eventos próximos, para tener datos en todos los estados salvo UTILIZADA (que solo tiene sentido
+// después del evento). `diasAtras` es cuándo se hizo la compra, relativo a hoy, y `estado` el estado final:
+// PENDIENTE (sin pagar), CONFIRMADA, CANCELADA (se canceló sin pagar) o REEMBOLSADA (se pagó y se canceló).
+const COMPRAS_PROXIMAS = [
+  { evento: 0, tipo: 0, comprador: 2, cantidad: 2, diasAtras: 6, estado: estadoCompra.CONFIRMADA },
+  { evento: 0, tipo: 2, comprador: 3, cantidad: 1, diasAtras: 3, estado: estadoCompra.CONFIRMADA },
+  { evento: 1, tipo: 0, comprador: 2, cantidad: 4, diasAtras: 4, estado: estadoCompra.CONFIRMADA },
+  { evento: 1, tipo: 1, comprador: 3, cantidad: 1, diasAtras: 1, estado: estadoCompra.PENDIENTE },
+  { evento: 2, tipo: 0, comprador: 2, cantidad: 2, diasAtras: 8, estado: estadoCompra.CANCELADA },
+  { evento: 3, tipo: 1, comprador: 3, cantidad: 1, diasAtras: 5, estado: estadoCompra.REEMBOLSADA },
+  { evento: 4, tipo: 0, comprador: 2, cantidad: 3, diasAtras: 2, estado: estadoCompra.CONFIRMADA },
+];
+
 export async function cargarSeed(
   repositorios = {},
   ahora = new Date(),
@@ -198,5 +211,21 @@ export async function cargarSeed(
 
     const resenia = new Resenia(compra, comprador, datos.puntuacion, datos.detalle, sumarDias(evento.fecha, 1));
     await resenias.save(resenia);
+  }
+
+  for (const datos of COMPRAS_PROXIMAS) {
+    const evento = eventosCreados[datos.evento];
+    const comprador = usuariosCreados[datos.comprador];
+    const fechaDeCompra = sumarDias(ahora, -datos.diasAtras);
+    const compra = new Compra(comprador, evento, evento.tiposEntrada[datos.tipo], datos.cantidad, fechaDeCompra);
+
+    if (datos.estado !== estadoCompra.PENDIENTE && datos.estado !== estadoCompra.CANCELADA) {
+      compra.actualizarEstado(estadoCompra.CONFIRMADA, comprador, fechaDeCompra);
+    }
+    if (datos.estado === estadoCompra.CANCELADA || datos.estado === estadoCompra.REEMBOLSADA) {
+      // Cancelar una compra confirmada la reembolsa enseguida; una pendiente solo queda cancelada.
+      compra.cancelar(comprador, sumarDias(fechaDeCompra, 1));
+    }
+    await compras.save(compra);
   }
 }
