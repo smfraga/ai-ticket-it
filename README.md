@@ -168,6 +168,18 @@ Reseñar exige token; ver las reseñas es público, como el catálogo. Solo se p
 
 Para probarlo con el seed: comprar un evento como comprador, marcar la compra con `POST /compras/:id/utilizar` como organizador de ese evento y reseñarla como comprador. El puntaje del organizador cambia en el momento.
 
+#### Favoritos
+
+Los compradores pueden guardar eventos para encontrarlos después. Las tres rutas piden token y rol de comprador (un usuario que es solo organizador recibe `403`). Guardar y quitar no dan error si ya estaba o no estaba guardado, así un doble toque no rompe nada.
+
+| Método y ruta                  | Descripción                                                                                                                                   |
+|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| `POST /eventos/:id/favorito`   | Guarda el evento como favorito. `201` con el evento la primera vez y `200` si ya lo era. `404` si el evento no existe. Se pueden guardar eventos ya realizados |
+| `DELETE /eventos/:id/favorito` | Quita el evento de los favoritos. `204` sin cuerpo, haya estado guardado o no. `404` si el evento no existe                                    |
+| `GET /favoritos`               | La lista del comprador, con el último guardado primero, en el mismo formato que `GET /eventos` (incluye `yaPaso`, el puntaje del organizador y los lugares disponibles) |
+
+El catálogo es público y no sabe quién lo mira, así que no marca cuáles son favoritos: para pintar el corazón en una pantalla, se compara el id de cada evento con los de `GET /favoritos`. En el seed, Carla tiene guardados el recital de rock y el festival de jazz, y Camilo el stand up.
+
 #### Registro de errores
 
 Cada error que llega al manejador global se escribe en la consola del servidor: los inesperados (`500`) con el stack y los del cliente (`4xx`) en una sola línea con el método, la ruta, el status y el mensaje. Nunca se registra el cuerpo de la request ni los headers, porque pueden traer contraseñas y tokens. En los tests el registro está silenciado.
