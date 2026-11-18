@@ -144,13 +144,15 @@ Parámetros de `GET /eventos` (todos opcionales):
 
 #### Compras
 
-Todas piden token. Comprar exige el rol de comprador; ver las compras de un evento, ser su organizador.
+Todas piden token. Comprar exige el rol de comprador; ver las compras de un evento o marcarlas como utilizadas, ser su organizador; cancelar, ser el comprador de esa compra. Estados: `PENDIENTE`, `CONFIRMADA`, `UTILIZADA`, `CANCELADA` y `REEMBOLSADA`.
 
 | Método y ruta                | Descripción                                                                                                                       |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
 | `POST /eventos/:id/compras`  | Compra entradas. Body: `{ "tipoEntradaId": "<id>", "cantidad": 2 }`. La compra nace `PENDIENTE` y se confirma en el mismo request (pago simulado): `201` con estado `CONFIRMADA`. `400` datos inválidos, `403` sin rol de comprador, `404` evento o tipo inexistente, `409` evento ya realizado o cantidad mayor al cupo |
 | `GET /compras`               | Las compras del usuario logueado, las más recientes primero, con su estado y los `diasRestantes` (solo si está `CONFIRMADA`, si no `null`) |
 | `GET /eventos/:id/compras`   | Las compras de un evento con su estado y comprador (nombre y apellido), y el cupo restante de cada tipo de entrada. Solo el organizador del evento: otro usuario recibe `403` |
+| `POST /compras/:id/cancelar` | El comprador cancela su compra (`200` con la compra actualizada). Una `PENDIENTE` queda `CANCELADA`; una `CONFIRMADA` queda `REEMBOLSADA` (reembolso simulado). En los dos casos las entradas vuelven al cupo. `403` si no es el comprador, `404` compra inexistente, `409` si está `UTILIZADA`, ya cancelada o el evento ya se realizó |
+| `POST /compras/:id/utilizar` | El organizador del evento marca la compra como `UTILIZADA` (`200`), por ejemplo al dejar entrar al comprador. Solo desde `CONFIRMADA`: `409` en cualquier otro estado. `403` si no es el organizador de ese evento, `404` compra inexistente |
 
 ```bash
 
