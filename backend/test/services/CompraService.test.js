@@ -261,6 +261,117 @@ describe("CompraService", () => {
     });
   });
 
+  describe("chat de la compra", () => {
+    let compra;
+
+    beforeEach(() => {
+      compra = Object.assign(crearCompraEn(estadoCompra.CONFIRMADA, { comprador: carla, evento }), { id: "c1" });
+      compraRepository.findById.mockImplementation(async (id) => (id === "c1" ? compra : null));
+    });
+
+    describe("enviarMensaje", () => {
+      it("el comprador escribe: se guarda y vuelve con su rol en la compra", async () => {
+        const respuesta = await service.enviarMensaje("carla", "c1", "¿A qué hora abren?");
+
+        expect(respuesta).toEqual({
+          autor: { id: "carla", nombre: "Carla", apellido: "Gómez", rol: "COMPRADOR" },
+          mensaje: "¿A qué hora abren?",
+          enviado: AHORA.toISOString(),
+        });
+        expect(compra.mensajes).toHaveLength(1);
+        expect(compraRepository.save).toHaveBeenCalledWith(compra);
+      });
+
+      it("el organizador del evento escribe y su rol es ORGANIZADOR", async () => {
+        const respuesta = await service.enviarMensaje("olivia", "c1", "A las 20");
+
+        expect(respuesta.autor).toMatchObject({ id: "olivia", rol: "ORGANIZADOR" });
+        expect(compra.mensajes).toHaveLength(1);
+      });
+
+      it("se puede escribir aunque la compra esté REEMBOLSADA", async () => {
+        compra = Object.assign(crearCompraEn(estadoCompra.REEMBOLSADA, { comprador: carla, evento }), {
+          id: "c1",
+        });
+
+        const respuesta = await service.enviarMensaje("carla", "c1", "Gracias por el reembolso");
+
+        expect(respuesta.mensaje).toBe("Gracias por el reembolso");
+      });
+
+      it("403 si escribe otro comprador u otro organizador, sin guardar", async () => {
+        await expect(service.enviarMensaje("camilo", "c1", "Hola")).rejects.toBeInstanceOf(ForbiddenError);
+        await expect(service.enviarMensaje("octavio", "c1", "Hola")).rejects.toBeInstanceOf(ForbiddenError);
+        expect(compra.mensajes).toHaveLength(0);
+        expect(compraRepository.save).not.toHaveBeenCalled();
+      });
+
+      it("400 si el texto está vacío, sin guardar", async () => {
+        await expect(service.enviarMensaje("carla", "c1", "   ")).rejects.toBeInstanceOf(ValidationError);
+        expect(compra.mensajes).toHaveLength(0);
+        expect(compraRepository.save).not.toHaveBeenCalled();
+      });
+
+      it("404 si la compra no existe", async () => {
+        await expect(service.enviarMensaje("carla", "otra", "Hola")).rejects.toBeInstanceOf(NotFoundError);
+      });
+
+      it("401 si el usuario del token ya no existe", async () => {
+        await expect(service.enviarMensaje("fantasma", "c1", "Hola")).rejects.toBeInstanceOf(
+          UnauthorizedError,
+        );
+      });
+    });
+
+    describe("leerMensajes", () => {
+      it("el comprador y el organizador leen la conversación en el orden en que se escribió", async () => {
+        await service.enviarMensaje("carla", "c1", "Primero");
+        await service.enviarMensaje("olivia", "c1", "Segundo");
+        await service.enviarMensaje("carla", "c1", "Tercero");
+
+        for (const lector of ["carla", "olivia"]) {
+          const mensajes = await service.leerMensajes(lector, "c1");
+
+          expect(mensajes.map((m) => [m.mensaje, m.autor.rol])).toEqual([
+            ["Primero", "COMPRADOR"],
+            ["Segundo", "ORGANIZADOR"],
+            ["Tercero", "COMPRADOR"],
+          ]);
+        }
+      });
+
+      it("una compra sin mensajes devuelve una lista vacía", async () => {
+        expect(await service.leerMensajes("carla", "c1")).toEqual([]);
+      });
+
+      it("no expone el email ni el hash de los autores", async () => {
+        await service.enviarMensaje("carla", "c1", "Hola");
+        await service.enviarMensaje("olivia", "c1", "Hola, Carla");
+
+        const texto = JSON.stringify(await service.leerMensajes("carla", "c1"));
+
+        expect(texto).not.toContain(carla.email);
+        expect(texto).not.toContain(olivia.email);
+        expect(texto).not.toContain("passwordHash");
+      });
+
+      it("403 si lee otro comprador u otro organizador", async () => {
+        await service.enviarMensaje("carla", "c1", "Hola");
+
+        await expect(service.leerMensajes("camilo", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+        await expect(service.leerMensajes("octavio", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+      });
+
+      it("404 si la compra no existe", async () => {
+        await expect(service.leerMensajes("carla", "otra")).rejects.toBeInstanceOf(NotFoundError);
+      });
+
+      it("401 si el usuario del token ya no existe", async () => {
+        await expect(service.leerMensajes("fantasma", "c1")).rejects.toBeInstanceOf(UnauthorizedError);
+      });
+    });
+  });
+
   describe("listarDelComprador", () => {
     it("muestra el estado y los días restantes solo si está CONFIRMADA", async () => {
       const confirmada = crearCompraEn(estadoCompra.CONFIRMADA, { comprador: carla, evento });

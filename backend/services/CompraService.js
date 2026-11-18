@@ -1,4 +1,5 @@
 import { estadoCompra } from "../domain/EstadoCompra.js";
+import { rolUsuario } from "../domain/RolUsuario.js";
 import { Compra } from "../domain/Compra.js";
 import { ForbiddenError, NotFoundError, UnauthorizedError } from "../errors/AppError.js";
 import { compraRepository } from "../repositories/CompraRepository.js";
@@ -56,16 +57,35 @@ export class CompraService {
   // Las reglas (quién puede, desde qué estado, cupo) las decide el dominio; acá solo se busca y se guarda.
   async cambiarEstado(usuarioId, compraId, accion) {
     const usuario = await this.buscarUsuario(usuarioId);
-    const compra = await this.compraRepository.findById(compraId);
-    if (!compra) {
-      throw new NotFoundError("La compra no existe");
-    }
+    const compra = await this.buscarCompra(compraId);
 
     const ahora = this.ahora();
     accion(compra, usuario, ahora);
 
     const guardada = await this.compraRepository.save(compra);
     return this.toCompraResponse(guardada, ahora);
+  }
+
+  // Solo el comprador y el organizador del evento pueden leer el chat de la compra.
+  async leerMensajes(usuarioId, compraId) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    const compra = await this.buscarCompra(compraId);
+    if (!compra.esParticipante(usuario)) {
+      throw new ForbiddenError("Solo el comprador y el organizador del evento pueden ver este chat");
+    }
+
+    return compra.mensajes.map((mensaje) => this.toMensajeResponse(compra, mensaje));
+  }
+
+  // El dominio decide quién puede escribir (403) y que el texto no esté vacío (400).
+  async enviarMensaje(usuarioId, compraId, texto) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    const compra = await this.buscarCompra(compraId);
+
+    const mensaje = compra.agregarMensaje(usuario, texto, this.ahora());
+    await this.compraRepository.save(compra);
+
+    return this.toMensajeResponse(compra, mensaje);
   }
 
   async listarDelComprador(usuarioId) {
@@ -117,6 +137,30 @@ export class CompraService {
       throw new UnauthorizedError("La sesión ya no es válida, iniciá sesión de nuevo");
     }
     return usuario;
+  }
+
+  async buscarCompra(compraId) {
+    const compra = await this.compraRepository.findById(compraId);
+    if (!compra) {
+      throw new NotFoundError("La compra no existe");
+    }
+    return compra;
+  }
+
+  // El rol es el que tiene en esta compra (comprador u organizador del evento), no sus roles de usuario.
+  // Nunca expone el email ni el hash del autor.
+  toMensajeResponse(compra, mensaje) {
+    const autor = mensaje.usuario;
+    return {
+      autor: {
+        id: autor.id,
+        nombre: autor.nombre,
+        apellido: autor.apellido,
+        rol: compra.comprador.esElMismo(autor) ? rolUsuario.COMPRADOR : rolUsuario.ORGANIZADOR,
+      },
+      mensaje: mensaje.mensaje,
+      enviado: mensaje.enviado.toISOString(),
+    };
   }
 
   toCompraResponse(compra, ahora) {
