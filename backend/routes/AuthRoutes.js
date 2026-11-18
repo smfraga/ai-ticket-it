@@ -14,8 +14,14 @@ const limitarLoginsFallidos = limitarIntentos({
   soloFallidos: true,
 });
 
-router.post("/registro", validate(registroValidation), authController.registro);
+router
+  .route("/registro")
+  .post(validate(registroValidation), (req, res, next) => authController.registro(req, res, next));
 
-router.post("/login", limitarLoginsFallidos, validate(loginValidation), authController.login);
+router
+  .route("/login")
+  .post(limitarLoginsFallidos, validate(loginValidation), (req, res, next) =>
+    authController.login(req, res, next),
+  );
 
 export default router;
