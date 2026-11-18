@@ -41,6 +41,33 @@ export class CompraService {
     return this.toCompraResponse(guardada, ahora);
   }
 
+  // El comprador cancela su compra: si estaba CONFIRMADA se reembolsa enseguida (reembolso simulado).
+  async cancelar(usuarioId, compraId) {
+    return this.cambiarEstado(usuarioId, compraId, (compra, usuario, ahora) => compra.cancelar(usuario, ahora));
+  }
+
+  // El organizador del evento la marca como utilizada, por ejemplo al dejar entrar al comprador.
+  async utilizar(usuarioId, compraId) {
+    return this.cambiarEstado(usuarioId, compraId, (compra, usuario, ahora) =>
+      compra.marcarUtilizada(usuario, ahora),
+    );
+  }
+
+  // Las reglas (quién puede, desde qué estado, cupo) las decide el dominio; acá solo se busca y se guarda.
+  async cambiarEstado(usuarioId, compraId, accion) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    const compra = await this.compraRepository.findById(compraId);
+    if (!compra) {
+      throw new NotFoundError("La compra no existe");
+    }
+
+    const ahora = this.ahora();
+    accion(compra, usuario, ahora);
+
+    const guardada = await this.compraRepository.save(compra);
+    return this.toCompraResponse(guardada, ahora);
+  }
+
   async listarDelComprador(usuarioId) {
     const comprador = await this.buscarUsuario(usuarioId);
     const ahora = this.ahora();

@@ -9,6 +9,7 @@ import {
   crearCompra,
   crearCompraEn,
   crearEvento,
+  crearOrganizador,
   crearTipoEntrada,
   crearUsuario,
   enDias,
@@ -276,6 +277,57 @@ describe("Compra", () => {
         "Solo el comprador puede cancelar la compra",
       );
       expect(compra.estado).toBe(CONFIRMADA);
+    });
+  });
+
+  describe("marcarUtilizada", () => {
+    it("el organizador pasa una compra CONFIRMADA a UTILIZADA y queda en el historial", () => {
+      const compra = crearCompraEn(CONFIRMADA);
+      const organizador = compra.evento.organizador;
+
+      compra.marcarUtilizada(organizador, AHORA);
+
+      expect(compra.estado).toBe(UTILIZADA);
+      const ultimo = compra.historial.at(-1);
+      expect(ultimo.estado).toBe(UTILIZADA);
+      expect(ultimo.quien).toBe(organizador);
+    });
+
+    it("sigue ocupando cupo", () => {
+      const compra = crearCompraEn(CONFIRMADA, { cantidad: 2 });
+
+      compra.marcarUtilizada(compra.evento.organizador, AHORA);
+
+      expect(compra.tipoEntrada.vendidas).toBe(2);
+    });
+
+    it("lanza ForbiddenError si la marca el comprador", () => {
+      const compra = crearCompraEn(CONFIRMADA);
+
+      expect(() => compra.marcarUtilizada(compra.comprador, AHORA)).toThrow(ForbiddenError);
+      expect(() => compra.marcarUtilizada(compra.comprador, AHORA)).toThrow(
+        "Solo el organizador del evento puede marcar la compra como utilizada",
+      );
+      expect(compra.estado).toBe(CONFIRMADA);
+    });
+
+    it("lanza ForbiddenError si la marca el organizador de otro evento", () => {
+      const compra = crearCompraEn(CONFIRMADA);
+
+      expect(() => compra.marcarUtilizada(crearOrganizador(), AHORA)).toThrow(ForbiddenError);
+      expect(compra.estado).toBe(CONFIRMADA);
+    });
+
+    it.each([
+      ["PENDIENTE", PENDIENTE],
+      ["CANCELADA", CANCELADA],
+      ["REEMBOLSADA", REEMBOLSADA],
+      ["UTILIZADA", UTILIZADA],
+    ])("lanza ConflictError si la compra está %s", (_, estado) => {
+      const compra = crearCompraEn(estado);
+
+      expect(() => compra.marcarUtilizada(compra.evento.organizador, AHORA)).toThrow(ConflictError);
+      expect(compra.estado).toBe(estado);
     });
   });
 

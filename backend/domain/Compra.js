@@ -105,6 +105,14 @@ export class Compra {
     }
   }
 
+  // El organizador la marca al dejar entrar al comprador; solo se usa una compra confirmada.
+  marcarUtilizada(quien, ahora = new Date()) {
+    if (!this.evento.esOrganizador(quien)) {
+      throw new ForbiddenError("Solo el organizador del evento puede marcar la compra como utilizada");
+    }
+    this.actualizarEstado(estadoCompra.UTILIZADA, quien, ahora);
+  }
+
   // Días que faltan para el evento, solo para compras confirmadas.
   diasRestantes(ahora = new Date()) {
     if (!this.estaConfirmada()) return null;
