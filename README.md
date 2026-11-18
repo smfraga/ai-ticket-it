@@ -10,7 +10,18 @@ El repositorio tiene dos paquetes independientes, cada uno con su propio `packag
 .
 ├── backend/            # API REST con Node.js + Express
 │   ├── app.js          # Configuración de la app Express (sin levantar el servidor)
-│   ├── server.js       # Punto de entrada: levanta el servidor HTTP
+│   ├── server.js       # Punto de entrada: carga el seed y levanta el servidor HTTP
+│   ├── routes/         # Rutas → controllers → services → dominio y repositorios
+│   ├── controllers/
+│   ├── services/
+│   ├── domain/         # Entidades y reglas de negocio
+│   ├── repositories/   # Persistencia en memoria
+│   ├── middlewares/    # Autenticación, validación, límite de intentos, errores
+│   ├── validations/    # Esquemas Zod de las requests
+│   ├── errors/         # ValidationError, NotFoundError, ConflictError, etc.
+│   ├── seeds/          # Datos iniciales
+│   ├── test/
+│   ├── .env.example    # Ejemplo de variables de entorno
 │   └── package.json
 ├── frontend/           # App móvil con React Native + Expo
 │   ├── App.js          # Componente raíz
@@ -28,6 +39,10 @@ Construido con Express 5. Dependencias principales:
 
 - **`express`**: framework web para construir la API.
 - **`cors`**: habilita CORS, necesario para que la app móvil y el navegador puedan llamar a la API desde otro origen.
+- **`jsonwebtoken`**: firma y verifica los tokens de sesión (JWT).
+- **`bcryptjs`**: guarda las contraseñas como hash, nunca en texto plano.
+- **`zod`**: valida el cuerpo de las requests.
+- **`dotenv`**: carga las variables de entorno desde el archivo `.env`.
 
 Para tests se usan **`jest`** y **`supertest`** (requests HTTP sobre la app, sin levantar el servidor). Para desarrollo, **`nodemon`** reinicia el servidor al guardar cambios.
 
@@ -51,13 +66,23 @@ cd backend
 npm install
 ```
 
-Variable de entorno disponible:
+Crear el archivo `.env` a partir del ejemplo. El `.env` no se sube al repositorio.
 
-| Variable | Ejemplo | Descripción                                        |
-|----------|---------|----------------------------------------------------|
-| `PORT`   | `3000`  | Puerto del servidor (opcional, por defecto `3000`) |
+```bash
+cp .env.example .env
+```
 
-Por ahora el servidor la lee desde el entorno de la terminal, no desde un archivo `.env`. Por ejemplo, en Git Bash o Linux: `PORT=3001 npm start`. En PowerShell: `$env:PORT=3001; npm start`.
+| Variable         | Ejemplo        | Descripción                                                                              |
+|------------------|----------------|------------------------------------------------------------------------------------------|
+| `PORT`           | `3000`         | Puerto del servidor (opcional, por defecto `3000`)                                       |
+| `JWT_SECRET`     | (cadena larga) | Clave para firmar los tokens de sesión. **Obligatoria**: sin ella el backend no arranca |
+| `JWT_EXPIRES_IN` | `1h`           | Duración del token (opcional, por defecto `1h`)                                          |
+
+Para generar un `JWT_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
 
 Para levantar el servidor:
 
@@ -73,6 +98,38 @@ curl http://localhost:3000/health
 ```
 
 Debe devolver `{"status":"ok"}`.
+
+#### Autenticación
+
+La API usa tokens JWT. Un usuario puede ser **comprador**, **organizador** o ambos (`roles`). Con el token de la respuesta, las rutas protegidas se llaman con el header `Authorization: Bearer <token>`.
+
+| Método y ruta         | Descripción                                                              |
+|-----------------------|--------------------------------------------------------------------------|
+| `POST /auth/registro` | Crea un usuario y devuelve la sesión (`201`). Email repetido: `409`      |
+| `POST /auth/login`    | Devuelve la sesión (`200`). Credenciales inválidas: `401`                |
+
+Después de 10 logins fallidos desde la misma IP en 15 minutos, el login responde `429` con el header `Retry-After` hasta que pase ese tiempo.
+
+```bash
+curl -X POST http://localhost:3000/auth/login -H "Content-Type: application/json" \
+  -d '{"email":"carla@example.com","password":"Demo1234!"}'
+```
+
+```bash
+curl -X POST http://localhost:3000/auth/registro -H "Content-Type: application/json" \
+  -d '{"nombre":"Ana","apellido":"Pérez","email":"ana@example.com","password":"una-clave-larga","roles":["COMPRADOR"]}'
+```
+
+#### Datos iniciales (seed)
+
+Cada vez que arranca el servidor se cargan datos de prueba en memoria. Por ahora, los usuarios (todos con la contraseña **`Demo1234!`**):
+
+| Email                 | Roles       |
+|-----------------------|-------------|
+| `olivia@example.com`  | Organizador |
+| `octavio@example.com` | Organizador |
+| `carla@example.com`   | Comprador   |
+| `camilo@example.com`  | Comprador   |
 
 Para correr los tests:
 
