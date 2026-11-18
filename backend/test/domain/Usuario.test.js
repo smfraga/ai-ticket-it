@@ -1,8 +1,8 @@
 import { describe, expect, it } from "@jest/globals";
 import { rolUsuario } from "../../domain/RolUsuario.js";
 import { Usuario } from "../../domain/Usuario.js";
-import { ValidationError } from "../../errors/AppError.js";
-import { HASH, crearUsuario } from "../helpers/domainFactories.js";
+import { ForbiddenError, ValidationError } from "../../errors/AppError.js";
+import { HASH, crearEvento, crearUsuario } from "../helpers/domainFactories.js";
 
 const { COMPRADOR, ORGANIZADOR } = rolUsuario;
 
@@ -61,6 +61,118 @@ describe("Usuario", () => {
   ])("lanza ValidationError %s", (_, cambios, mensaje) => {
     expect(() => usuarioCon(cambios)).toThrow(ValidationError);
     expect(() => usuarioCon(cambios)).toThrow(mensaje);
+  });
+
+  describe("favoritos", () => {
+    const eventoCon = (id) => Object.assign(crearEvento(), { id });
+
+    it("agregarFavorito guarda el evento y devuelve true", () => {
+      const comprador = usuarioCon();
+      const evento = eventoCon("e1");
+
+      expect(comprador.agregarFavorito(evento)).toBe(true);
+
+      expect(comprador.favoritos).toEqual([evento]);
+      expect(comprador.esFavorito(evento)).toBe(true);
+    });
+
+    it("agregar un evento que ya era favorito devuelve false y no lo duplica", () => {
+      const comprador = usuarioCon();
+      comprador.agregarFavorito(eventoCon("e1"));
+
+      expect(comprador.agregarFavorito(eventoCon("e1"))).toBe(false);
+
+      expect(comprador.favoritos).toHaveLength(1);
+    });
+
+    it("compara los eventos por id, y por referencia si todavía no tienen", () => {
+      const comprador = usuarioCon();
+      const sinId = crearEvento();
+      const otroSinId = crearEvento();
+
+      comprador.agregarFavorito(sinId);
+
+      expect(comprador.esFavorito(sinId)).toBe(true);
+      expect(comprador.esFavorito(otroSinId)).toBe(false);
+    });
+
+    it("quitarFavorito saca solo ese evento y devuelve true", () => {
+      const comprador = usuarioCon();
+      const uno = eventoCon("e1");
+      const dos = eventoCon("e2");
+      comprador.agregarFavorito(uno);
+      comprador.agregarFavorito(dos);
+
+      expect(comprador.quitarFavorito(uno)).toBe(true);
+
+      expect(comprador.favoritos).toEqual([dos]);
+      expect(comprador.esFavorito(uno)).toBe(false);
+    });
+
+    it("quitar un evento que no era favorito devuelve false y no cambia nada", () => {
+      const comprador = usuarioCon();
+      comprador.agregarFavorito(eventoCon("e1"));
+
+      expect(comprador.quitarFavorito(eventoCon("e2"))).toBe(false);
+
+      expect(comprador.favoritos).toHaveLength(1);
+    });
+
+    it("listarFavoritos devuelve el último guardado primero, en una copia", () => {
+      const comprador = usuarioCon();
+      const uno = eventoCon("e1");
+      const dos = eventoCon("e2");
+      const tres = eventoCon("e3");
+      [uno, dos, tres].forEach((evento) => comprador.agregarFavorito(evento));
+
+      const lista = comprador.listarFavoritos();
+
+      expect(lista).toEqual([tres, dos, uno]);
+      lista.pop();
+      expect(comprador.favoritos).toHaveLength(3);
+    });
+
+    it("un comprador sin favoritos devuelve una lista vacía", () => {
+      expect(usuarioCon().listarFavoritos()).toEqual([]);
+    });
+
+    it("cada usuario tiene su propia lista", () => {
+      const carla = usuarioCon();
+      const camilo = usuarioCon({ email: "camilo@example.com" });
+
+      carla.agregarFavorito(eventoCon("e1"));
+
+      expect(camilo.favoritos).toEqual([]);
+    });
+
+    it("lanza ForbiddenError si el usuario no es comprador, en las tres operaciones", () => {
+      const organizador = usuarioCon({ roles: [ORGANIZADOR] });
+      const evento = eventoCon("e1");
+
+      expect(() => organizador.agregarFavorito(evento)).toThrow(ForbiddenError);
+      expect(() => organizador.agregarFavorito(evento)).toThrow(
+        "Solo un comprador puede guardar eventos favoritos",
+      );
+      expect(() => organizador.quitarFavorito(evento)).toThrow(ForbiddenError);
+      expect(() => organizador.listarFavoritos()).toThrow(ForbiddenError);
+      expect(organizador.favoritos).toEqual([]);
+    });
+
+    it("un usuario que es comprador y organizador a la vez puede guardar favoritos", () => {
+      const ambos = usuarioCon({ roles: [COMPRADOR, ORGANIZADOR] });
+
+      expect(ambos.agregarFavorito(eventoCon("e1"))).toBe(true);
+    });
+
+    it("lanza ValidationError si no se indica el evento", () => {
+      const comprador = usuarioCon();
+
+      expect(() => comprador.agregarFavorito(null)).toThrow(ValidationError);
+      expect(() => comprador.agregarFavorito(undefined)).toThrow(
+        "Hay que indicar el evento a guardar como favorito",
+      );
+      expect(comprador.favoritos).toEqual([]);
+    });
   });
 
   describe("esElMismo", () => {
