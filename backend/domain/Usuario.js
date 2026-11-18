@@ -1,7 +1,14 @@
-import { ValidationError } from "../errors/AppError.js";
+import { ForbiddenError, ValidationError } from "../errors/AppError.js";
 import { rolUsuario } from "./RolUsuario.js";
 
 const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Dos eventos son el mismo si tienen el mismo id; si todavía no tienen, si son el mismo objeto.
+function mismoEvento(uno, otro) {
+  if (!uno || !otro) return false;
+  if (uno.id != null && otro.id != null) return uno.id === otro.id;
+  return uno === otro;
+}
 
 export class Usuario {
   id
@@ -51,6 +58,43 @@ export class Usuario {
 
   tieneRol(rol) {
     return this.roles.includes(rol);
+  }
+
+  // Guarda un evento entre los favoritos del comprador. Devuelve true si lo agregó y false si ya estaba:
+  // guardar dos veces el mismo evento no es un error, solo no cambia nada.
+  agregarFavorito(evento) {
+    this.#exigirSerComprador();
+    if (!evento) {
+      throw new ValidationError("Hay que indicar el evento a guardar como favorito");
+    }
+    if (this.esFavorito(evento)) return false;
+    this.favoritos.push(evento);
+    return true;
+  }
+
+  // Quita un evento de los favoritos. Devuelve true si lo quitó y false si no estaba.
+  quitarFavorito(evento) {
+    this.#exigirSerComprador();
+    const posicion = this.favoritos.findIndex((favorito) => mismoEvento(favorito, evento));
+    if (posicion === -1) return false;
+    this.favoritos.splice(posicion, 1);
+    return true;
+  }
+
+  esFavorito(evento) {
+    return this.favoritos.some((favorito) => mismoEvento(favorito, evento));
+  }
+
+  // Una copia con el último guardado primero (así no se puede modificar la lista desde afuera).
+  listarFavoritos() {
+    this.#exigirSerComprador();
+    return [...this.favoritos].reverse();
+  }
+
+  #exigirSerComprador() {
+    if (!this.tieneRol(rolUsuario.COMPRADOR)) {
+      throw new ForbiddenError("Solo un comprador puede guardar eventos favoritos");
+    }
   }
 
   // Compara por id cuando ambos ya están guardados; si no, por referencia.
