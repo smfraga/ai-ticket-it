@@ -142,6 +142,16 @@ Parámetros de `GET /eventos` (todos opcionales):
 | `orden`        | `fecha` (por defecto), `precio`, `puntaje`     | `precio` usa la entrada más barata del evento; `puntaje` es el promedio de reseñas del organizador            |
 | `direccion`    | `asc`, `desc`                                  | Por defecto `asc`, salvo `puntaje` que es `desc`. Los organizadores sin reseñas quedan al final               |
 
+#### Compras
+
+Todas piden token. Comprar exige el rol de comprador; ver las compras de un evento, ser su organizador.
+
+| Método y ruta                | Descripción                                                                                                                       |
+|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `POST /eventos/:id/compras`  | Compra entradas. Body: `{ "tipoEntradaId": "<id>", "cantidad": 2 }`. La compra nace `PENDIENTE` y se confirma en el mismo request (pago simulado): `201` con estado `CONFIRMADA`. `400` datos inválidos, `403` sin rol de comprador, `404` evento o tipo inexistente, `409` evento ya realizado o cantidad mayor al cupo |
+| `GET /compras`               | Las compras del usuario logueado, las más recientes primero, con su estado y los `diasRestantes` (solo si está `CONFIRMADA`, si no `null`) |
+| `GET /eventos/:id/compras`   | Las compras de un evento con su estado y comprador (nombre y apellido), y el cupo restante de cada tipo de entrada. Solo el organizador del evento: otro usuario recibe `403` |
+
 ```bash
 
 
@@ -158,7 +168,7 @@ Usuarios (todos con la contraseña **`Demo1234!`**):
 | `carla@example.com`   | Comprador   |
 | `camilo@example.com`  | Comprador   |
 
-Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales.
+Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 7 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA`.
 
 Para correr los tests:
 

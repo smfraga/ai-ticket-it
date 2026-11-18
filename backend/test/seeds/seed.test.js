@@ -111,16 +111,67 @@ describe("cargarSeed", () => {
       });
     });
 
-    it("los eventos próximos tienen todo el cupo disponible", () => {
-      eventos
-        .filter((e) => !e.yaPaso(AHORA))
-        .forEach((evento) => evento.tiposEntrada.forEach((tipo) => expect(tipo.vendidas).toBe(0)));
+  });
+
+  describe("compras de los eventos próximos", () => {
+    const proximas = () => [...repos.compras.compras.values()].filter((c) => !c.evento.yaPaso(AHORA));
+
+    it("carga 7 compras que cubren todos los estados salvo UTILIZADA", () => {
+      expect(proximas()).toHaveLength(7);
+      expect(new Set(proximas().map((c) => c.estado))).toEqual(
+        new Set([
+          estadoCompra.PENDIENTE,
+          estadoCompra.CONFIRMADA,
+          estadoCompra.CANCELADA,
+          estadoCompra.REEMBOLSADA,
+        ]),
+      );
+    });
+
+    it("el historial de cada una termina en su estado y respeta las transiciones", () => {
+      const historialDe = (estado) =>
+        proximas()
+          .find((c) => c.estado === estado)
+          .historial.map((cambio) => cambio.estado);
+
+      expect(historialDe(estadoCompra.PENDIENTE)).toEqual([estadoCompra.PENDIENTE]);
+      expect(historialDe(estadoCompra.CONFIRMADA)).toEqual([estadoCompra.PENDIENTE, estadoCompra.CONFIRMADA]);
+      expect(historialDe(estadoCompra.CANCELADA)).toEqual([estadoCompra.PENDIENTE, estadoCompra.CANCELADA]);
+      expect(historialDe(estadoCompra.REEMBOLSADA)).toEqual([
+        estadoCompra.PENDIENTE,
+        estadoCompra.CONFIRMADA,
+        estadoCompra.CANCELADA,
+        estadoCompra.REEMBOLSADA,
+      ]);
+    });
+
+    it("las compras se hicieron antes de hoy", () => {
+      proximas().forEach((compra) => expect(compra.historial[0].fechaHora.getTime()).toBeLessThan(AHORA.getTime()));
+    });
+
+    it("ocupan cupo las PENDIENTE y CONFIRMADA, y las CANCELADA y REEMBOLSADA lo liberaron", () => {
+      const vendidas = (compra) => compra.tipoEntrada.vendidas;
+      const canceladas = proximas().filter((c) =>
+        [estadoCompra.CANCELADA, estadoCompra.REEMBOLSADA].includes(c.estado),
+      );
+
+      expect(canceladas).toHaveLength(2);
+      canceladas.forEach((compra) => expect(vendidas(compra)).toBe(0));
+    });
+
+    it("hay compras de los dos compradores y en eventos de los dos organizadores", () => {
+      expect(new Set(proximas().map((c) => c.comprador.email))).toEqual(
+        new Set(["carla@example.com", "camilo@example.com"]),
+      );
+      expect(new Set(proximas().map((c) => c.evento.organizador.email))).toEqual(
+        new Set(["olivia@example.com", "octavio@example.com"]),
+      );
     });
   });
 
   describe("compras y reseñas de los eventos ya realizados", () => {
-    it("carga 6 compras, todas UTILIZADAS, con su historial completo", () => {
-      const compras = [...repos.compras.compras.values()];
+    it("carga 6 compras UTILIZADAS, con su historial completo", () => {
+      const compras = [...repos.compras.compras.values()].filter((c) => c.evento.yaPaso(AHORA));
 
       expect(compras).toHaveLength(6);
       compras.forEach((compra) => {
@@ -135,7 +186,7 @@ describe("cargarSeed", () => {
     });
 
     it("carga una reseña por compra, hecha por el comprador", () => {
-      const compras = [...repos.compras.compras.values()];
+      const compras = [...repos.compras.compras.values()].filter((c) => c.evento.yaPaso(AHORA));
       const resenias = [...repos.resenias.resenias.values()];
 
       expect(resenias).toHaveLength(6);
@@ -143,13 +194,14 @@ describe("cargarSeed", () => {
       resenias.forEach((resenia) => expect(resenia.comprador).toBe(resenia.compra.comprador));
     });
 
-    it("los cupos vendidos coinciden con las cantidades de las compras", () => {
+    it("los cupos vendidos coinciden con las cantidades de las compras que ocupan lugar", () => {
       const compras = [...repos.compras.compras.values()];
+      const ocupan = [estadoCompra.PENDIENTE, estadoCompra.CONFIRMADA, estadoCompra.UTILIZADA];
 
       eventos.forEach((evento) =>
         evento.tiposEntrada.forEach((tipo) => {
           const esperado = compras
-            .filter((compra) => compra.tipoEntrada === tipo)
+            .filter((compra) => compra.tipoEntrada === tipo && ocupan.includes(compra.estado))
             .reduce((total, compra) => total + compra.cantidad, 0);
           expect(tipo.vendidas).toBe(esperado);
         }),
