@@ -144,7 +144,7 @@ Parámetros de `GET /eventos` (todos opcionales):
 
 #### Compras
 
-Todas piden token. Comprar exige el rol de comprador; ver las compras de un evento o marcarlas como utilizadas, ser su organizador; cancelar, ser el comprador de esa compra. Estados: `PENDIENTE`, `CONFIRMADA`, `UTILIZADA`, `CANCELADA` y `REEMBOLSADA`.
+Todas piden token. Comprar exige el rol de comprador; ver las compras de un evento o marcarlas como utilizadas, ser su organizador; cancelar, ser el comprador de esa compra; leer y escribir en el chat, ser el comprador o el organizador de esa compra. Estados: `PENDIENTE`, `CONFIRMADA`, `UTILIZADA`, `CANCELADA` y `REEMBOLSADA`.
 
 | Método y ruta                | Descripción                                                                                                                       |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
@@ -153,6 +153,8 @@ Todas piden token. Comprar exige el rol de comprador; ver las compras de un even
 | `GET /eventos/:id/compras`   | Las compras de un evento con su estado y comprador (nombre y apellido), y el cupo restante de cada tipo de entrada. Solo el organizador del evento: otro usuario recibe `403` |
 | `POST /compras/:id/cancelar` | El comprador cancela su compra (`200` con la compra actualizada). Una `PENDIENTE` queda `CANCELADA`; una `CONFIRMADA` queda `REEMBOLSADA` (reembolso simulado). En los dos casos las entradas vuelven al cupo. `403` si no es el comprador, `404` compra inexistente, `409` si está `UTILIZADA`, ya cancelada o el evento ya se realizó |
 | `POST /compras/:id/utilizar` | El organizador del evento marca la compra como `UTILIZADA` (`200`), por ejemplo al dejar entrar al comprador. Solo desde `CONFIRMADA`: `409` en cualquier otro estado. `403` si no es el organizador de ese evento, `404` compra inexistente |
+| `GET /compras/:id/mensajes`  | El chat de la compra, del más viejo al más nuevo. Cada mensaje trae `autor` (`id`, `nombre`, `apellido` y su `rol` en esa compra: `COMPRADOR` u `ORGANIZADOR`), `mensaje` y `enviado`. Solo el comprador y el organizador del evento: otro usuario recibe `403` |
+| `POST /compras/:id/mensajes` | Escribe en el chat. Body: `{ "mensaje": "texto" }`, de 1 a 500 caracteres (se recortan los espacios de los bordes). `201` con el mensaje. `400` texto vacío o demasiado largo, `403` si no participa, `404` compra inexistente. Se puede escribir en cualquier estado de la compra |
 
 ```bash
 
@@ -170,7 +172,7 @@ Usuarios (todos con la contraseña **`Demo1234!`**):
 | `carla@example.com`   | Comprador   |
 | `camilo@example.com`  | Comprador   |
 
-Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 7 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA`.
+Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 7 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA`, y dos de ellas tienen chat: la compra de Carla en el recital de rock (4 mensajes con Olivia) y la `PENDIENTE` de Camilo en el stand up (1 mensaje).
 
 Para correr los tests:
 
