@@ -49,6 +49,7 @@ describe("CompraService", () => {
         compra.id ??= "compra-nueva";
         return compra;
       }),
+      findById: jest.fn().mockResolvedValue(null),
       findByCompradorId: jest.fn().mockResolvedValue([]),
       findByEventoId: jest.fn().mockResolvedValue([]),
     };
@@ -142,6 +143,121 @@ describe("CompraService", () => {
       await expect(
         service.comprar("fantasma", "evento-1", { tipoEntradaId: "t-general", cantidad: 1 }),
       ).rejects.toBeInstanceOf(UnauthorizedError);
+    });
+  });
+
+  describe("cancelar", () => {
+    const guardarCompra = (estado) => {
+      const compra = Object.assign(crearCompraEn(estado, { comprador: carla, evento }), { id: "c1" });
+      compraRepository.findById.mockImplementation(async (id) => (id === "c1" ? compra : null));
+      return compra;
+    };
+
+    it("una compra CONFIRMADA queda REEMBOLSADA, libera el cupo y se guarda", async () => {
+      const compra = guardarCompra(estadoCompra.CONFIRMADA);
+
+      const respuesta = await service.cancelar("carla", "c1");
+
+      expect(respuesta.estado).toBe(estadoCompra.REEMBOLSADA);
+      expect(respuesta.diasRestantes).toBeNull();
+      expect(respuesta.historial.map((c) => c.estado)).toEqual([
+        estadoCompra.PENDIENTE,
+        estadoCompra.CONFIRMADA,
+        estadoCompra.CANCELADA,
+        estadoCompra.REEMBOLSADA,
+      ]);
+      expect(general.disponibles()).toBe(5);
+      expect(compraRepository.save).toHaveBeenCalledWith(compra);
+    });
+
+    it("una compra PENDIENTE queda CANCELADA", async () => {
+      guardarCompra(estadoCompra.PENDIENTE);
+
+      const respuesta = await service.cancelar("carla", "c1");
+
+      expect(respuesta.estado).toBe(estadoCompra.CANCELADA);
+    });
+
+    it("403 si la cancela otro comprador o el organizador, sin guardar", async () => {
+      const compra = guardarCompra(estadoCompra.CONFIRMADA);
+
+      await expect(service.cancelar("camilo", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(service.cancelar("olivia", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+      expect(compra.estado).toBe(estadoCompra.CONFIRMADA);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("409 si la compra está UTILIZADA", async () => {
+      guardarCompra(estadoCompra.UTILIZADA);
+
+      await expect(service.cancelar("carla", "c1")).rejects.toBeInstanceOf(ConflictError);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("409 si el evento ya pasó", async () => {
+      guardarCompra(estadoCompra.CONFIRMADA);
+      evento.fecha = enDias(-1);
+
+      await expect(service.cancelar("carla", "c1")).rejects.toBeInstanceOf(ConflictError);
+    });
+
+    it("409 si ya estaba cancelada", async () => {
+      guardarCompra(estadoCompra.CANCELADA);
+
+      await expect(service.cancelar("carla", "c1")).rejects.toBeInstanceOf(ConflictError);
+    });
+
+    it("404 si la compra no existe", async () => {
+      await expect(service.cancelar("carla", "otra")).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it("401 si el usuario del token ya no existe", async () => {
+      await expect(service.cancelar("fantasma", "c1")).rejects.toBeInstanceOf(UnauthorizedError);
+    });
+  });
+
+  describe("utilizar", () => {
+    const guardarCompra = (estado) => {
+      const compra = Object.assign(crearCompraEn(estado, { comprador: carla, evento }), { id: "c1" });
+      compraRepository.findById.mockImplementation(async (id) => (id === "c1" ? compra : null));
+      return compra;
+    };
+
+    it("el organizador pasa una compra CONFIRMADA a UTILIZADA y se guarda", async () => {
+      const compra = guardarCompra(estadoCompra.CONFIRMADA);
+
+      const respuesta = await service.utilizar("olivia", "c1");
+
+      expect(respuesta.estado).toBe(estadoCompra.UTILIZADA);
+      expect(respuesta.historial.at(-1).quien.id).toBe("olivia");
+      expect(compraRepository.save).toHaveBeenCalledWith(compra);
+    });
+
+    it("403 si la marca el comprador o el organizador de otro evento, sin guardar", async () => {
+      const compra = guardarCompra(estadoCompra.CONFIRMADA);
+
+      await expect(service.utilizar("carla", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(service.utilizar("octavio", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+      expect(compra.estado).toBe(estadoCompra.CONFIRMADA);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it.each([estadoCompra.PENDIENTE, estadoCompra.CANCELADA, estadoCompra.UTILIZADA])(
+      "409 si la compra está %s",
+      async (estado) => {
+        guardarCompra(estado);
+
+        await expect(service.utilizar("olivia", "c1")).rejects.toBeInstanceOf(ConflictError);
+        expect(compraRepository.save).not.toHaveBeenCalled();
+      },
+    );
+
+    it("404 si la compra no existe", async () => {
+      await expect(service.utilizar("olivia", "otra")).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it("401 si el usuario del token ya no existe", async () => {
+      await expect(service.utilizar("fantasma", "c1")).rejects.toBeInstanceOf(UnauthorizedError);
     });
   });
 
