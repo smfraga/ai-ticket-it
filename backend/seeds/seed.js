@@ -127,6 +127,13 @@ const EVENTOS = [
   },
 ];
 
+// Eventos favoritos de los compradores, en el orden en que los guardaron: `comprador` es una posición en USUARIOS
+// y `eventos` posiciones en EVENTOS. Carla ve primero el festival de jazz (el último que guardó).
+const FAVORITOS = [
+  { comprador: 2, eventos: [0, 2] },
+  { comprador: 3, eventos: [1] },
+];
+
 // Compras de eventos ya realizados (por eso quedan UTILIZADAS), cada una con su reseña.
 // `evento` es una posición en EVENTOS, `tipo` una posición en sus tipos de entrada y `comprador` en USUARIOS.
 // Puntajes resultantes: Olivia (5, 4, 5 y 4) promedia 4.5 y Octavio (3 y 2) promedia 2.5.
@@ -220,6 +227,12 @@ export async function cargarSeed(
     );
     evento.id = idFijo("evento", i + 1);
     eventosCreados.push(await eventos.save(evento));
+  }
+
+  for (const { comprador, eventos: posiciones } of FAVORITOS) {
+    const usuario = usuariosCreados[comprador];
+    posiciones.forEach((posicion) => usuario.agregarFavorito(eventosCreados[posicion]));
+    await usuarios.save(usuario);
   }
 
   for (const datos of COMPRAS_CON_RESENIA) {

@@ -63,6 +63,34 @@ describe("cargarSeed", () => {
     });
   });
 
+  describe("favoritos", () => {
+    const favoritosDe = async (email) =>
+      (await repos.usuarios.findByEmail(email)).listarFavoritos().map((evento) => evento.nombre);
+
+    it("Carla tiene 2 favoritos, con el último guardado primero", async () => {
+      expect(await favoritosDe("carla@example.com")).toEqual([
+        "Festival de Jazz en el Parque",
+        "Rock en el Río de la Plata",
+      ]);
+    });
+
+    it("Camilo tiene 1 favorito", async () => {
+      expect(await favoritosDe("camilo@example.com")).toEqual(["Noche de Stand Up"]);
+    });
+
+    it("los organizadores no tienen favoritos", async () => {
+      for (const email of ["olivia@example.com", "octavio@example.com"]) {
+        expect((await repos.usuarios.findByEmail(email)).favoritos).toEqual([]);
+      }
+    });
+
+    it("los favoritos son los mismos eventos del repositorio, así que reflejan sus cupos", async () => {
+      const [primero] = (await repos.usuarios.findByEmail("camilo@example.com")).favoritos;
+
+      expect(primero).toBe(await repos.eventos.findById(primero.id));
+    });
+  });
+
   describe("categorías", () => {
     it("carga 5 categorías con nombre y descripción", () => {
       expect(categorias.map((c) => c.nombre)).toEqual([
