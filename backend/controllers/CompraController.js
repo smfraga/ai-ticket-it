@@ -40,6 +40,28 @@ export class CompraController extends BaseController {
     }
   }
 
+  async getMensajes(req, res, next) {
+    try {
+      const compraId = this.parsearId(req.params.id);
+      const mensajes = await this.compraService.leerMensajes(req.usuario.id, compraId);
+
+      return res.status(200).json(mensajes);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async enviarMensaje(req, res, next) {
+    try {
+      const compraId = this.parsearId(req.params.id);
+      const mensaje = await this.compraService.enviarMensaje(req.usuario.id, compraId, req.body.mensaje);
+
+      return res.status(201).json(mensaje);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async getMisCompras(req, res, next) {
     try {
       const compras = await this.compraService.listarDelComprador(req.usuario.id);

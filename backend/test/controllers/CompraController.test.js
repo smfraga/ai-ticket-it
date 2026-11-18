@@ -24,6 +24,8 @@ describe("CompraController", () => {
       comprar: jest.fn().mockResolvedValue({ id: "c1" }),
       cancelar: jest.fn().mockResolvedValue({ id: "c1", estado: "REEMBOLSADA" }),
       utilizar: jest.fn().mockResolvedValue({ id: "c1", estado: "UTILIZADA" }),
+      leerMensajes: jest.fn().mockResolvedValue([{ mensaje: "Hola" }]),
+      enviarMensaje: jest.fn().mockResolvedValue({ mensaje: "Hola" }),
       listarDelComprador: jest.fn().mockResolvedValue([{ id: "c1" }]),
       listarDeEvento: jest.fn().mockResolvedValue({ compras: [] }),
     };
@@ -95,6 +97,62 @@ describe("CompraController", () => {
       await controller[accion]({ usuario: { id: "carla" }, params: { id: EVENTO_ID } }, res, next);
 
       expect(next.mock.calls[0][0]).toBeInstanceOf(ConflictError);
+      expect(res.json).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getMensajes", () => {
+    it("lista los mensajes de la compra y responde 200", async () => {
+      await controller.getMensajes({ usuario: { id: "carla" }, params: { id: EVENTO_ID } }, res, next);
+
+      expect(service.leerMensajes).toHaveBeenCalledWith("carla", EVENTO_ID);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith([{ mensaje: "Hola" }]);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("400 si el id no es UUID, sin llamar al service", async () => {
+      await controller.getMensajes({ usuario: { id: "carla" }, params: { id: "abc" } }, res, next);
+
+      expect(next.mock.calls[0][0]).toBeInstanceOf(ValidationError);
+      expect(service.leerMensajes).not.toHaveBeenCalled();
+    });
+
+    it("pasa a next el 403 del service", async () => {
+      service.leerMensajes.mockRejectedValue(new ForbiddenError("no participa"));
+
+      await controller.getMensajes({ usuario: { id: "camilo" }, params: { id: EVENTO_ID } }, res, next);
+
+      expect(next.mock.calls[0][0]).toBeInstanceOf(ForbiddenError);
+      expect(res.json).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("enviarMensaje", () => {
+    const req = () => ({ usuario: { id: "carla" }, params: { id: EVENTO_ID }, body: { mensaje: "Hola" } });
+
+    it("pasa usuario, compra y texto al service y responde 201", async () => {
+      await controller.enviarMensaje(req(), res, next);
+
+      expect(service.enviarMensaje).toHaveBeenCalledWith("carla", EVENTO_ID, "Hola");
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith({ mensaje: "Hola" });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("400 si el id no es UUID, sin llamar al service", async () => {
+      await controller.enviarMensaje({ ...req(), params: { id: "abc" } }, res, next);
+
+      expect(next.mock.calls[0][0]).toBeInstanceOf(ValidationError);
+      expect(service.enviarMensaje).not.toHaveBeenCalled();
+    });
+
+    it("pasa a next el 403 del service", async () => {
+      service.enviarMensaje.mockRejectedValue(new ForbiddenError("no participa"));
+
+      await controller.enviarMensaje(req(), res, next);
+
+      expect(next.mock.calls[0][0]).toBeInstanceOf(ForbiddenError);
       expect(res.json).not.toHaveBeenCalled();
     });
   });
