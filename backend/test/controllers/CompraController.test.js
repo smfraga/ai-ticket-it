@@ -22,6 +22,8 @@ describe("CompraController", () => {
   beforeEach(() => {
     service = {
       comprar: jest.fn().mockResolvedValue({ id: "c1" }),
+      cancelar: jest.fn().mockResolvedValue({ id: "c1", estado: "REEMBOLSADA" }),
+      utilizar: jest.fn().mockResolvedValue({ id: "c1", estado: "UTILIZADA" }),
       listarDelComprador: jest.fn().mockResolvedValue([{ id: "c1" }]),
       listarDeEvento: jest.fn().mockResolvedValue({ compras: [] }),
     };
@@ -61,6 +63,36 @@ describe("CompraController", () => {
       service.comprar.mockRejectedValue(new ConflictError("sin cupo"));
 
       await controller.comprar(req(), res, next);
+
+      expect(next.mock.calls[0][0]).toBeInstanceOf(ConflictError);
+      expect(res.json).not.toHaveBeenCalled();
+    });
+  });
+
+  describe.each([
+    ["cancelar", "REEMBOLSADA"],
+    ["utilizar", "UTILIZADA"],
+  ])("%s", (accion, estado) => {
+    it("pasa usuario y compra al service y responde 200", async () => {
+      await controller[accion]({ usuario: { id: "carla" }, params: { id: EVENTO_ID } }, res, next);
+
+      expect(service[accion]).toHaveBeenCalledWith("carla", EVENTO_ID);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ id: "c1", estado });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it("400 si el id no es UUID, sin llamar al service", async () => {
+      await controller[accion]({ usuario: { id: "carla" }, params: { id: "abc" } }, res, next);
+
+      expect(next.mock.calls[0][0]).toBeInstanceOf(ValidationError);
+      expect(service[accion]).not.toHaveBeenCalled();
+    });
+
+    it("pasa a next el error del service (403 o 409)", async () => {
+      service[accion].mockRejectedValue(new ConflictError("estado inválido"));
+
+      await controller[accion]({ usuario: { id: "carla" }, params: { id: EVENTO_ID } }, res, next);
 
       expect(next.mock.calls[0][0]).toBeInstanceOf(ConflictError);
       expect(res.json).not.toHaveBeenCalled();
