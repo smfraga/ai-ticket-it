@@ -2,6 +2,7 @@ import { Categoria } from "../../domain/Categoria.js";
 import { Compra } from "../../domain/Compra.js";
 import { estadoCompra } from "../../domain/EstadoCompra.js";
 import { Evento } from "../../domain/Evento.js";
+import { Resenia } from "../../domain/Resenia.js";
 import { rolUsuario } from "../../domain/RolUsuario.js";
 import { TipoEntrada } from "../../domain/TipoEntrada.js";
 import { Usuario } from "../../domain/Usuario.js";
@@ -23,13 +24,16 @@ function unico(prefijo) {
 export const HASH = "$2b$12$hashDePrueba";
 
 export function crearUsuario(overrides = {}) {
-  return new Usuario(
+  const usuario = new Usuario(
     overrides.nombre ?? "Ana",
     overrides.apellido ?? "Pérez",
     overrides.email ?? `${unico("usuario")}@example.com`,
     overrides.passwordHash ?? HASH,
     overrides.roles ?? [rolUsuario.COMPRADOR],
   );
+  // El id lo asigna el repositorio al guardar; en los tests se puede fijar a mano.
+  if (overrides.id !== undefined) usuario.id = overrides.id;
+  return usuario;
 }
 
 export function crearComprador(overrides = {}) {
@@ -105,4 +109,16 @@ export function crearCompraEn(estado, overrides = {}) {
   };
   caminos[estado].forEach(([siguiente, quien]) => compra.actualizarEstado(siguiente, quien, AHORA));
   return compra;
+}
+
+// Reseña de una compra UTILIZADA (por defecto, 4 puntos del comprador).
+export function crearResenia(overrides = {}) {
+  const compra = overrides.compra ?? crearCompraEn(estadoCompra.UTILIZADA, overrides.compraOverrides);
+  return new Resenia(
+    compra,
+    overrides.autor ?? compra.comprador,
+    overrides.puntuacion ?? 4,
+    overrides.detalle ?? "Muy buen show",
+    overrides.fecha ?? AHORA,
+  );
 }
