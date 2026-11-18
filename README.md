@@ -156,6 +156,22 @@ Todas piden token. Comprar exige el rol de comprador; ver las compras de un even
 | `GET /compras/:id/mensajes`  | El chat de la compra, del más viejo al más nuevo. Cada mensaje trae `autor` (`id`, `nombre`, `apellido` y su `rol` en esa compra: `COMPRADOR` u `ORGANIZADOR`), `mensaje` y `enviado`. Solo el comprador y el organizador del evento: otro usuario recibe `403` |
 | `POST /compras/:id/mensajes` | Escribe en el chat. Body: `{ "mensaje": "texto" }`, de 1 a 500 caracteres (se recortan los espacios de los bordes). `201` con el mensaje. `400` texto vacío o demasiado largo, `403` si no participa, `404` compra inexistente. Se puede escribir en cualquier estado de la compra |
 
+#### Reseñas
+
+Reseñar exige token; ver las reseñas es público, como el catálogo. Solo se puede reseñar una compra `UTILIZADA`, una sola vez por compra y la reseña la hace su comprador.
+
+| Método y ruta                    | Descripción                                                                                                                                                      |
+|----------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `POST /compras/:id/resenia`      | Body: `{ "puntuacion": 5, "detalle": "comentario" }`, con puntuación entera de 1 a 5 y comentario obligatorio (sin límite de largo). `201` con la reseña. `400` datos inválidos, `401` sin token, `403` si no es el comprador de esa compra, `404` compra inexistente, `409` si la compra no está `UTILIZADA` o ya tiene una reseña |
+| `GET /eventos/:id/resenias`      | Las reseñas del evento, las más recientes primero, junto con el organizador y su puntaje. `404` si el evento no existe                                            |
+| `GET /organizadores/:id/resenias`| El organizador con su `puntaje` (promedio de las reseñas de todos sus eventos, con 1 decimal, o `null` si no tiene), su `cantidadResenias` y sus reseñas. `404` si el usuario no existe o no es organizador |
+
+Para probarlo con el seed: comprar un evento como comprador, marcar la compra con `POST /compras/:id/utilizar` como organizador de ese evento y reseñarla como comprador. El puntaje del organizador cambia en el momento.
+
+#### Registro de errores
+
+Cada error que llega al manejador global se escribe en la consola del servidor: los inesperados (`500`) con el stack y los del cliente (`4xx`) en una sola línea con el método, la ruta, el status y el mensaje. Nunca se registra el cuerpo de la request ni los headers, porque pueden traer contraseñas y tokens. En los tests el registro está silenciado.
+
 ```bash
 
 
