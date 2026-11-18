@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import express from "express";
 import request from "supertest";
+import { app } from "../../app.js";
 import { AppError, ConflictError, ForbiddenError, ValidationError } from "../../errors/AppError.js";
 import { errorHandler } from "../../middlewares/errorHandler.js";
 import { crearErrorLogger } from "../../middlewares/errorLogger.js";
@@ -97,6 +98,18 @@ describe("errorLogger", () => {
     errorLogger(new ValidationError("Datos inválidos"), req, {}, next);
 
     expect(logger.warn.mock.calls[0][0]).toMatch(/^\[\d{4}-\d{2}-\d{2}T[\d:.]+Z\]/);
+  });
+
+  describe("registro en app.js", () => {
+    // En los tests el logger real está silenciado, así que se comprueba el orden de la pila de middlewares:
+    // tiene que ir después de las rutas y antes del errorHandler, que es quien responde y corta la cadena.
+    it("está registrado después de notFoundHandler y antes de errorHandler", () => {
+      const capas = app.router.stack.map((capa) => capa.handle?.name);
+
+      expect(capas).toContain("errorLogger");
+      expect(capas.indexOf("errorLogger")).toBeGreaterThan(capas.indexOf("notFoundHandler"));
+      expect(capas.indexOf("errorLogger")).toBeLessThan(capas.indexOf("errorHandler"));
+    });
   });
 
   describe("junto con el errorHandler en una app de Express", () => {
