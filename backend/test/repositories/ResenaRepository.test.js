@@ -4,6 +4,7 @@ import {
   crearEvento,
   crearOrganizador,
   crearResenia,
+  enDias,
 } from "../helpers/domainFactories.js";
 
 function reseniaDeOrganizador(organizador, puntuacion = 4) {
@@ -60,6 +61,54 @@ describe("ResenaRepository", () => {
       await repositorio.save(reseniaDeOrganizador(crearOrganizador({ id: "olivia" })));
 
       expect(await repositorio.findByOrganizadorId("otro")).toEqual([]);
+    });
+
+    it("devuelve las más recientes primero", async () => {
+      const olivia = crearOrganizador({ id: "olivia" });
+      const vieja = await repositorio.save(reseniaDeOrganizador(olivia, 5));
+      vieja.fecha = enDias(-5);
+      const nueva = await repositorio.save(reseniaDeOrganizador(olivia, 3));
+      nueva.fecha = enDias(-1);
+
+      expect(await repositorio.findByOrganizadorId("olivia")).toEqual([nueva, vieja]);
+    });
+  });
+
+  describe("findByEventoId", () => {
+    it("devuelve solo las reseñas de ese evento, las más recientes primero", async () => {
+      const evento = crearEvento({ organizador: crearOrganizador({ id: "olivia" }) });
+      evento.id = "evento-1";
+      const otroEvento = crearEvento({ organizador: crearOrganizador({ id: "olivia" }) });
+      otroEvento.id = "evento-2";
+      const vieja = crearResenia({ compraOverrides: { evento } });
+      vieja.fecha = enDias(-5);
+      const nueva = crearResenia({ compraOverrides: { evento } });
+      nueva.fecha = enDias(-1);
+      await repositorio.save(vieja);
+      await repositorio.save(nueva);
+      await repositorio.save(crearResenia({ compraOverrides: { evento: otroEvento } }));
+
+      expect(await repositorio.findByEventoId("evento-1")).toEqual([nueva, vieja]);
+    });
+
+    it("devuelve una lista vacía si el evento no tiene reseñas", async () => {
+      expect(await repositorio.findByEventoId("sin-resenias")).toEqual([]);
+    });
+  });
+
+  describe("findByCompraId", () => {
+    it("devuelve la reseña de esa compra", async () => {
+      const resenia = await repositorio.save(crearResenia());
+      resenia.compra.id = "compra-1";
+      await repositorio.save(crearResenia());
+
+      expect(await repositorio.findByCompraId("compra-1")).toBe(resenia);
+    });
+
+    it("devuelve null si la compra no tiene reseña", async () => {
+      await repositorio.save(crearResenia());
+
+      expect(await repositorio.findByCompraId("sin-resenia")).toBeNull();
     });
   });
 });
