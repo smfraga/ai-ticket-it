@@ -16,7 +16,8 @@ import { hashearPassword } from "../services/AuthService.js";
 export const PASSWORD_DE_PRUEBA = "Demo1234!";
 
 const { COMPRADOR, ORGANIZADOR } = rolUsuario;
-const MS_POR_DIA = 24 * 60 * 60 * 1000;
+const MS_POR_HORA = 60 * 60 * 1000;
+const MS_POR_DIA = 24 * MS_POR_HORA;
 
 const sumarDias = (fecha, dias) => new Date(fecha.getTime() + dias * MS_POR_DIA);
 
@@ -141,11 +142,33 @@ const COMPRAS_CON_RESENIA = [
 // Compras de eventos próximos, para tener datos en todos los estados salvo UTILIZADA (que solo tiene sentido
 // después del evento). `diasAtras` es cuándo se hizo la compra, relativo a hoy, y `estado` el estado final:
 // PENDIENTE (sin pagar), CONFIRMADA, CANCELADA (se canceló sin pagar) o REEMBOLSADA (se pagó y se canceló).
+// `mensajes` (opcional) es el chat de la compra: [quién escribe, horas después de la compra, texto].
 const COMPRAS_PROXIMAS = [
-  { evento: 0, tipo: 0, comprador: 2, cantidad: 2, diasAtras: 6, estado: estadoCompra.CONFIRMADA },
+  {
+    evento: 0,
+    tipo: 0,
+    comprador: 2,
+    cantidad: 2,
+    diasAtras: 6,
+    estado: estadoCompra.CONFIRMADA,
+    mensajes: [
+      ["comprador", 2, "Hola, ¿a qué hora abren las puertas?"],
+      ["organizador", 5, "¡Hola, Carla! Abrimos a las 20 y la banda sale a las 22."],
+      ["comprador", 6, "Perfecto, gracias. ¿Se puede entrar con mochila chica?"],
+      ["organizador", 20, "Sí, hasta 30 cm de largo y pasa por el control de seguridad."],
+    ],
+  },
   { evento: 0, tipo: 2, comprador: 3, cantidad: 1, diasAtras: 3, estado: estadoCompra.CONFIRMADA },
   { evento: 1, tipo: 0, comprador: 2, cantidad: 4, diasAtras: 4, estado: estadoCompra.CONFIRMADA },
-  { evento: 1, tipo: 1, comprador: 3, cantidad: 1, diasAtras: 1, estado: estadoCompra.PENDIENTE },
+  {
+    evento: 1,
+    tipo: 1,
+    comprador: 3,
+    cantidad: 1,
+    diasAtras: 1,
+    estado: estadoCompra.PENDIENTE,
+    mensajes: [["comprador", 1, "Buenas, ¿la mesa preferencial incluye consumición?"]],
+  },
   { evento: 2, tipo: 0, comprador: 2, cantidad: 2, diasAtras: 8, estado: estadoCompra.CANCELADA },
   { evento: 3, tipo: 1, comprador: 3, cantidad: 1, diasAtras: 5, estado: estadoCompra.REEMBOLSADA },
   { evento: 4, tipo: 0, comprador: 2, cantidad: 3, diasAtras: 2, estado: estadoCompra.CONFIRMADA },
@@ -225,6 +248,10 @@ export async function cargarSeed(
     if (datos.estado === estadoCompra.CANCELADA || datos.estado === estadoCompra.REEMBOLSADA) {
       // Cancelar una compra confirmada la reembolsa enseguida; una pendiente solo queda cancelada.
       compra.cancelar(comprador, sumarDias(fechaDeCompra, 1));
+    }
+    for (const [quien, horas, texto] of datos.mensajes ?? []) {
+      const autor = quien === "comprador" ? comprador : evento.organizador;
+      compra.agregarMensaje(autor, texto, new Date(fechaDeCompra.getTime() + horas * MS_POR_HORA));
     }
     await compras.save(compra);
   }

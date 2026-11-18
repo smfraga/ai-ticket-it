@@ -159,6 +159,29 @@ describe("cargarSeed", () => {
       canceladas.forEach((compra) => expect(vendidas(compra)).toBe(0));
     });
 
+    it("dos compras tienen un chat entre el comprador y el organizador, en orden y ya enviado", () => {
+      const conChat = proximas().filter((c) => c.mensajes.length > 0);
+
+      expect(conChat.map((c) => c.mensajes.length).sort()).toEqual([1, 4]);
+      conChat.forEach((compra) => {
+        const fechas = compra.mensajes.map((m) => m.enviado.getTime());
+        expect(fechas).toEqual([...fechas].sort((a, b) => a - b));
+        fechas.forEach((fecha) => expect(fecha).toBeLessThan(AHORA.getTime()));
+        compra.mensajes.forEach((m) => expect(compra.esParticipante(m.usuario)).toBe(true));
+      });
+    });
+
+    it("la conversación larga alterna entre la compradora y la organizadora del evento", () => {
+      const larga = proximas().find((c) => c.mensajes.length === 4);
+
+      expect(larga.mensajes.map((m) => m.usuario.email)).toEqual([
+        "carla@example.com",
+        "olivia@example.com",
+        "carla@example.com",
+        "olivia@example.com",
+      ]);
+    });
+
     it("hay compras de los dos compradores y en eventos de los dos organizadores", () => {
       expect(new Set(proximas().map((c) => c.comprador.email))).toEqual(
         new Set(["carla@example.com", "camilo@example.com"]),
