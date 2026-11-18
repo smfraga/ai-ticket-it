@@ -1,0 +1,224 @@
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { estadoCompra } from "../../domain/EstadoCompra.js";
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "../../errors/AppError.js";
+import { CompraService } from "../../services/CompraService.js";
+import {
+  AHORA,
+  crearComprador,
+  crearCompraEn,
+  crearEvento,
+  crearOrganizador,
+  crearTipoEntrada,
+  enDias,
+} from "../helpers/domainFactories.js";
+
+describe("CompraService", () => {
+  let compraRepository;
+  let eventoRepository;
+  let usuarioRepository;
+  let service;
+  let carla;
+  let camilo;
+  let olivia;
+  let octavio;
+  let general;
+  let vip;
+  let evento;
+
+  beforeEach(() => {
+    carla = crearComprador({ id: "carla", nombre: "Carla", apellido: "Gómez" });
+    camilo = crearComprador({ id: "camilo", nombre: "Camilo", apellido: "Díaz", email: "camilo@example.com" });
+    olivia = crearOrganizador({ id: "olivia" });
+    octavio = crearOrganizador({ id: "octavio", email: "octavio@example.com" });
+    general = crearTipoEntrada({ nombre: "General", precio: 10000, cupo: 5 });
+    vip = crearTipoEntrada({ nombre: "VIP", precio: 25000, cupo: 2 });
+    general.id = "t-general";
+    vip.id = "t-vip";
+    evento = crearEvento({ organizador: olivia, tiposEntrada: [general, vip], fecha: enDias(10) });
+    evento.id = "evento-1";
+
+    const usuarios = { carla, camilo, olivia, octavio };
+    compraRepository = {
+      save: jest.fn(async (compra) => {
+        compra.id ??= "compra-nueva";
+        return compra;
+      }),
+      findByCompradorId: jest.fn().mockResolvedValue([]),
+      findByEventoId: jest.fn().mockResolvedValue([]),
+    };
+    eventoRepository = {
+      findById: jest.fn(async (id) => (id === "evento-1" ? evento : null)),
+    };
+    usuarioRepository = { findById: jest.fn(async (id) => usuarios[id] ?? null) };
+    service = new CompraService(compraRepository, eventoRepository, usuarioRepository, () => AHORA);
+  });
+
+  describe("comprar", () => {
+    it("crea la compra, la confirma en el mismo request y reserva el cupo", async () => {
+      const respuesta = await service.comprar("carla", "evento-1", { tipoEntradaId: "t-general", cantidad: 2 });
+
+      expect(respuesta).toMatchObject({
+        id: "compra-nueva",
+        estado: estadoCompra.CONFIRMADA,
+        cantidad: 2,
+        total: 20000,
+        diasRestantes: 10,
+        evento: { id: "evento-1" },
+        tipoEntrada: { id: "t-general", cupoRestante: 3 },
+      });
+      expect(respuesta.historial.map((c) => c.estado)).toEqual([
+        estadoCompra.PENDIENTE,
+        estadoCompra.CONFIRMADA,
+      ]);
+      expect(general.disponibles()).toBe(3);
+      expect(compraRepository.save).toHaveBeenCalledTimes(1);
+    });
+
+    it("permite comprar justo el cupo que queda", async () => {
+      await service.comprar("carla", "evento-1", { tipoEntradaId: "t-vip", cantidad: 2 });
+
+      expect(vip.disponibles()).toBe(0);
+    });
+
+    it("409 si la cantidad supera el cupo, sin guardar ni reservar nada", async () => {
+      await expect(
+        service.comprar("carla", "evento-1", { tipoEntradaId: "t-vip", cantidad: 3 }),
+      ).rejects.toBeInstanceOf(ConflictError);
+
+      expect(vip.disponibles()).toBe(2);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("409 si el cupo se agotó en compras anteriores", async () => {
+      await service.comprar("carla", "evento-1", { tipoEntradaId: "t-vip", cantidad: 2 });
+
+      await expect(
+        service.comprar("camilo", "evento-1", { tipoEntradaId: "t-vip", cantidad: 1 }),
+      ).rejects.toBeInstanceOf(ConflictError);
+    });
+
+    it("409 si el evento ya pasó", async () => {
+      evento.fecha = enDias(-1);
+
+      await expect(
+        service.comprar("carla", "evento-1", { tipoEntradaId: "t-general", cantidad: 1 }),
+      ).rejects.toBeInstanceOf(ConflictError);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("403 si el usuario no tiene rol COMPRADOR", async () => {
+      await expect(
+        service.comprar("octavio", "evento-1", { tipoEntradaId: "t-general", cantidad: 1 }),
+      ).rejects.toBeInstanceOf(ForbiddenError);
+      expect(general.disponibles()).toBe(5);
+    });
+
+    it("400 si la cantidad no es válida", async () => {
+      await expect(
+        service.comprar("carla", "evento-1", { tipoEntradaId: "t-general", cantidad: 0 }),
+      ).rejects.toBeInstanceOf(ValidationError);
+    });
+
+    it("404 si el evento no existe", async () => {
+      await expect(
+        service.comprar("carla", "otro", { tipoEntradaId: "t-general", cantidad: 1 }),
+      ).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it("404 si el tipo de entrada no es de ese evento", async () => {
+      await expect(
+        service.comprar("carla", "evento-1", { tipoEntradaId: "t-de-otro-evento", cantidad: 1 }),
+      ).rejects.toBeInstanceOf(NotFoundError);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("401 si el usuario del token ya no existe", async () => {
+      await expect(
+        service.comprar("fantasma", "evento-1", { tipoEntradaId: "t-general", cantidad: 1 }),
+      ).rejects.toBeInstanceOf(UnauthorizedError);
+    });
+  });
+
+  describe("listarDelComprador", () => {
+    it("muestra el estado y los días restantes solo si está CONFIRMADA", async () => {
+      const confirmada = crearCompraEn(estadoCompra.CONFIRMADA, { comprador: carla, evento });
+      const cancelada = crearCompraEn(estadoCompra.CANCELADA, { comprador: carla, evento });
+      Object.assign(confirmada, { id: "c1" });
+      Object.assign(cancelada, { id: "c2" });
+      compraRepository.findByCompradorId.mockResolvedValue([confirmada, cancelada]);
+
+      const respuesta = await service.listarDelComprador("carla");
+
+      expect(compraRepository.findByCompradorId).toHaveBeenCalledWith("carla");
+      expect(respuesta.map((c) => [c.id, c.estado, c.diasRestantes])).toEqual([
+        ["c1", estadoCompra.CONFIRMADA, 10],
+        ["c2", estadoCompra.CANCELADA, null],
+      ]);
+    });
+
+    it("devuelve una lista vacía si no compró nada", async () => {
+      expect(await service.listarDelComprador("carla")).toEqual([]);
+    });
+
+    it("401 si el usuario del token ya no existe", async () => {
+      await expect(service.listarDelComprador("fantasma")).rejects.toBeInstanceOf(UnauthorizedError);
+    });
+  });
+
+  describe("listarDeEvento", () => {
+    it("el organizador ve las compras con estado, comprador y cupo restante por tipo", async () => {
+      const compra = Object.assign(crearCompraEn(estadoCompra.CONFIRMADA, { comprador: carla, evento }), {
+        id: "c1",
+      });
+      compraRepository.findByEventoId.mockResolvedValue([compra]);
+
+      const respuesta = await service.listarDeEvento("olivia", "evento-1");
+
+      expect(compraRepository.findByEventoId).toHaveBeenCalledWith("evento-1");
+      expect(respuesta.tiposEntrada).toEqual([
+        { id: "t-general", nombre: "General", cupo: 5, cupoRestante: 3 },
+        { id: "t-vip", nombre: "VIP", cupo: 2, cupoRestante: 2 },
+      ]);
+      expect(respuesta.compras).toHaveLength(1);
+      expect(respuesta.compras[0]).toMatchObject({
+        id: "c1",
+        estado: estadoCompra.CONFIRMADA,
+        comprador: { id: "carla", nombre: "Carla", apellido: "Gómez" },
+      });
+    });
+
+    it("no expone el email ni el hash del comprador", async () => {
+      compraRepository.findByEventoId.mockResolvedValue([
+        crearCompraEn(estadoCompra.CONFIRMADA, { comprador: carla, evento }),
+      ]);
+
+      const texto = JSON.stringify(await service.listarDeEvento("olivia", "evento-1"));
+
+      expect(texto).not.toContain(carla.email);
+      expect(texto).not.toContain("passwordHash");
+    });
+
+    it("403 si el usuario no es el organizador de ese evento", async () => {
+      await expect(service.listarDeEvento("octavio", "evento-1")).rejects.toBeInstanceOf(ForbiddenError);
+      expect(compraRepository.findByEventoId).not.toHaveBeenCalled();
+    });
+
+    it("403 si es un comprador", async () => {
+      await expect(service.listarDeEvento("carla", "evento-1")).rejects.toBeInstanceOf(ForbiddenError);
+    });
+
+    it("404 si el evento no existe", async () => {
+      await expect(service.listarDeEvento("olivia", "otro")).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it("401 si el usuario del token ya no existe", async () => {
+      await expect(service.listarDeEvento("fantasma", "evento-1")).rejects.toBeInstanceOf(UnauthorizedError);
+    });
+  });
+});
