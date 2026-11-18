@@ -12,7 +12,7 @@ El repositorio tiene dos paquetes independientes, cada uno con su propio `packag
 │   ├── app.js          # Configuración de la app Express (sin levantar el servidor)
 │   ├── server.js       # Punto de entrada: carga el seed y levanta el servidor HTTP
 │   ├── routes/         # Rutas → controllers → services → dominio y repositorios
-│   ├── controllers/
+│   ├── controllers/    # Extienden BaseController (validación de ids y de la query)
 │   ├── services/
 │   ├── domain/         # Entidades y reglas de negocio
 │   ├── repositories/   # Persistencia en memoria
@@ -120,9 +120,36 @@ curl -X POST http://localhost:3000/auth/registro -H "Content-Type: application/j
   -d '{"nombre":"Ana","apellido":"Pérez","email":"ana@example.com","password":"una-clave-larga","roles":["COMPRADOR"]}'
 ```
 
+#### Eventos y categorías
+
+Ver el catálogo es público (no pide token). Crear un evento exige estar logueado y tener el rol de organizador.
+
+| Método y ruta       | Descripción                                                                                                   |
+|---------------------|---------------------------------------------------------------------------------------------------------------|
+| `GET /eventos`      | Busca eventos con los filtros de abajo. Por defecto, solo los próximos                                        |
+| `GET /eventos/:id`  | Detalle de un evento (también de los ya realizados), con sus tipos de entrada y lugares disponibles           |
+| `POST /eventos`     | Crea un evento con sus tipos de entrada (`201`). Sin token: `401`. Sin rol de organizador: `403`              |
+| `GET /categorias`   | Lista las categorías, ordenadas por nombre                                                                    |
+
+Parámetros de `GET /eventos` (todos opcionales):
+
+| Parámetro      | Valores                                        | Descripción                                                                                                  |
+|----------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| `texto`        | hasta 100 caracteres                           | Busca en el nombre y la descripción, sin distinguir mayúsculas ni tildes. Varias palabras: tienen que estar todas |
+| `categoriaId`  | id de una categoría                            | Solo los eventos de esa categoría                                                                            |
+| `precioMin`, `precioMax` | números                              | Eventos con al menos una entrada dentro del rango                                                            |
+| `periodo`      | `proximos` (por defecto), `pasados`, `todos`   | Qué eventos mostrar según su fecha                                                                           |
+| `orden`        | `fecha` (por defecto), `precio`, `puntaje`     | `precio` usa la entrada más barata del evento; `puntaje` es el promedio de reseñas del organizador            |
+| `direccion`    | `asc`, `desc`                                  | Por defecto `asc`, salvo `puntaje` que es `desc`. Los organizadores sin reseñas quedan al final               |
+
+```bash
+
+
 #### Datos iniciales (seed)
 
-Cada vez que arranca el servidor se cargan datos de prueba en memoria. Por ahora, los usuarios (todos con la contraseña **`Demo1234!`**):
+Cada vez que arranca el servidor se cargan datos de prueba en memoria. Los usuarios, las categorías y los eventos del seed tienen **ids fijos**: si el servidor se reinicia (por ejemplo, con `npm run dev`), los tokens que ya se emitieron para esos usuarios siguen valiendo. En cambio, lo que se crea después (usuarios registrados, eventos nuevos) se pierde al reiniciar, y el token de un usuario que ya no existe da `401`.
+
+Usuarios (todos con la contraseña **`Demo1234!`**):
 
 | Email                 | Roles       |
 |-----------------------|-------------|
@@ -130,6 +157,8 @@ Cada vez que arranca el servidor se cargan datos de prueba en memoria. Por ahora
 | `octavio@example.com` | Organizador |
 | `carla@example.com`   | Comprador   |
 | `camilo@example.com`  | Comprador   |
+
+Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales.
 
 Para correr los tests:
 

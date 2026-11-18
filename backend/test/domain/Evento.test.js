@@ -150,4 +150,57 @@ describe("Evento", () => {
     expect(evento.tieneTipoEntrada(evento.tiposEntrada[1])).toBe(true);
     expect(evento.tieneTipoEntrada(crearTipoEntrada())).toBe(false);
   });
+
+  describe("coincideConTexto", () => {
+    const evento = crearEvento({
+      nombre: "Festival de Jazz Ñandú",
+      descripcion: "Una noche de música en vivo en Córdoba",
+    });
+
+    it.each([
+      ["parte del nombre", "festival"],
+      ["parte de la descripción", "música"],
+      ["mayúsculas distintas", "JAZZ"],
+      ["sin tildes, aunque el evento las tenga", "musica"],
+      ["con tildes, aunque el evento no las tenga", "córdoba"],
+      ["la letra ñ como n", "nandu"],
+      ["varias palabras en cualquier orden", "jazz festival"],
+      ["palabras de nombre y de descripción juntas", "jazz noche"],
+      ["espacios de más", "  jazz    festival  "],
+      ["un texto vacío", ""],
+      ["solo espacios", "   "],
+      ["nada (undefined)", undefined],
+    ])("coincide con %s", (_, texto) => {
+      expect(evento.coincideConTexto(texto)).toBe(true);
+    });
+
+    it.each([
+      ["una palabra que no está", "rock"],
+      ["una palabra de dos que no está", "jazz rock"],
+      ["una palabra cortada por la mitad entre dos palabras", "jazznoche"],
+    ])("no coincide con %s", (_, texto) => {
+      expect(evento.coincideConTexto(texto)).toBe(false);
+    });
+
+    it("funciona con un evento sin descripción", () => {
+      // La fábrica rellena la descripción, así que se la saca después de crear el evento.
+      const sinDescripcion = crearEvento({ nombre: "Recital" });
+      sinDescripcion.descripcion = undefined;
+
+      expect(sinDescripcion.coincideConTexto("recital")).toBe(true);
+      expect(sinDescripcion.coincideConTexto("undefined")).toBe(false);
+    });
+  });
+
+  describe("perteneceACategoria", () => {
+    it("es verdadero para su categoría y falso para otra", () => {
+      const categoria = crearCategoria();
+      categoria.id = "categoria-1";
+      const evento = crearEvento({ categoria });
+
+      expect(evento.perteneceACategoria("categoria-1")).toBe(true);
+      expect(evento.perteneceACategoria("categoria-2")).toBe(false);
+      expect(evento.perteneceACategoria(undefined)).toBe(false);
+    });
+  });
 });

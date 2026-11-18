@@ -1,11 +1,13 @@
+import { BaseController } from "./BaseController.js";
 import { AuthService } from "../services/AuthService.js";
 
-export class AuthController {
+export class AuthController extends BaseController {
   constructor(authService = new AuthService()) {
+    super();
     this.authService = authService;
   }
 
-  registro = async (req, res, next) => {
+  async registro(req, res, next) {
     try {
       const sesion = await this.authService.registro(req.body);
 
@@ -13,9 +15,9 @@ export class AuthController {
     } catch (error) {
       return next(error);
     }
-  };
+  }
 
-  login = async (req, res, next) => {
+  async login(req, res, next) {
     try {
       const sesion = await this.authService.login(req.body);
 
@@ -23,5 +25,5 @@ export class AuthController {
     } catch (error) {
       return next(error);
     }
-  };
+  }
 }

@@ -76,4 +76,24 @@ export class Evento {
   esOrganizador(usuario) {
     return this.organizador.esElMismo(usuario);
   }
+
+  // Cada palabra buscada tiene que aparecer en el nombre o en la descripción,
+  // sin importar mayúsculas ni tildes. Un texto vacío coincide con todos los eventos.
+  coincideConTexto(texto) {
+    const palabras = normalizar(texto).split(" ").filter(Boolean);
+    const contenido = normalizar(`${this.nombre} ${this.descripcion ?? ""}`);
+    return palabras.every((palabra) => contenido.includes(palabra));
+  }
+
+  perteneceACategoria(categoriaId) {
+    return this.categoria.id === categoriaId;
+  }
+}
+
+function normalizar(texto) {
+  return String(texto ?? "")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase()
+    .trim();
 }
