@@ -9,7 +9,7 @@ import { mensajeDeError } from "../services/api";
 import { listarMisCompras } from "../services/comprasService";
 import { colores, espacio, tipografia } from "../theme";
 
-export default function MisComprasScreen() {
+export default function MisComprasScreen({ navigation }) {
   const [compras, setCompras] = useState(null); // null = todavía no llegó la primera respuesta
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -43,7 +43,9 @@ export default function MisComprasScreen() {
       <FlatList
         data={compras}
         keyExtractor={(compra) => compra.id}
-        renderItem={({ item }) => <CompraCard compra={item} />}
+        renderItem={({ item }) => (
+          <CompraCard compra={item} onPress={() => navigation.navigate("DetalleCompra", { compraId: item.id })} />
+        )}
         contentContainerStyle={estilos.lista}
         refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
         ListHeaderComponent={error ? <Text style={estilos.errorAviso}>{error}</Text> : null}

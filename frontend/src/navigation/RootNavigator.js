@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
 import Estado from "../components/Estado";
 import CatalogoScreen from "../screens/CatalogoScreen";
+import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MisComprasScreen from "../screens/MisComprasScreen";
@@ -35,13 +36,29 @@ function EventosStack() {
   );
 }
 
+const ComprasStackNav = createNativeStackNavigator();
+
+// Dentro de la pestaña Mis compras: de la lista al detalle de una compra.
+function ComprasStack() {
+  return (
+    <ComprasStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
+      <ComprasStackNav.Screen name="ListaDeCompras" component={MisComprasScreen} options={{ headerShown: false }} />
+      <ComprasStackNav.Screen
+        name="DetalleCompra"
+        component={DetalleCompraScreen}
+        options={{ title: "Compra", headerBackTitle: "Mis compras" }}
+      />
+    </ComprasStackNav.Navigator>
+  );
+}
+
 function TabsPrincipales() {
   const { esComprador } = useAuth();
 
   return (
     <Tabs.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colores.primario }}>
       <Tabs.Screen name="Eventos" component={EventosStack} />
-      {esComprador ? <Tabs.Screen name="MisCompras" component={MisComprasScreen} options={{ title: "Mis compras" }} /> : null}
+      {esComprador ? <Tabs.Screen name="MisCompras" component={ComprasStack} options={{ title: "Mis compras" }} /> : null}
       <Tabs.Screen name="Perfil" component={PerfilScreen} options={{ title: "Perfil" }} />
     </Tabs.Navigator>
   );

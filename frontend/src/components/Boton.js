@@ -3,7 +3,9 @@ import { ALTO_TOQUE, colores, espacio, radio } from "../theme";
 
 export default function Boton({ titulo, onPress, variante = "primario", cargando = false, deshabilitado = false }) {
   const inactivo = cargando || deshabilitado;
-  const secundario = variante === "secundario";
+  const peligro = variante === "peligro";
+  const secundario = variante === "secundario" || peligro;
+  const colorDeTexto = peligro ? colores.error : colores.primario;
 
   return (
     <Pressable
@@ -14,14 +16,15 @@ export default function Boton({ titulo, onPress, variante = "primario", cargando
       style={({ pressed }) => [
         estilos.base,
         secundario ? estilos.secundario : estilos.primario,
+        peligro && estilos.peligro,
         pressed && estilos.presionado,
         inactivo && estilos.inactivo,
       ]}
     >
       {cargando ? (
-        <ActivityIndicator color={secundario ? colores.primario : colores.textoSobrePrimario} />
+        <ActivityIndicator color={secundario ? colorDeTexto : colores.textoSobrePrimario} />
       ) : (
-        <Text style={[estilos.texto, secundario && estilos.textoSecundario]}>{titulo}</Text>
+        <Text style={[estilos.texto, secundario && { color: colorDeTexto }]}>{titulo}</Text>
       )}
     </Pressable>
   );
@@ -36,9 +39,9 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
   },
   primario: { backgroundColor: colores.primario },
+  peligro: { borderColor: colores.error },
   secundario: { backgroundColor: colores.superficie, borderWidth: 1, borderColor: colores.primario },
   presionado: { opacity: 0.85 },
   inactivo: { opacity: 0.5 },
   texto: { color: colores.textoSobrePrimario, fontSize: 16, fontWeight: "600" },
-  textoSecundario: { color: colores.primario },
 });

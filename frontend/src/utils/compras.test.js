@@ -1,4 +1,43 @@
-import { ETIQUETAS_DE_ESTADO, textoDiasRestantes, textoEntradas } from "./compras";
+import {
+  ETIQUETAS_DE_ESTADO,
+  motivoSinCancelacion,
+  puedeCancelar,
+  textoDeConfirmacionDeCancelacion,
+  textoDiasRestantes,
+  textoEntradas,
+} from "./compras";
+
+const compra = (estado, yaPaso = false) => ({ estado, evento: { yaPaso } });
+
+describe("puedeCancelar y motivoSinCancelacion", () => {
+  it("se puede cancelar una PENDIENTE o CONFIRMADA de un evento que no pasó", () => {
+    expect(puedeCancelar(compra("PENDIENTE"))).toBe(true);
+    expect(puedeCancelar(compra("CONFIRMADA"))).toBe(true);
+    expect(motivoSinCancelacion(compra("CONFIRMADA"))).toBeNull();
+  });
+
+  it("no se puede si está UTILIZADA, y lo explica", () => {
+    expect(puedeCancelar(compra("UTILIZADA"))).toBe(false);
+    expect(motivoSinCancelacion(compra("UTILIZADA"))).toBe("Esta compra ya fue utilizada: no se puede cancelar.");
+  });
+
+  it("no se puede si el evento ya pasó, y lo explica", () => {
+    expect(puedeCancelar(compra("CONFIRMADA", true))).toBe(false);
+    expect(motivoSinCancelacion(compra("CONFIRMADA", true))).toBe("El evento ya se realizó: no se puede cancelar.");
+  });
+
+  it("una compra ya cancelada o reembolsada no se cancela y no hace falta un motivo extra", () => {
+    for (const estado of ["CANCELADA", "REEMBOLSADA"]) {
+      expect(puedeCancelar(compra(estado))).toBe(false);
+      expect(motivoSinCancelacion(compra(estado))).toBeNull();
+    }
+  });
+
+  it("el aviso de confirmación menciona el reembolso solo si estaba CONFIRMADA", () => {
+    expect(textoDeConfirmacionDeCancelacion(compra("CONFIRMADA"), "$24.000")).toContain("reembolsa $24.000");
+    expect(textoDeConfirmacionDeCancelacion(compra("PENDIENTE"), "$24.000")).not.toContain("reembolsa");
+  });
+});
 
 describe("textoDiasRestantes", () => {
   it("habla en singular, hoy y plural", () => {

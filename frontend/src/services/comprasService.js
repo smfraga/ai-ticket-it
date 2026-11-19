@@ -1,9 +1,16 @@
 import { api } from "./api";
 
-// Requiere sesión de comprador. El pago está simulado: la compra vuelve CONFIRMADA en el mismo pedido.
-// Devuelve { id, estado, cantidad, total, diasRestantes, fecha, evento, tipoEntrada, historial }.
 // Las compras del usuario logueado, las más recientes primero. `diasRestantes` solo tiene valor si está CONFIRMADA.
 export const listarMisCompras = () => api.get("/compras");
 
-export const comprar =(eventoId, { tipoEntradaId, cantidad }) =>
+// El detalle trae lo de la lista más comprador, organizador, `evento.yaPaso` y `resenia` (o null).
+// Lo ven el comprador y el organizador del evento.
+export const obtenerCompra = (id) => api.get(`/compras/${id}`);
+
+// Solo el comprador. Una CONFIRMADA queda REEMBOLSADA y una PENDIENTE queda CANCELADA; las entradas vuelven al cupo.
+export const cancelarCompra = (id) => api.post(`/compras/${id}/cancelar`);
+
+// Requiere sesión de comprador. El pago está simulado: la compra vuelve CONFIRMADA en el mismo pedido.
+// Devuelve { id, estado, cantidad, total, diasRestantes, fecha, evento, tipoEntrada, historial }.
+export const comprar = (eventoId, { tipoEntradaId, cantidad }) =>
   api.post(`/eventos/${eventoId}/compras`, { tipoEntradaId, cantidad });
