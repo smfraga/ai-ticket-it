@@ -112,7 +112,8 @@ App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo G
 - **`@react-navigation/*`**: pestañas y pilas de pantallas.
 - **`expo-secure-store`**: guarda la sesión (el token JWT) cifrada en el celular.
 - **`@react-native-async-storage/async-storage`**: guarda preferencias del celular que no son secretas (el fondo de los chats).
-- **`expo-image-picker`** y **`expo-file-system`**: elegir una foto de la galería como fondo del chat y guardar una copia en la carpeta de la app.
+- **`expo-image-picker`** y **`expo-file-system`**: elegir una foto de la galería como fondo del chat (y guardar una copia en la carpeta de la app) o como foto de perfil.
+- **`expo-image-manipulator`**: achicar la foto de perfil a 256×256 en JPEG antes de subirla (unos 20 KB).
 - **`@react-native-community/datetimepicker`**: selector nativo de fecha y hora para crear eventos.
 - **`@expo/vector-icons`**: íconos de las pestañas.
 - **`expo-font`**, **`@expo-google-fonts/bebas-neue`** y **`@expo-google-fonts/dm-sans`**: tipografía de la app (títulos con letra de cartel y cuerpo en DM Sans).

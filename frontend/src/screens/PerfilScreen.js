@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
@@ -9,7 +10,8 @@ import Entrada from "../components/Entrada";
 import Estado from "../components/Estado";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
-import { obtenerPerfil } from "../services/perfilService";
+import { elegirFotoDePerfil } from "../services/fotoDePerfil";
+import { cambiarFoto, obtenerPerfil, quitarFoto } from "../services/perfilService";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { textoEntradas } from "../utils/compras";
 import { formatearPrecio } from "../utils/formato";
@@ -19,11 +21,12 @@ const ETIQUETAS_DE_ROL = { COMPRADOR: "Comprador", ORGANIZADOR: "Organizador" };
 
 // `aviso`: lo manda la pantalla de la que se viene ("¡Datos guardados!").
 export default function PerfilScreen({ navigation, route }) {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, actualizarUsuario } = useAuth();
   const aviso = route.params?.aviso;
   const [perfil, setPerfil] = useState(null); // null = todavía no llegó
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
   const nuevoPedido = useUltimoPedido();
 
   const cargar = useCallback(async () => {
@@ -32,13 +35,48 @@ export default function PerfilScreen({ navigation, route }) {
     setError(null);
     try {
       const datos = await obtenerPerfil();
-      if (esVigente()) setPerfil(datos);
+      if (!esVigente()) return;
+      setPerfil(datos);
+      // El usuario guardado en el celular puede haber quedado viejo (por ejemplo, si el backend se reinició y la
+      // foto ya no está): se reemplaza por el del backend.
+      if (JSON.stringify(datos.usuario) !== JSON.stringify(usuario)) actualizarUsuario(datos.usuario);
     } catch (e) {
       if (esVigente()) setError(mensajeDeError(e));
     } finally {
       if (esVigente()) setCargando(false);
     }
-  }, [nuevoPedido]);
+  }, [nuevoPedido, usuario, actualizarUsuario]);
+
+  // Elegir, cambiar o quitar la foto de perfil. La galería y el achicado (256×256) están en fotoDePerfil.js.
+  const cambiarLaFoto = async () => {
+    setSubiendoFoto(true);
+    try {
+      const imagen = await elegirFotoDePerfil();
+      if (imagen) await actualizarUsuario(await cambiarFoto(imagen));
+    } catch (e) {
+      Alert.alert("No se pudo cambiar la foto", mensajeDeError(e));
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
+
+  const quitarLaFoto = async () => {
+    setSubiendoFoto(true);
+    try {
+      await actualizarUsuario(await quitarFoto());
+    } catch (e) {
+      Alert.alert("No se pudo quitar la foto", mensajeDeError(e));
+    } finally {
+      setSubiendoFoto(false);
+    }
+  };
+
+  const opcionesDeFoto = () =>
+    Alert.alert("Foto de perfil", "La ven los demás en el chat y en la lista de mensajes.", [
+      { text: usuario.foto ? "Elegir otra foto" : "Elegir de la galería", onPress: cambiarLaFoto },
+      ...(usuario.foto ? [{ text: "Quitar la foto", style: "destructive", onPress: quitarLaFoto }] : []),
+      { text: "Cancelar", style: "cancel" },
+    ]);
 
   // Se pide en cada foco: al volver de comprar, reseñar o editar, los números ya están al día.
   useFocusEffect(
@@ -60,7 +98,21 @@ export default function PerfilScreen({ navigation, route }) {
         }
       >
         <View style={estilos.cabecera}>
-          <Avatar persona={usuario} tamanio={72} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={usuario.foto ? "Cambiar la foto de perfil" : "Agregar una foto de perfil"}
+            onPress={opcionesDeFoto}
+            disabled={subiendoFoto}
+          >
+            <Avatar persona={usuario} tamanio={72} />
+            <View style={estilos.camara}>
+              {subiendoFoto ? (
+                <ActivityIndicator size="small" color={colores.textoSobrePrimario} />
+              ) : (
+                <Ionicons name="camera" size={14} color={colores.textoSobrePrimario} />
+              )}
+            </View>
+          </Pressable>
           <View style={estilos.datos}>
             <Text style={tipografia.titulo}>
               {usuario.nombre} {usuario.apellido}
@@ -229,6 +281,20 @@ const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   contenido: { padding: espacio.l, gap: espacio.m, paddingBottom: espacio.xxl },
   cabecera: { flexDirection: "row", alignItems: "center", gap: espacio.l },
+  // Insignia con la cámara sobre la foto: indica que se puede tocar para cambiarla.
+  camara: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: colores.fondo,
+    backgroundColor: colores.primario,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   datos: { flex: 1, minWidth: 0, gap: 2 },
   aviso: { color: colores.exito, fontSize: 15, fontFamily: fuentes.negrita },
   botones: { flexDirection: "row", gap: espacio.m },

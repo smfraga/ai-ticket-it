@@ -1,4 +1,4 @@
-import { iniciales, textoCantidadDeResenias, textoEventosCreados, textoPuntaje } from "./perfil";
+import { iniciales, textoCantidadDeResenias, textoEventosCreados, textoPuntaje, urlDeFoto } from "./perfil";
 
 describe("iniciales", () => {
   it("primera letra del nombre y del apellido, en mayúsculas y sin espacios de los bordes", () => {
@@ -33,5 +33,21 @@ describe("puntaje y reseñas", () => {
     expect(textoCantidadDeResenias(0)).toBe("Sin reseñas");
     expect(textoCantidadDeResenias(1)).toBe("1 reseña");
     expect(textoCantidadDeResenias(4)).toBe("4 reseñas");
+  });
+});
+
+describe("urlDeFoto", () => {
+  it("antepone la dirección del servidor a la ruta, sin barras dobles", () => {
+    expect(urlDeFoto("/usuarios/u1/foto?v=2", "http://192.168.1.15:3000")).toBe(
+      "http://192.168.1.15:3000/usuarios/u1/foto?v=2",
+    );
+    expect(urlDeFoto("/usuarios/u1/foto?v=2", "http://192.168.1.15:3000/")).toBe(
+      "http://192.168.1.15:3000/usuarios/u1/foto?v=2",
+    );
+  });
+
+  it("sin foto, no hay URL", () => {
+    expect(urlDeFoto(null, "http://192.168.1.15:3000")).toBeNull();
+    expect(urlDeFoto(undefined, "http://192.168.1.15:3000")).toBeNull();
   });
 });

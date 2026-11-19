@@ -71,6 +71,7 @@ const pedir = async (metodo, ruta, { body, params } = {}) => {
 export const api = {
   get: (ruta, params) => pedir("GET", ruta, { params }),
   post: (ruta, body) => pedir("POST", ruta, { body }),
+  put: (ruta, body) => pedir("PUT", ruta, { body }),
   patch: (ruta, body) => pedir("PATCH", ruta, { body }),
   delete: (ruta) => pedir("DELETE", ruta),
 };

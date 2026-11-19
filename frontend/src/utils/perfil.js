@@ -37,3 +37,9 @@ export const textoEventosCreados = ({ proximos, realizados, cancelados }) => {
 export const textoPuntaje = (puntaje) => (puntaje === null ? "—" : `★ ${puntaje.toFixed(1)}`);
 export const textoCantidadDeResenias = (cantidad) =>
   cantidad === 0 ? "Sin reseñas" : `${cantidad} ${cantidad === 1 ? "reseña" : "reseñas"}`;
+
+// La URL completa de una foto de perfil: el backend manda la ruta ("/usuarios/:id/foto?v=2") o null.
+export const urlDeFoto = (ruta, apiUrl) => (ruta ? `${apiUrl.replace(/\/+$/, "")}${ruta}` : null);
+
+// Lado de la foto que se sube: la app la achica antes de mandarla (el backend acepta hasta 64 KB).
+export const LADO_DE_FOTO = 256;
