@@ -220,9 +220,28 @@ npm install
 npm start
 ```
 
-Se abre el servidor de Expo con un código QR. Escanearlo con Expo Go en el celular.
+Se abre el servidor de Expo con un código QR. Escanearlo con Expo Go en el celular (en iPhone, con la cámara). Hace falta una cuenta gratuita de Expo, con sesión iniciada en la terminal (`npx expo login`) y en la app Expo Go.
 
 Requisitos para que el celular llegue al backend:
 
 - El celular y la computadora deben estar en la **misma red Wi-Fi**.
-- Cuando el frontend consuma la API, la URL base no puede ser `localhost`, porque en el celular `localhost` apunta al propio teléfono. Hay que usar la **IP local de la computadora** (por ejemplo, `http://192.168.0.10:3000`).
+- En el celular `localhost` apunta al propio teléfono, así que la app no usa `localhost`: toma la **IP de la computadora** del servidor de Expo y le agrega el puerto `3000` (ver `frontend/src/config.js`). El backend tiene que escuchar en el puerto 3000.
+- Si la computadora tiene varias redes (por ejemplo, VirtualBox o una VPN) y Expo anuncia una IP equivocada, se fuerza con `REACT_NATIVE_PACKAGER_HOSTNAME=<ip>` al correr `npm start` (en PowerShell: `$env:REACT_NATIVE_PACKAGER_HOSTNAME="<ip>"; npm start`).
+- Para apuntar a otra URL de la API, definir `EXPO_PUBLIC_API_URL` en `frontend/.env.local` (por ejemplo, `EXPO_PUBLIC_API_URL=http://192.168.0.10:3000`). Ese archivo no se sube al repositorio.
+- **Firewall de Windows:** si la red está como Pública, bloquea las conexiones entrantes. Hay que abrir los puertos 3000 (API) y 8081 (Expo), en PowerShell como administrador:
+
+  ```powershell
+  New-NetFirewallRule -DisplayName "AI Ticket It API" -Direction Inbound -Protocol TCP -LocalPort 3000,8081 -Action Allow -Profile Public
+  ```
+
+  Para comprobarlo, abrir `http://<ip-de-la-pc>:3000/health` en el navegador del celular: tiene que mostrar `{"status":"ok"}`.
+- En iPhone, Expo Go necesita el permiso de **Red local** (Ajustes → Expo Go).
+
+Para entrar, usar uno de los usuarios del seed (por ejemplo `carla@example.com` con contraseña `Demo1234!`) o crear una cuenta nueva.
+
+Para correr los tests del frontend (config, cliente de la API, sesión y formato):
+
+```bash
+cd frontend
+npm test
+```
