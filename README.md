@@ -27,6 +27,8 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 
 **Los dos** tienen la pestaña **Mensajes**: todos sus chats (uno por compra, cada uno sobre un evento) con el último mensaje y su hora, ordenados como en WhatsApp, y la cantidad de mensajes nuevos sobre el ícono de la pestaña. Dentro del chat, los mensajes se separan por día ("Hoy", "Ayer", el día de la semana o la fecha) y el fondo se puede cambiar (se guarda en el celular).
 
+En la pestaña **Perfil**, cada uno edita su nombre y apellido y ve sus estadísticas y su historial: el comprador, las entradas que compró, cuánto gastó, a cuántos eventos fue, sus reseñas, su categoría preferida, su próximo evento y los eventos a los que fue; el organizador, sus eventos (próximos, realizados y cancelados), las entradas vendidas, la recaudación, su evento más vendido, su puntaje y los eventos que ya hizo.
+
 ## 📋 Casos de uso de la consigna
 
 | Caso de uso | Pantalla | Endpoints |

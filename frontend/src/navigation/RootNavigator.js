@@ -188,7 +188,7 @@ function MensajesStack() {
 
 const PerfilStackNav = createNativeStackNavigator();
 
-// Dentro de la pestaña Perfil: los datos del usuario y la edición de nombre y apellido.
+// Dentro de la pestaña Perfil: los datos, las estadísticas y el historial; editar el nombre y el fondo del chat.
 function PerfilStack() {
   return (
     <PerfilStackNav.Navigator screenOptions={opcionesDePila}>
@@ -197,6 +197,11 @@ function PerfilStack() {
         name="EditarPerfil"
         component={EditarPerfilScreen}
         options={{ title: "Editar perfil", headerBackTitle: "Perfil" }}
+      />
+      <PerfilStackNav.Screen
+        name="FondoChat"
+        component={FondoChatScreen}
+        options={{ title: "Fondo del chat", headerBackTitle: "Perfil" }}
       />
     </PerfilStackNav.Navigator>
   );
