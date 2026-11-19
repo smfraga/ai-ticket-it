@@ -215,6 +215,22 @@ export class Compra {
     return mensaje;
   }
 
+  // El mensaje más reciente del chat (por fecha de envío), o null si nadie escribió todavía.
+  ultimoMensaje() {
+    return this.mensajes.reduce(
+      (ultimo, mensaje) => (ultimo === null || mensaje.enviado.getTime() > ultimo.enviado.getTime() ? mensaje : ultimo),
+      null,
+    );
+  }
+
+  // Con quién habla `usuario` en el chat de esta compra: el organizador del evento si es el comprador, y el
+  // comprador si es el organizador. Un ajeno no tiene contraparte (403).
+  contraparteDe(usuario) {
+    if (this.comprador.esElMismo(usuario)) return this.evento.organizador;
+    if (this.evento.esOrganizador(usuario)) return this.comprador;
+    throw new ForbiddenError("Solo el comprador y el organizador del evento participan de este chat");
+  }
+
   // El participante leyó el chat hasta `ahora`.
   marcarLeido(usuario, ahora = new Date()) {
     if (!this.esParticipante(usuario)) {

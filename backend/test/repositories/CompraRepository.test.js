@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import { CompraRepository } from "../../repositories/CompraRepository.js";
-import { crearComprador, crearCompra, crearEvento, enDias } from "../helpers/domainFactories.js";
+import { crearComprador, crearCompra, crearEvento, crearOrganizador, enDias } from "../helpers/domainFactories.js";
 
 describe("CompraRepository", () => {
   let repositorio;
@@ -76,6 +76,26 @@ describe("CompraRepository", () => {
 
     it("findByEventoId devuelve una lista vacía si el evento no tiene compras", async () => {
       expect(await repositorio.findByEventoId("sin-ventas")).toEqual([]);
+    });
+
+    it("findByParticipanteId devuelve las compras del comprador y las de los eventos del organizador", async () => {
+      const olivia = crearOrganizador({ id: "olivia", email: "olivia@example.com" });
+      const octavio = crearOrganizador({ id: "octavio", email: "octavio@example.com" });
+      const deOlivia = crearEvento({ organizador: olivia });
+      const deOctavio = crearEvento({ organizador: octavio });
+      const carlaAOlivia = await repositorio.save(crearCompra({ comprador: carla, evento: deOlivia }));
+      const carlaAOctavio = await repositorio.save(crearCompra({ comprador: carla, evento: deOctavio }));
+      const camiloAOlivia = await repositorio.save(crearCompra({ comprador: camilo, evento: deOlivia }));
+
+      expect(await repositorio.findByParticipanteId("carla")).toEqual(
+        expect.arrayContaining([carlaAOlivia, carlaAOctavio]),
+      );
+      expect(await repositorio.findByParticipanteId("carla")).toHaveLength(2);
+      expect(await repositorio.findByParticipanteId("olivia")).toEqual(
+        expect.arrayContaining([carlaAOlivia, camiloAOlivia]),
+      );
+      expect(await repositorio.findByParticipanteId("olivia")).toHaveLength(2);
+      expect(await repositorio.findByParticipanteId("nadie")).toEqual([]);
     });
 
     it("findByEstado devuelve solo las compras en ese estado", async () => {

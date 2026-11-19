@@ -24,6 +24,13 @@ export class CompraRepository {
     return [...this.compras.values()].filter((compra) => compra.comprador.id === compradorId).sort(masRecientesPrimero);
   }
 
+  // Las compras en las que el usuario participa: como comprador o como organizador del evento.
+  async findByParticipanteId(usuarioId) {
+    return [...this.compras.values()].filter(
+      (compra) => compra.comprador.id === usuarioId || compra.evento.organizador.id === usuarioId,
+    );
+  }
+
   async findByEstado(estado) {
     return [...this.compras.values()].filter((compra) => compra.estado === estado);
   }

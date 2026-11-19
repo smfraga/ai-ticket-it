@@ -2,6 +2,7 @@ import express from "express";
 import authRoutes from "./AuthRoutes.js";
 import categoriaRoutes from "./CategoriaRoutes.js";
 import compraRoutes from "./CompraRoutes.js";
+import conversacionRoutes from "./ConversacionRoutes.js";
 import eventoRoutes from "./EventoRoutes.js";
 import favoritoRoutes from "./FavoritoRoutes.js";
 import organizadorRoutes from "./OrganizadorRoutes.js";
@@ -13,6 +14,7 @@ export const montajes = Object.freeze({
   "/categorias": categoriaRoutes,
   "/eventos": eventoRoutes,
   "/compras": compraRoutes,
+  "/conversaciones": conversacionRoutes,
   "/favoritos": favoritoRoutes,
   "/organizadores": organizadorRoutes,
 });
