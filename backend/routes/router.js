@@ -6,17 +6,25 @@ import eventoRoutes from "./EventoRoutes.js";
 import favoritoRoutes from "./FavoritoRoutes.js";
 import organizadorRoutes from "./OrganizadorRoutes.js";
 
+// Prefijo de cada grupo de rutas. Se exporta para que el test de la documentación (Swagger) pueda listar todas
+// las rutas y comprobar que cada una está documentada.
+export const montajes = Object.freeze({
+  "/auth": authRoutes,
+  "/categorias": categoriaRoutes,
+  "/eventos": eventoRoutes,
+  "/compras": compraRoutes,
+  "/favoritos": favoritoRoutes,
+  "/organizadores": organizadorRoutes,
+});
+
 const router = express.Router();
 
 router.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-router.use("/auth", authRoutes);
-router.use("/categorias", categoriaRoutes);
-router.use("/eventos", eventoRoutes);
-router.use("/compras", compraRoutes);
-router.use("/favoritos", favoritoRoutes);
-router.use("/organizadores", organizadorRoutes);
+for (const [prefijo, rutas] of Object.entries(montajes)) {
+  router.use(prefijo, rutas);
+}
 
 export default router;
