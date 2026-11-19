@@ -9,6 +9,7 @@ import ComprasDelEventoScreen from "../screens/ComprasDelEventoScreen";
 import CrearEventoScreen from "../screens/CrearEventoScreen";
 import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
+import FavoritosScreen from "../screens/FavoritosScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MisComprasScreen from "../screens/MisComprasScreen";
 import MisEventosScreen from "../screens/MisEventosScreen";
@@ -63,6 +64,22 @@ function ComprasStack() {
   );
 }
 
+const FavoritosStackNav = createNativeStackNavigator();
+
+// Dentro de la pestaña Favoritos (comprador): de la lista al detalle del evento, el mismo que en el catálogo.
+function FavoritosStack() {
+  return (
+    <FavoritosStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
+      <FavoritosStackNav.Screen name="ListaDeFavoritos" component={FavoritosScreen} options={{ headerShown: false }} />
+      <FavoritosStackNav.Screen
+        name="DetalleEvento"
+        component={DetalleEventoScreen}
+        options={{ title: "Evento", headerBackTitle: "Favoritos" }}
+      />
+    </FavoritosStackNav.Navigator>
+  );
+}
+
 const OrganizadorStackNav = createNativeStackNavigator();
 
 // Dentro de la pestaña Mis eventos (organizador): de sus eventos a las compras de uno, y de ahí al detalle
@@ -98,6 +115,7 @@ function TabsPrincipales() {
     <Tabs.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colores.primario }}>
       <Tabs.Screen name="Eventos" component={EventosStack} />
       {esComprador ? <Tabs.Screen name="MisCompras" component={ComprasStack} options={{ title: "Mis compras" }} /> : null}
+      {esComprador ? <Tabs.Screen name="Favoritos" component={FavoritosStack} options={{ title: "Favoritos" }} /> : null}
       {esOrganizador ? (
         <Tabs.Screen name="MisEventosTab" component={OrganizadorStack} options={{ title: "Mis eventos" }} />
       ) : null}

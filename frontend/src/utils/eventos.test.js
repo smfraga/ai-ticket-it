@@ -1,5 +1,6 @@
 import {
   armarEventoParaEnviar,
+  conFavorito,
   errorDeEvento,
   fechaInicialDeEvento,
   leerCupo,
@@ -19,6 +20,25 @@ const formulario = (cambios = {}) => ({
     { nombre: "VIP", precio: "40000,50", cupo: "20" },
   ],
   ...cambios,
+});
+
+describe("conFavorito", () => {
+  it("agrega y quita devolviendo un Set nuevo, sin tocar el anterior", () => {
+    const antes = new Set(["rock"]);
+
+    const conJazz = conFavorito(antes, "jazz", true);
+    const sinRock = conFavorito(antes, "rock", false);
+
+    expect([...conJazz]).toEqual(["rock", "jazz"]);
+    expect([...sinRock]).toEqual([]);
+    expect([...antes]).toEqual(["rock"]);
+    expect(conJazz).not.toBe(antes);
+  });
+
+  it("repetir la misma acción no cambia el contenido", () => {
+    expect([...conFavorito(new Set(["rock"]), "rock", true)]).toEqual(["rock"]);
+    expect([...conFavorito(new Set(), "rock", false)]).toEqual([]);
+  });
 });
 
 describe("leerPrecio y leerCupo", () => {

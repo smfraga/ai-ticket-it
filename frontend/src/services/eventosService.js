@@ -21,6 +21,14 @@ export const obtenerEvento = (id) => api.get(`/eventos/${id}`);
 
 export const listarCategorias = () => api.get("/categorias");
 
+// Favoritos: solo con rol COMPRADOR (403 si no). Guardar y quitar son idempotentes (201/200 y 204).
+// La lista tiene el formato del catálogo, el último guardado primero, y también trae eventos ya realizados.
+export const listarFavoritos = () => api.get("/favoritos");
+
+export const guardarFavorito = (eventoId) => api.post(`/eventos/${eventoId}/favorito`);
+
+export const quitarFavorito = (eventoId) => api.delete(`/eventos/${eventoId}/favorito`);
+
 // Requiere sesión con rol ORGANIZADOR (403 si no). Cuerpo: { nombre, descripcion?, categoriaId, fecha (ISO, futura),
 // tiposEntrada: [{ nombre, precio, cupo }] }. Devuelve el evento creado, con el formato del catálogo.
 export const crearEvento = (datos) => api.post("/eventos", datos);
