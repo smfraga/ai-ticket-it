@@ -51,7 +51,8 @@ El repositorio tiene dos paquetes independientes, cada uno con su propio `packag
 .
 ├── backend/            # API REST con Node.js + Express
 │   ├── app.js          # Configuración de la app Express (sin levantar el servidor)
-│   ├── server.js       # Punto de entrada: carga el seed y levanta el servidor HTTP
+│   ├── server.js       # Punto de entrada: carga el seed, arranca el vencimiento de pendientes y levanta el servidor HTTP
+│   ├── docs/openapi/   # Especificación OpenAPI por módulos (Swagger en /api-docs)
 │   ├── routes/         # Rutas → controllers → services → dominio y repositorios
 │   ├── controllers/    # Extienden BaseController (validación de ids y de la query)
 │   ├── services/
@@ -156,6 +157,10 @@ curl http://localhost:3000/health
 ```
 
 Debe devolver `{"status":"ok"}`.
+
+#### Documentación interactiva (Swagger)
+
+Con el servidor corriendo, la documentación de todos los endpoints está en **http://localhost:3000/api-docs** (la especificación OpenAPI en JSON, en `/api-docs.json`). Para probar las rutas con candado: ejecutar `POST /auth/login` con un usuario del seed, copiar el `token` y pegarlo en **Authorize**. La especificación está armada por módulos en `backend/docs/openapi/`, y un test comprueba que documente exactamente las rutas del router y cuáles piden token.
 
 #### Autenticación
 

@@ -1,0 +1,184 @@
+import { body, conToken, error, fecha, idPath, lista, ok, ref } from "./comun.js";
+
+const eventoId = idPath("Id del evento");
+const query = (name, schema, description) => ({ name, in: "query", required: false, schema, description });
+
+const tipoEntradaDatos = {
+  nombre: { type: "string", example: "General" },
+  descripcion: { type: "string", example: "Campo, de pie" },
+  precio: { type: "number", minimum: 0, example: 12000 },
+  cupo: { type: "integer", minimum: 1, example: 300 },
+};
+
+export default {
+  tags: [
+    { name: "Eventos", description: "Catálogo (público) y gestión de eventos por su organizador" },
+    { name: "Categorías", description: "Para explorar el catálogo" },
+  ],
+  paths: {
+    "/eventos": {
+      get: {
+        tags: ["Eventos"],
+        summary: "Buscar eventos",
+        description:
+          "Público. Por defecto, solo los próximos y ordenados por fecha. Los cancelados no aparecen, salvo al " +
+          "filtrar por `organizadorId` (\"Mis eventos\"). Un parámetro desconocido responde 400.",
+        parameters: [
+          query("texto", { type: "string", maxLength: 100 }, "En nombre y descripción, sin mayúsculas ni tildes; todas las palabras"),
+          query("categoriaId", { type: "string", format: "uuid" }, "Solo esa categoría"),
+          query("organizadorId", { type: "string", format: "uuid" }, "Solo los eventos de ese organizador (incluye cancelados)"),
+          query("precioMin", { type: "number", minimum: 0 }, "Con alguna entrada desde este precio (`tuPrecioEstaEntre`)"),
+          query("precioMax", { type: "number", minimum: 0 }, "Con alguna entrada hasta este precio"),
+          query("periodo", { type: "string", enum: ["proximos", "pasados", "todos"], default: "proximos" }),
+          query("orden", { type: "string", enum: ["fecha", "precio", "puntaje"], default: "fecha" }, "`precio`: la entrada más barata; `puntaje`: el del organizador"),
+          query("direccion", { type: "string", enum: ["asc", "desc"] }, "Por defecto `asc`, salvo `puntaje` (`desc`). Sin puntaje, siempre al final"),
+        ],
+        responses: { 200: ok("Los eventos que cumplen los filtros", lista("Evento")), 400: error("BadRequest") },
+      },
+      post: conToken({
+        tags: ["Eventos"],
+        summary: "Crear un evento",
+        description: "Solo con rol ORGANIZADOR. La fecha tiene que ser futura y los tipos de entrada, de nombres distintos.",
+        requestBody: body("EventoNuevo"),
+        responses: {
+          201: ok("Evento creado, con los ids de sus tipos de entrada", ref("Evento")),
+          400: error("BadRequest"),
+          403: error("Forbidden"),
+          404: error("NotFound"),
+        },
+      }),
+    },
+    "/eventos/{id}": {
+      get: {
+        tags: ["Eventos"],
+        summary: "Detalle de un evento",
+        description: "Público. También de eventos ya realizados o cancelados.",
+        parameters: [eventoId],
+        responses: { 200: ok("El evento", ref("Evento")), 400: error("BadRequest"), 404: error("NotFound") },
+      },
+      patch: conToken({
+        tags: ["Eventos"],
+        summary: "Editar un evento",
+        description:
+          "Solo su organizador y solo un evento próximo y no cancelado (409). Cambia solo lo que viene. " +
+          "`tiposEntrada`, si viene, es la lista completa: con `id` se editan, sin `id` se crean y los que faltan se " +
+          "quitan. Un tipo con entradas vendidas no se quita ni cambia de precio, y su cupo no baja de lo vendido (409). " +
+          "Si cambia la fecha, cada compra pendiente o confirmada recibe un aviso en su chat.",
+        parameters: [eventoId],
+        requestBody: body("EventoEdicion"),
+        responses: {
+          200: ok("El evento editado", ref("Evento")),
+          400: error("BadRequest"),
+          403: error("Forbidden"),
+          404: error("NotFound"),
+          409: error("Conflict"),
+        },
+      }),
+    },
+    "/eventos/{id}/cancelar": {
+      post: conToken({
+        tags: ["Eventos"],
+        summary: "Cancelar un evento",
+        description:
+          "Solo su organizador, en un evento próximo (409 si ya pasó o ya estaba cancelado). Las compras confirmadas " +
+          "quedan REEMBOLSADA y las pendientes CANCELADA, con un aviso en su chat. El evento sale del catálogo.",
+        parameters: [eventoId],
+        responses: {
+          200: ok("El evento, con `cancelado: true`", ref("Evento")),
+          400: error("BadRequest"),
+          403: error("Forbidden"),
+          404: error("NotFound"),
+          409: error("Conflict"),
+        },
+      }),
+    },
+    "/categorias": {
+      get: {
+        tags: ["Categorías"],
+        summary: "Listar categorías",
+        description: "Público, ordenadas por nombre.",
+        responses: { 200: ok("Las categorías", lista("Categoria")) },
+      },
+    },
+  },
+  schemas: {
+    Categoria: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        nombre: { type: "string", example: "Recitales" },
+        descripcion: { type: "string" },
+      },
+    },
+    TipoEntrada: {
+      type: "object",
+      properties: { id: { type: "string" }, ...tipoEntradaDatos, disponibles: { type: "integer", example: 296 } },
+    },
+    Evento: {
+      type: "object",
+      properties: {
+        id: { type: "string" },
+        nombre: { type: "string", example: "Rock en el Río de la Plata" },
+        descripcion: { type: "string" },
+        categoria: { type: "object", properties: { id: { type: "string" }, nombre: { type: "string" } } },
+        fecha,
+        multimedia: { type: "array", items: { type: "string", format: "uri" } },
+        organizador: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            nombre: { type: "string" },
+            apellido: { type: "string" },
+            puntaje: { type: "number", nullable: true, example: 4.5, description: "Promedio de sus reseñas; null sin reseñas" },
+          },
+        },
+        precioDesde: { type: "number", example: 12000 },
+        yaPaso: { type: "boolean" },
+        cancelado: { type: "boolean" },
+        tiposEntrada: lista("TipoEntrada"),
+      },
+    },
+    TipoEntradaNuevo: {
+      type: "object",
+      required: ["nombre", "precio", "cupo"],
+      additionalProperties: false,
+      properties: tipoEntradaDatos,
+    },
+    EventoNuevo: {
+      type: "object",
+      required: ["nombre", "categoriaId", "fecha", "tiposEntrada"],
+      additionalProperties: false,
+      properties: {
+        nombre: { type: "string", example: "Recital de rock" },
+        descripcion: { type: "string" },
+        categoriaId: { type: "string", format: "uuid", example: "00000000-0000-4000-8000-200000000001" },
+        fecha: { ...fecha, example: "2026-12-20T21:00:00-03:00" },
+        tiposEntrada: { type: "array", minItems: 1, items: ref("TipoEntradaNuevo") },
+        multimedia: { type: "array", items: { type: "string", format: "uri" } },
+      },
+    },
+    EventoEdicion: {
+      type: "object",
+      minProperties: 1,
+      additionalProperties: false,
+      description: "Todo opcional, pero al menos un campo",
+      properties: {
+        nombre: { type: "string" },
+        descripcion: { type: "string" },
+        categoriaId: { type: "string", format: "uuid" },
+        fecha,
+        multimedia: { type: "array", items: { type: "string", format: "uri" } },
+        tiposEntrada: {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "object",
+            required: ["nombre", "precio", "cupo"],
+            additionalProperties: false,
+            properties: { id: { type: "string", format: "uuid", description: "Solo los que ya existían" }, ...tipoEntradaDatos },
+          },
+        },
+      },
+    },
+  },
+};
