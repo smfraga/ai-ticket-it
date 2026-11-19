@@ -22,6 +22,7 @@ import {
   textoDeConfirmacionDeUso,
   textoDiasRestantes,
   textoEntradas,
+  textoPlazoDePago,
 } from "../utils/compras";
 import { formatearEstrellas, formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
 
@@ -139,6 +140,7 @@ export default function DetalleCompraScreen({ route, navigation }) {
   const esElComprador = comprador.id === usuario.id;
   const esElOrganizador = organizador.id === usuario.id;
   // En la tarjeta y en el chat se muestra a la otra parte.
+  const plazoDePago = textoPlazoDePago(compra, esElComprador);
   const contraparte = esElComprador
     ? { etiqueta: "Organizador", persona: organizador, chat: "Chat con el organizador" }
     : { etiqueta: "Comprador", persona: comprador, chat: "Chat con el comprador" };
@@ -184,6 +186,7 @@ export default function DetalleCompraScreen({ route, navigation }) {
       {esElComprador && puedePagar(compra) ? (
         <View style={estilos.acciones}>
           <Text style={tipografia.cuerpo}>Esta compra está pendiente de pago: las entradas quedan reservadas hasta que la pagues.</Text>
+          {plazoDePago ? <Text style={estilos.plazo}>{plazoDePago}</Text> : null}
           {errorDePagar ? <Text style={estilos.error}>{errorDePagar}</Text> : null}
           <Boton titulo={`Pagar ${formatearPrecio(compra.total)}`} onPress={pedirConfirmacionDePago} cargando={pagando} />
         </View>
@@ -206,7 +209,10 @@ export default function DetalleCompraScreen({ route, navigation }) {
           <Boton titulo="Marcar como utilizada" onPress={pedirConfirmacionDeUso} cargando={marcando} />
         </View>
       ) : motivoDeUso ? (
-        <Text style={[tipografia.suave, estilos.separado]}>{motivoDeUso}</Text>
+        <View style={estilos.separado}>
+          <Text style={tipografia.suave}>{motivoDeUso}</Text>
+          {plazoDePago ? <Text style={tipografia.suave}>{plazoDePago}</Text> : null}
+        </View>
       ) : null}
 
       <Text style={estilos.seccion}>Seguimiento</Text>
@@ -252,6 +258,7 @@ const estilos = StyleSheet.create({
   contenido: { padding: espacio.l, gap: espacio.s, paddingBottom: espacio.xxl },
   dias: { color: colores.exito, fontSize: 16, fontWeight: "700" },
   cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
+  plazo: { color: colores.aviso, fontSize: 15, fontWeight: "600" },
   tarjeta: {
     backgroundColor: colores.superficie,
     borderRadius: radio.tarjeta,

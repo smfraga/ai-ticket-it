@@ -1,12 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colores, espacio, radio, tipografia } from "../theme";
-import { textoDiasRestantes, textoEntradas } from "../utils/compras";
+import { textoDiasRestantes, textoEntradas, textoPlazoDePagoCorto } from "../utils/compras";
 import { formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
 import EstadoCompra from "./EstadoCompra";
 
 // `mostrarComprador`: en la vista del organizador, cada compra dice de quién es.
 export default function CompraCard({ compra, onPress, mostrarComprador = false }) {
   const dias = textoDiasRestantes(compra.diasRestantes);
+  // Solo en Mis compras: el organizador ve el plazo en el detalle.
+  const plazo = mostrarComprador ? null : textoPlazoDePagoCorto(compra);
 
   return (
     <Pressable
@@ -28,6 +30,7 @@ export default function CompraCard({ compra, onPress, mostrarComprador = false }
         </>
       )}
       {dias ? <Text style={estilos.dias}>{dias}</Text> : null}
+      {plazo ? <Text style={estilos.plazo}>{plazo}</Text> : null}
       <View style={estilos.fila}>
         <Text style={tipografia.cuerpo}>
           {textoEntradas(compra.cantidad)} · {compra.tipoEntrada.nombre}
@@ -51,6 +54,7 @@ const estilos = StyleSheet.create({
   presionada: { opacity: 0.85 },
   dias: { color: colores.exito, fontSize: 15, fontWeight: "700" },
   cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
+  plazo: { color: colores.aviso, fontSize: 15, fontWeight: "600" },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: espacio.xs },
   total: { fontSize: 16, fontWeight: "700", color: colores.texto },
 });
