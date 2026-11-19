@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { formatearFecha, formatearPrecio } from "../utils/formato";
 import BotonFavorito from "./BotonFavorito";
 
@@ -84,9 +84,9 @@ const estilos = StyleSheet.create({
   presionada: { opacity: 0.85 },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   nombre: { flex: 1 },
-  categoria: { color: colores.primarioOscuro, fontSize: 13, fontWeight: "600" },
-  puntaje: { color: colores.textoSuave, fontSize: 13 },
-  precio: { color: colores.texto, fontSize: 16, fontWeight: "700", marginTop: espacio.xs },
-  agotado: { color: colores.error, fontWeight: "600" },
-  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
+  categoria: { color: colores.primarioOscuro, fontSize: 13, fontFamily: fuentes.seminegrita },
+  puntaje: { fontFamily: fuentes.regular, color: colores.textoSuave, fontSize: 13 },
+  precio: { color: colores.texto, fontSize: 16, fontFamily: fuentes.negrita, marginTop: espacio.xs },
+  agotado: { color: colores.error, fontFamily: fuentes.seminegrita },
+  cancelado: { color: colores.error, fontSize: 15, fontFamily: fuentes.negrita },
 });

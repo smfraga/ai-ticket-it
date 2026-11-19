@@ -11,7 +11,7 @@ import ReseniaItem from "../components/ReseniaItem";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { listarReseniasDelOrganizador, obtenerEvento } from "../services/eventosService";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { formatearFecha, formatearPrecio } from "../utils/formato";
 
 export default function DetalleEventoScreen({ route }) {
@@ -151,12 +151,12 @@ export default function DetalleEventoScreen({ route }) {
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   contenido: { padding: espacio.l, gap: espacio.s, paddingBottom: espacio.xxl },
-  categoria: { color: colores.primarioOscuro, fontSize: 13, fontWeight: "600" },
+  categoria: { color: colores.primarioOscuro, fontSize: 13, fontFamily: fuentes.seminegrita },
   encabezado: { flexDirection: "row", alignItems: "flex-start", gap: espacio.s },
   titulo: { flex: 1 },
   descripcion: { marginTop: espacio.s },
-  aviso: { color: colores.aviso, fontSize: 14, fontWeight: "600" },
-  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
+  aviso: { color: colores.aviso, fontSize: 14, fontFamily: fuentes.seminegrita },
+  cancelado: { color: colores.error, fontSize: 15, fontFamily: fuentes.negrita },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.xl },
   tipo: {
     flexDirection: "row",
@@ -171,7 +171,7 @@ const estilos = StyleSheet.create({
   },
   tipoElegido: { borderColor: colores.primario, borderWidth: 2, backgroundColor: colores.primarioSuave },
   tipoTexto: { flex: 1, gap: espacio.xs },
-  precio: { fontSize: 18, fontWeight: "700", color: colores.texto },
-  agotado: { color: colores.error, fontWeight: "600" },
+  precio: { fontSize: 18, fontFamily: fuentes.negrita, color: colores.texto },
+  agotado: { color: colores.error, fontFamily: fuentes.seminegrita },
   errorResenias: { gap: espacio.m },
 });

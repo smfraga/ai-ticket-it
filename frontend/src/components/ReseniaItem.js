@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { formatearEstrellas, formatearFechaCorta } from "../utils/formato";
 
 export default function ReseniaItem({ resenia }) {
@@ -29,5 +29,5 @@ const estilos = StyleSheet.create({
     gap: espacio.xs,
   },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  estrellas: { color: colores.aviso, fontSize: 16, letterSpacing: 1 },
+  estrellas: { fontFamily: fuentes.regular, color: colores.aviso, fontSize: 16, letterSpacing: 1 },
 });

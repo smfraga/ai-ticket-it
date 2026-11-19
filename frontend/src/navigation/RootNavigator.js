@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
@@ -18,21 +18,37 @@ import MisEventosScreen from "../screens/MisEventosScreen";
 import PerfilScreen from "../screens/PerfilScreen";
 import RegistroScreen from "../screens/RegistroScreen";
 import ReseniaScreen from "../screens/ReseniaScreen";
-import { colores } from "../theme";
+import { colores, fuentes } from "../theme";
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
 
 const tema = {
-  ...DefaultTheme,
+  ...DarkTheme,
   colors: {
-    ...DefaultTheme.colors,
+    ...DarkTheme.colors,
     primary: colores.primario,
     background: colores.fondo,
     card: colores.superficie,
     text: colores.texto,
     border: colores.borde,
+    notification: colores.primario,
   },
+  fonts: {
+    regular: { fontFamily: fuentes.regular, fontWeight: "normal" },
+    medium: { fontFamily: fuentes.media, fontWeight: "normal" },
+    bold: { fontFamily: fuentes.negrita, fontWeight: "normal" },
+    heavy: { fontFamily: fuentes.negrita, fontWeight: "normal" },
+  },
+};
+
+// Encabezado de las pantallas apiladas (detalle, chat, etc.): título en letra de cartel y volver en naranja.
+const opcionesDePila = {
+  headerTintColor: colores.primario,
+  headerTitleStyle: { fontFamily: fuentes.cartel, fontSize: 24, color: colores.texto },
+  headerBackTitleStyle: { fontFamily: fuentes.regular },
+  headerStyle: { backgroundColor: colores.fondo },
+  headerShadowVisible: false,
 };
 
 const EventosStackNav = createNativeStackNavigator();
@@ -40,7 +56,7 @@ const EventosStackNav = createNativeStackNavigator();
 // Dentro de la pestaña Eventos: del catálogo al detalle de un evento, con el botón de volver.
 function EventosStack() {
   return (
-    <EventosStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
+    <EventosStackNav.Navigator screenOptions={opcionesDePila}>
       <EventosStackNav.Screen name="Catalogo" component={CatalogoScreen} options={{ headerShown: false }} />
       <EventosStackNav.Screen
         name="DetalleEvento"
@@ -56,7 +72,7 @@ const ComprasStackNav = createNativeStackNavigator();
 // Dentro de la pestaña Mis compras: de la lista al detalle de una compra.
 function ComprasStack() {
   return (
-    <ComprasStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
+    <ComprasStackNav.Navigator screenOptions={opcionesDePila}>
       <ComprasStackNav.Screen name="ListaDeCompras" component={MisComprasScreen} options={{ headerShown: false }} />
       <ComprasStackNav.Screen
         name="DetalleCompra"
@@ -82,7 +98,7 @@ const FavoritosStackNav = createNativeStackNavigator();
 // Dentro de la pestaña Favoritos (comprador): de la lista al detalle del evento, el mismo que en el catálogo.
 function FavoritosStack() {
   return (
-    <FavoritosStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
+    <FavoritosStackNav.Navigator screenOptions={opcionesDePila}>
       <FavoritosStackNav.Screen name="ListaDeFavoritos" component={FavoritosScreen} options={{ headerShown: false }} />
       <FavoritosStackNav.Screen
         name="DetalleEvento"
@@ -99,7 +115,7 @@ const OrganizadorStackNav = createNativeStackNavigator();
 // y al chat de una compra (las mismas pantallas que usa el comprador).
 function OrganizadorStack() {
   return (
-    <OrganizadorStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
+    <OrganizadorStackNav.Navigator screenOptions={opcionesDePila}>
       <OrganizadorStackNav.Screen name="MisEventos" component={MisEventosScreen} options={{ headerShown: false }} />
       <OrganizadorStackNav.Screen
         name="CrearEvento"
@@ -142,6 +158,9 @@ const ICONOS_DE_PESTANIA = {
 const opcionesDePestania = ({ route }) => ({
   headerShown: false,
   tabBarActiveTintColor: colores.primario,
+  tabBarInactiveTintColor: colores.textoSuave,
+  tabBarStyle: { backgroundColor: colores.superficie, borderTopColor: colores.borde },
+  tabBarLabelStyle: { fontFamily: fuentes.media },
   tabBarIcon: ({ focused, color, size }) => (
     <Ionicons
       name={focused ? ICONOS_DE_PESTANIA[route.name] : `${ICONOS_DE_PESTANIA[route.name]}-outline`}

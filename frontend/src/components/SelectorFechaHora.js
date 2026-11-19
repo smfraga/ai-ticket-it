@@ -35,6 +35,7 @@ export default function SelectorFechaHora({ etiqueta, valor, minimo, onCambiar }
             minuteInterval={5}
             locale="es-AR"
             accentColor={colores.primario}
+            themeVariant="dark"
             onValueChange={(_, fecha) => onCambiar(fecha)}
           />
         </View>

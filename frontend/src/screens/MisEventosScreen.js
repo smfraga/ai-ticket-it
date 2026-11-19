@@ -92,5 +92,5 @@ const estilos = StyleSheet.create({
   lista: { padding: espacio.l, gap: espacio.m, flexGrow: 1 },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.s },
   vacio: { textAlign: "center", marginTop: espacio.xxl, color: colores.textoSuave },
-  errorAviso: { color: colores.error, marginBottom: espacio.m },
+  errorAviso: { ...tipografia.cuerpo, color: colores.error, marginBottom: espacio.m },
 });

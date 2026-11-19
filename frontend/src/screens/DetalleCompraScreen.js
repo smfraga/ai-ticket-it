@@ -9,7 +9,7 @@ import SeguimientoCompra from "../components/SeguimientoCompra";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { cancelarCompra, obtenerCompra, pagarCompra, utilizarCompra } from "../services/comprasService";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import {
   motivoSinCancelacion,
   motivoSinUtilizar,
@@ -263,9 +263,9 @@ export default function DetalleCompraScreen({ route, navigation }) {
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   contenido: { padding: espacio.l, gap: espacio.s, paddingBottom: espacio.xxl },
-  dias: { color: colores.exito, fontSize: 16, fontWeight: "700" },
-  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
-  plazo: { color: colores.aviso, fontSize: 15, fontWeight: "600" },
+  dias: { color: colores.exito, fontSize: 16, fontFamily: fuentes.negrita },
+  cancelado: { color: colores.error, fontSize: 15, fontFamily: fuentes.negrita },
+  plazo: { color: colores.aviso, fontSize: 15, fontFamily: fuentes.seminegrita },
   tarjeta: {
     backgroundColor: colores.superficie,
     borderRadius: radio.tarjeta,
@@ -276,11 +276,11 @@ const estilos = StyleSheet.create({
     marginTop: espacio.m,
   },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  total: { fontSize: 18, fontWeight: "700", color: colores.texto },
+  total: { fontSize: 18, fontFamily: fuentes.negrita, color: colores.texto },
   separado: { marginTop: espacio.m },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.xl, marginBottom: espacio.s },
   acciones: { marginTop: espacio.xl, gap: espacio.m },
-  error: { color: colores.error, fontSize: 14, fontWeight: "600" },
-  aviso: { color: colores.exito, fontSize: 15, fontWeight: "700" },
-  estrellas: { color: colores.aviso, fontSize: 20, letterSpacing: 1 },
+  error: { color: colores.error, fontSize: 14, fontFamily: fuentes.seminegrita },
+  aviso: { color: colores.exito, fontSize: 15, fontFamily: fuentes.negrita },
+  estrellas: { fontFamily: fuentes.regular, color: colores.aviso, fontSize: 20, letterSpacing: 1 },
 });

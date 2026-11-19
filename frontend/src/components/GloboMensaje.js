@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { colores, espacio, radio } from "../theme";
+import { colores, espacio, fuentes, radio } from "../theme";
 import { ETIQUETAS_DE_ROL_EN_LA_COMPRA } from "../utils/chat";
 import { formatearFecha } from "../utils/formato";
 
@@ -39,9 +39,9 @@ const estilos = StyleSheet.create({
     borderColor: colores.borde,
     borderBottomLeftRadius: 4,
   },
-  autor: { fontSize: 12, fontWeight: "700", color: colores.primarioOscuro },
-  texto: { fontSize: 16, color: colores.texto },
+  autor: { fontSize: 12, fontFamily: fuentes.negrita, color: colores.primarioOscuro },
+  texto: { fontFamily: fuentes.regular, fontSize: 16, color: colores.texto },
   textoPropio: { color: colores.textoSobrePrimario },
-  hora: { fontSize: 11, color: colores.textoSuave, alignSelf: "flex-end" },
-  horaPropia: { color: "#dcdcfb" },
+  hora: { fontFamily: fuentes.regular, fontSize: 11, color: colores.textoSuave, alignSelf: "flex-end" },
+  horaPropia: { color: colores.horaSobrePrimario },
 });

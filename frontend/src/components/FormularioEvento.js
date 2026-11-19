@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { useHeaderHeight } from "@react-navigation/elements";
 import { mensajeDeError } from "../services/api";
 import { listarCategorias } from "../services/eventosService";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { errorDeEvento, tipoEntradaVacio } from "../utils/eventos";
 import Boton from "./Boton";
 import CampoTexto from "./CampoTexto";
@@ -202,8 +202,8 @@ const estilos = StyleSheet.create({
   },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: espacio.m },
   mitad: { flex: 1 },
-  quitar: { color: colores.error, fontSize: 15, fontWeight: "600" },
+  quitar: { color: colores.error, fontSize: 15, fontFamily: fuentes.seminegrita },
   bloqueado: { backgroundColor: colores.fondo, color: colores.textoSuave },
   acciones: { marginTop: espacio.m, gap: espacio.m },
-  error: { color: colores.error, fontSize: 14, fontWeight: "600" },
+  error: { color: colores.error, fontSize: 14, fontFamily: fuentes.seminegrita },
 });

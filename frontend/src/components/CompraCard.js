@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { textoDiasRestantes, textoEntradas, textoMensajesNuevos, textoPlazoDePagoCorto } from "../utils/compras";
 import { formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
@@ -72,10 +72,10 @@ const estilos = StyleSheet.create({
     paddingHorizontal: espacio.s,
     paddingVertical: 3,
   },
-  textoInsignia: { color: colores.textoSobrePrimario, fontSize: 13, fontWeight: "700" },
-  dias: { color: colores.exito, fontSize: 15, fontWeight: "700" },
-  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
-  plazo: { color: colores.aviso, fontSize: 15, fontWeight: "600" },
+  textoInsignia: { color: colores.textoSobrePrimario, fontSize: 13, fontFamily: fuentes.negrita },
+  dias: { color: colores.exito, fontSize: 15, fontFamily: fuentes.negrita },
+  cancelado: { color: colores.error, fontSize: 15, fontFamily: fuentes.negrita },
+  plazo: { color: colores.aviso, fontSize: 15, fontFamily: fuentes.seminegrita },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: espacio.xs },
-  total: { fontSize: 16, fontWeight: "700", color: colores.texto },
+  total: { fontSize: 16, fontFamily: fuentes.negrita, color: colores.texto },
 });

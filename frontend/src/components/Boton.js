@@ -1,5 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
-import { ALTO_TOQUE, colores, espacio, radio } from "../theme";
+import { ALTO_TOQUE, colores, espacio, fuentes, radio } from "../theme";
 
 export default function Boton({ titulo, onPress, variante = "primario", cargando = false, deshabilitado = false }) {
   const inactivo = cargando || deshabilitado;
@@ -43,5 +43,5 @@ const estilos = StyleSheet.create({
   secundario: { backgroundColor: colores.superficie, borderWidth: 1, borderColor: colores.primario },
   presionado: { opacity: 0.85 },
   inactivo: { opacity: 0.5 },
-  texto: { color: colores.textoSobrePrimario, fontSize: 16, fontWeight: "600" },
+  texto: { color: colores.textoSobrePrimario, fontSize: 16, fontFamily: fuentes.seminegrita },
 });

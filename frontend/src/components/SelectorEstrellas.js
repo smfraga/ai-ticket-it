@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ALTO_TOQUE, colores, espacio, tipografia } from "../theme";
+import { ALTO_TOQUE, colores, espacio, fuentes, tipografia } from "../theme";
 import { ETIQUETAS_DE_PUNTUACION, PUNTUACION_MAXIMA } from "../utils/compras";
 
 const ESTRELLAS = Array.from({ length: PUNTUACION_MAXIMA }, (_, indice) => indice + 1);
@@ -34,6 +34,6 @@ const estilos = StyleSheet.create({
   contenedor: { gap: espacio.xs },
   fila: { flexDirection: "row" },
   boton: { width: ALTO_TOQUE, height: ALTO_TOQUE, alignItems: "center", justifyContent: "center" },
-  estrella: { fontSize: 34, color: colores.borde },
+  estrella: { fontFamily: fuentes.regular, fontSize: 34, color: colores.bordeControl },
   llena: { color: colores.aviso },
 });

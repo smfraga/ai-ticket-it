@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 import { mensajeDeError } from "../services/api";
 import { comprar } from "../services/comprasService";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { formatearPrecio } from "../utils/formato";
 import Boton from "./Boton";
 import SelectorCantidad from "./SelectorCantidad";
@@ -101,9 +101,9 @@ const estilos = StyleSheet.create({
     borderColor: colores.primario,
     padding: espacio.l,
   },
-  exito: { backgroundColor: "#e8f5ee", borderColor: colores.exito },
-  tituloExito: { fontSize: 20, fontWeight: "700", color: colores.exito },
+  exito: { backgroundColor: colores.exitoSuave, borderColor: colores.exito },
+  tituloExito: { fontSize: 20, fontFamily: fuentes.negrita, color: colores.exito },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  total: { fontSize: 22, fontWeight: "700", color: colores.texto },
-  error: { color: colores.error, fontSize: 14, fontWeight: "600" },
+  total: { fontSize: 22, fontFamily: fuentes.negrita, color: colores.texto },
+  error: { color: colores.error, fontSize: 14, fontFamily: fuentes.seminegrita },
 });

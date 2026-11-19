@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { ALTO_TOQUE, colores, espacio, radio } from "../theme";
+import { ALTO_TOQUE, colores, espacio, fuentes, radio } from "../theme";
 
 function BotonCantidad({ simbolo, etiqueta, onPress, deshabilitado }) {
   return (
@@ -52,6 +52,6 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
   },
   deshabilitado: { opacity: 0.4 },
-  simbolo: { fontSize: 24, color: colores.primario, fontWeight: "600" },
-  valor: { fontSize: 20, fontWeight: "700", color: colores.texto, minWidth: 32, textAlign: "center" },
+  simbolo: { fontSize: 24, color: colores.primario, fontFamily: fuentes.seminegrita },
+  valor: { fontSize: 20, fontFamily: fuentes.negrita, color: colores.texto, minWidth: 32, textAlign: "center" },
 });
