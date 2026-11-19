@@ -27,6 +27,19 @@ export const textoDeConfirmacionDeCancelacion = (compra, totalFormateado) =>
     ? `Se cancelan las entradas y se te reembolsa ${totalFormateado}.`
     : "Se cancela la compra y las entradas vuelven al cupo.";
 
+// Marcar como utilizada: lo hace el organizador del evento, solo desde CONFIRMADA y sin límite de fecha
+// (el backend lo vuelve a validar con 403 y 409).
+export const puedeMarcarUtilizada = (compra) => compra.estado === "CONFIRMADA";
+
+// Por qué el organizador no ve el botón; null si puede marcarla o si el estado ya lo explica.
+export const motivoSinUtilizar = (compra) =>
+  compra.estado === "PENDIENTE" ? "La compra todavía no está confirmada: no se puede marcar como utilizada." : null;
+
+export const textoDeConfirmacionDeUso = (compra) =>
+  `Confirmá que ${compra.comprador.nombre} ${compra.comprador.apellido} usó ${
+    compra.cantidad === 1 ? "su entrada" : `sus ${compra.cantidad} entradas`
+  }. Después ya no se puede cancelar y podrá dejar su reseña.`;
+
 // Reseñar: solo una compra UTILIZADA que todavía no tiene reseña (el backend lo vuelve a validar con 409).
 export const puedeReseniar = (compra) => compra.estado === "UTILIZADA" && !compra.resenia;
 
