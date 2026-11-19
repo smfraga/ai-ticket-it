@@ -65,6 +65,7 @@ export class EventoService {
   async buscar({
     texto,
     categoriaId,
+    organizadorId,
     precioMin,
     precioMax,
     periodo = "proximos",
@@ -80,6 +81,7 @@ export class EventoService {
         (periodo === "todos" || (periodo === "pasados") === evento.yaPaso(ahora)) &&
         evento.coincideConTexto(texto) &&
         (categoriaId === undefined || evento.perteneceACategoria(categoriaId)) &&
+        (organizadorId === undefined || evento.esDelOrganizador(organizadorId)) &&
         (!hayRangoDePrecio || evento.tuPrecioEstaEntre(precioMin ?? 0, precioMax ?? PRECIO_MAXIMO)),
     );
 

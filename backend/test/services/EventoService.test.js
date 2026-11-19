@@ -316,6 +316,18 @@ describe("EventoService", () => {
       });
     });
 
+    describe("organizador", () => {
+      it("muestra solo los suyos y respeta el período", async () => {
+        expect(ids(await service.buscar({ organizadorId: "olivia" }))).toEqual(["e1"]);
+        expect(ids(await service.buscar({ organizadorId: "olivia", periodo: "todos" }))).toEqual(["e4", "e1"]);
+        expect(ids(await service.buscar({ organizadorId: "octavio", periodo: "pasados" }))).toEqual(["e5"]);
+      });
+
+      it("devuelve una lista vacía para un organizador sin eventos", async () => {
+        expect(await service.buscar({ organizadorId: "otro", periodo: "todos" })).toEqual([]);
+      });
+    });
+
     describe("rango de precio (un evento entra si alguna de sus entradas está en el rango)", () => {
       it.each([
         ["entre los dos extremos", { precioMin: 9000, precioMax: 12000 }, ["e1"]],

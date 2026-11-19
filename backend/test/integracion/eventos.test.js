@@ -232,6 +232,29 @@ describe("Eventos (API completa)", () => {
       expect(await delCatalogo({ categoriaId: ID_INEXISTENTE }).then((r) => r.body)).toEqual([]);
     });
 
+    it("filtra por organizador: cada uno ve solo los suyos, pasados incluidos si se pide", async () => {
+      const olivia = await usuarioRepository.findByEmail("olivia@example.com");
+      const tokenOctavio = (await registrar({ email: "octavio@example.com", roles: ["ORGANIZADOR"] })).body.token;
+      await crearEvento({ nombre: "Peña de otro organizador", fecha: enDias(10).toISOString() }, tokenOctavio);
+      const octavio = await usuarioRepository.findByEmail("octavio@example.com");
+
+      const deOctavio = await request(app).get("/eventos").query({ organizadorId: octavio.id, periodo: "todos" });
+      expect(deOctavio.status).toBe(200);
+      expect(nombres(deOctavio)).toEqual(["Peña de otro organizador"]);
+
+      const deOlivia = await delCatalogo({ organizadorId: olivia.id, periodo: "todos" });
+      expect(nombres(deOlivia)).toEqual([
+        "Concierto del catálogo ya realizado",
+        "Obra Ñandú del catálogo",
+        "Festival del catálogo",
+      ]);
+      expect(deOlivia.body.every((evento) => evento.organizador.id === olivia.id)).toBe(true);
+
+      expect(await request(app).get("/eventos").query({ organizadorId: ID_INEXISTENTE }).then((r) => r.body)).toEqual(
+        [],
+      );
+    });
+
     it("filtra por rango de precio", async () => {
       expect(nombres(await delCatalogo({ precioMin: 20000 }))).toEqual(["Festival del catálogo"]);
       expect(nombres(await delCatalogo({ precioMax: 6000 }))).toEqual(["Obra Ñandú del catálogo"]);
@@ -261,6 +284,7 @@ describe("Eventos (API completa)", () => {
       ["un período desconocido", { periodo: "futuros" }],
       ["un rango de precios invertido", { precioMin: 100, precioMax: 10 }],
       ["una categoría que no es UUID", { categoriaId: "rock" }],
+      ["un organizador que no es UUID", { organizadorId: "olivia" }],
       ["un precio que no es número", { precioMax: "barato" }],
       ["un parámetro que no existe", { pagina: 2 }],
     ])("responde 400 con el detalle si la query trae %s", async (_, query) => {

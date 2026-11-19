@@ -203,4 +203,16 @@ describe("Evento", () => {
       expect(evento.perteneceACategoria(undefined)).toBe(false);
     });
   });
+
+  describe("esDelOrganizador", () => {
+    it("es verdadero para el id de su organizador y falso para otro", () => {
+      const organizador = crearOrganizador();
+      organizador.id = "organizador-1";
+      const evento = crearEvento({ organizador });
+
+      expect(evento.esDelOrganizador("organizador-1")).toBe(true);
+      expect(evento.esDelOrganizador("organizador-2")).toBe(false);
+      expect(evento.esDelOrganizador(undefined)).toBe(false);
+    });
+  });
 });

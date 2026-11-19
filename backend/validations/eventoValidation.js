@@ -53,6 +53,7 @@ export const filtrosEventosValidation = z
       .optional()
       .transform((texto) => texto || undefined),
     categoriaId: idValidation.optional(),
+    organizadorId: idValidation.optional(),
     precioMin: precioDeQuery,
     precioMax: precioDeQuery,
     periodo: opcionDe(PERIODOS).default("proximos"),

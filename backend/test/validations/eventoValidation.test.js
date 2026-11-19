@@ -136,10 +136,16 @@ describe("filtrosEventosValidation", () => {
     expect(filtrosEventosValidation.parse({ categoriaId: CATEGORIA_ID }).categoriaId).toBe(CATEGORIA_ID);
   });
 
+  it("acepta el filtro por organizador", () => {
+    expect(filtrosEventosValidation.parse({ organizadorId: CATEGORIA_ID }).organizadorId).toBe(CATEGORIA_ID);
+    expect(filtrosEventosValidation.parse({}).organizadorId).toBeUndefined();
+  });
+
   it.each([
     ["precioMin negativo", { precioMin: "-1" }],
     ["precioMax que no es número", { precioMax: "barato" }],
     ["categoriaId que no es UUID", { categoriaId: "123" }],
+    ["organizadorId que no es UUID", { organizadorId: "olivia" }],
     ["periodo desconocido", { periodo: "futuros" }],
     ["orden desconocido", { orden: "nombre" }],
     ["dirección desconocida", { direccion: "arriba" }],
