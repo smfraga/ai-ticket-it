@@ -1,12 +1,14 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colores, espacio, radio, tipografia } from "../theme";
-import { textoDiasRestantes, textoEntradas, textoPlazoDePagoCorto } from "../utils/compras";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { textoDiasRestantes, textoEntradas, textoMensajesNuevos, textoPlazoDePagoCorto } from "../utils/compras";
 import { formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
 import EstadoCompra from "./EstadoCompra";
 
 // `mostrarComprador`: en la vista del organizador, cada compra dice de quién es.
 export default function CompraCard({ compra, onPress, mostrarComprador = false }) {
   const dias = textoDiasRestantes(compra.diasRestantes);
+  const mensajesNuevos = textoMensajesNuevos(compra.mensajesNoLeidos);
   // Solo en Mis compras: el organizador ve el plazo en el detalle.
   const plazo = mostrarComprador ? null : textoPlazoDePagoCorto(compra);
 
@@ -17,7 +19,15 @@ export default function CompraCard({ compra, onPress, mostrarComprador = false }
       onPress={onPress}
       style={({ pressed }) => [estilos.tarjeta, pressed && estilos.presionada]}
     >
-      <EstadoCompra estado={compra.estado} />
+      <View style={estilos.cabecera}>
+        <EstadoCompra estado={compra.estado} />
+        {mensajesNuevos ? (
+          <View style={estilos.insignia} accessibilityLabel={mensajesNuevos}>
+            <Ionicons name="chatbubble" size={13} color={colores.textoSobrePrimario} />
+            <Text style={estilos.textoInsignia}>{mensajesNuevos}</Text>
+          </View>
+        ) : null}
+      </View>
       {mostrarComprador ? (
         <Text style={tipografia.subtitulo}>
           {compra.comprador.nombre} {compra.comprador.apellido}
@@ -52,6 +62,17 @@ const estilos = StyleSheet.create({
     gap: espacio.xs,
   },
   presionada: { opacity: 0.85 },
+  cabecera: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: espacio.s },
+  insignia: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: espacio.xs,
+    backgroundColor: colores.primario,
+    borderRadius: 999,
+    paddingHorizontal: espacio.s,
+    paddingVertical: 3,
+  },
+  textoInsignia: { color: colores.textoSobrePrimario, fontSize: 13, fontWeight: "700" },
   dias: { color: colores.exito, fontSize: 15, fontWeight: "700" },
   cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
   plazo: { color: colores.aviso, fontSize: 15, fontWeight: "600" },

@@ -38,6 +38,7 @@ export class Compra {
   estado
   mensajes
   historial
+  lecturas
 
   constructor(comprador, evento, tipoEntrada, cantidad, ahora = new Date()) {
     if (!comprador) {
@@ -80,6 +81,8 @@ export class Compra {
     this.estado = estadoCompra.PENDIENTE;
     this.mensajes = [];
     this.historial = [new CambioEstadoCompra(estadoCompra.PENDIENTE, comprador, ahora)];
+    // Última vez que cada participante leyó el chat (id del usuario → fecha), para contar los mensajes nuevos.
+    this.lecturas = new Map();
   }
 
   estaConfirmada() {
@@ -213,6 +216,28 @@ export class Compra {
     }
     const mensaje = new Mensaje(usuario, texto, ahora);
     this.mensajes.push(mensaje);
+    // Quien escribe ya vio la conversación hasta acá.
+    this.marcarLeido(usuario, ahora);
     return mensaje;
+  }
+
+  // El participante leyó el chat hasta `ahora`.
+  marcarLeido(usuario, ahora = new Date()) {
+    if (!this.esParticipante(usuario)) {
+      throw new ForbiddenError("Solo el comprador y el organizador del evento pueden ver este chat");
+    }
+    this.lecturas.set(usuario.id, ahora);
+  }
+
+  // Mensajes de la otra parte enviados después de la última lectura de `usuario` (todos, si nunca lo leyó).
+  // Los propios nunca cuentan. Quien no participa de la compra no tiene mensajes nuevos.
+  mensajesNoLeidosPara(usuario) {
+    if (!this.esParticipante(usuario)) return 0;
+    const ultimaLectura = this.lecturas.get(usuario.id);
+    return this.mensajes.filter(
+      (mensaje) =>
+        !mensaje.usuario.esElMismo(usuario) &&
+        (ultimaLectura === undefined || mensaje.enviado.getTime() > ultimaLectura.getTime()),
+    ).length;
   }
 }

@@ -254,6 +254,24 @@ describe("cargarSeed", () => {
       ]);
     });
 
+    // Para la demo: cada uno leyó hasta su último mensaje, así que a Carla le queda la última respuesta de Olivia
+    // y a Octavio la consulta de Camilo, que nunca leyó.
+    it("hay un mensaje nuevo para Carla y uno para Octavio", () => {
+      const conChat = proximas().filter((c) => c.mensajes.length > 0);
+      const noLeidos = conChat.flatMap((compra) =>
+        [compra.comprador, compra.evento.organizador].map((u) => [u.email, compra.mensajesNoLeidosPara(u)]),
+      );
+
+      expect(new Map(noLeidos)).toEqual(
+        new Map([
+          ["carla@example.com", 1],
+          ["olivia@example.com", 0],
+          ["camilo@example.com", 0],
+          ["octavio@example.com", 1],
+        ]),
+      );
+    });
+
     it("hay compras de los dos compradores y en eventos de los dos organizadores", () => {
       expect(new Set(proximas().map((c) => c.comprador.email))).toEqual(
         new Set(["carla@example.com", "camilo@example.com"]),

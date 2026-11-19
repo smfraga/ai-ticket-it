@@ -55,7 +55,7 @@ export const ID_USUARIO_SISTEMA = "sistema";
 export const textoQuien = (quien) =>
   quien.id === ID_USUARIO_SISTEMA ? "AI Ticket It (venció el plazo de pago)" : `${quien.nombre} ${quien.apellido}`.trim();
 
-export const textoDeConfirmacionDePago =(totalFormateado) =>
+export const textoDeConfirmacionDePago = (totalFormateado) =>
   `Pago simulado: se confirma la compra por ${totalFormateado}. Después vas a poder cancelarla con reembolso hasta el día del evento.`;
 
 // Marcar como utilizada: lo hace el organizador del evento, solo desde CONFIRMADA y sin límite de fecha
@@ -130,4 +130,16 @@ export const textoDeConfirmacionDeCancelacionDeEvento = (compras) => {
   return `El evento sale del catálogo: ${efecto}. No se puede deshacer.`;
 };
 
-export const textoEntradas =(cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;
+// Mensajes de la otra parte que todavía no se leyeron (`mensajesNoLeidos` del backend). null si no hay.
+export const textoMensajesNuevos = (cantidad) => {
+  if (!cantidad || cantidad <= 0) return null;
+  return cantidad === 1 ? "1 mensaje nuevo" : `${cantidad} mensajes nuevos`;
+};
+
+// "Chat con el organizador" o "Chat con el organizador (2 nuevos)".
+export const tituloDelBotonDeChat = (base, cantidad) => {
+  if (!cantidad || cantidad <= 0) return base;
+  return `${base} (${cantidad === 1 ? "1 nuevo" : `${cantidad} nuevos`})`;
+};
+
+export const textoEntradas = (cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;

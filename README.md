@@ -219,6 +219,8 @@ Todas piden token. Comprar exige el rol de comprador; ver las compras de un even
 | `GET /compras/:id/mensajes`  | El chat de la compra, del más viejo al más nuevo. Cada mensaje trae `autor` (`id`, `nombre`, `apellido` y su `rol` en esa compra: `COMPRADOR` u `ORGANIZADOR`), `mensaje` y `enviado`. Solo el comprador y el organizador del evento: otro usuario recibe `403` |
 | `POST /compras/:id/mensajes` | Escribe en el chat. Body: `{ "mensaje": "texto" }`, de 1 a 500 caracteres (se recortan los espacios de los bordes). `201` con el mensaje. `400` texto vacío o demasiado largo, `403` si no participa, `404` compra inexistente. Se puede escribir en cualquier estado de la compra |
 
+**Mensajes no leídos.** Cada compra guarda cuándo leyó el chat cada participante: leerlo (`GET /compras/:id/mensajes`) o escribir en él cuenta como leído. Las respuestas de compras (`GET /compras`, `GET /compras/:id`, `GET /eventos/:id/compras` y las acciones) traen `mensajesNoLeidos`: los mensajes de la otra parte posteriores a la última lectura de quien pide. En el seed, Carla tiene 1 sin leer (la última respuesta de Olivia en el recital de rock) y Octavio 1 (la consulta de Camilo en el stand up).
+
 **Vencimiento de compras pendientes.** Una compra `PENDIENTE` se puede pagar durante 7 días desde que se hizo, o hasta que empieza el evento si es antes. Las respuestas de compras traen `fechaLimiteDePago` (`null` si no está pendiente). Al arrancar y después cada minuto, el servidor cancela las vencidas: quedan `CANCELADA`, liberan el cupo y en el seguimiento figura "AI Ticket It" como responsable.
 
 #### Reseñas

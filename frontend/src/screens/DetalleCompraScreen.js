@@ -23,6 +23,7 @@ import {
   textoDiasRestantes,
   textoEntradas,
   textoPlazoDePago,
+  tituloDelBotonDeChat,
 } from "../utils/compras";
 import { formatearEstrellas, formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
 
@@ -194,7 +195,7 @@ export default function DetalleCompraScreen({ route, navigation }) {
 
       <View style={estilos.separado}>
         <Boton
-          titulo={contraparte.chat}
+          titulo={tituloDelBotonDeChat(contraparte.chat, compra.mensajesNoLeidos)}
           variante="secundario"
           onPress={() =>
             navigation.navigate("Chat", { compraId: compra.id, titulo: `Chat con ${contraparte.persona.nombre}` })
