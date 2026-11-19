@@ -26,3 +26,49 @@ export const horaEnLista = (iso, ahora = new Date()) => {
   if (dias < 7) return DIAS_COMPLETOS[fecha.getDay()];
   return `${dosDigitos(fecha.getDate())}/${dosDigitos(fecha.getMonth() + 1)}/${dosDigitos(fecha.getFullYear() % 100)}`;
 };
+
+const MESES_COMPLETOS = [
+  "enero",
+  "febrero",
+  "marzo",
+  "abril",
+  "mayo",
+  "junio",
+  "julio",
+  "agosto",
+  "septiembre",
+  "octubre",
+  "noviembre",
+  "diciembre",
+];
+
+// El separador de un día dentro del chat: "Hoy", "Ayer", el día de la semana dentro de la última semana y la fecha
+// completa si es más viejo ("9 de noviembre"; con el año si no es el actual).
+export const etiquetaDeDia = (iso, ahora = new Date()) => {
+  const fecha = new Date(iso);
+  const dias = diasAtras(fecha, ahora);
+  if (dias === 0) return "Hoy";
+  if (dias === 1) return "Ayer";
+  if (dias < 7) return DIAS_COMPLETOS[fecha.getDay()];
+  const diaYMes = `${fecha.getDate()} de ${MESES_COMPLETOS[fecha.getMonth()]}`;
+  return fecha.getFullYear() === ahora.getFullYear() ? diaYMes : `${diaYMes} de ${fecha.getFullYear()}`;
+};
+
+const claveDelDia = (fecha) => `${fecha.getFullYear()}-${fecha.getMonth() + 1}-${fecha.getDate()}`;
+
+// Los mensajes (del más viejo al más nuevo) con un separador antes del primero de cada día de calendario:
+// [{ tipo: "dia", clave, etiqueta }, { tipo: "mensaje", mensaje, indice }, ...]. `indice` es la posición del
+// mensaje en la lista original (para su clave).
+export const conSeparadores = (mensajes, ahora = new Date()) => {
+  const elementos = [];
+  let diaAnterior = null;
+  mensajes.forEach((mensaje, indice) => {
+    const dia = claveDelDia(new Date(mensaje.enviado));
+    if (dia !== diaAnterior) {
+      elementos.push({ tipo: "dia", clave: `dia-${dia}`, etiqueta: etiquetaDeDia(mensaje.enviado, ahora) });
+      diaAnterior = dia;
+    }
+    elementos.push({ tipo: "mensaje", mensaje, indice });
+  });
+  return elementos;
+};

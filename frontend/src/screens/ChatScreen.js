@@ -12,6 +12,7 @@ import { mensajeDeError } from "../services/api";
 import { enviarMensaje, listarMensajes } from "../services/comprasService";
 import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { claveDeMensaje, esMensajePropio, LARGO_MAXIMO_DE_MENSAJE, textoEnviable } from "../utils/chat";
+import { conSeparadores } from "../utils/fechasChat";
 
 const INTERVALO_DE_ACTUALIZACION_MS = 5000;
 const DISTANCIA_PARA_SEGUIR_AL_FINAL = 80;
@@ -94,6 +95,8 @@ export default function ChatScreen({ route, navigation }) {
   if (mensajes === null) return <Estado tipo="cargando" />;
 
   const sePuedeEnviar = textoEnviable(texto) !== null && !enviando;
+  // Separadores "Hoy", "Ayer", día de la semana o fecha entre los mensajes de cada día, como en WhatsApp.
+  const elementos = conSeparadores(mensajes, new Date());
 
   return (
     <SafeAreaView style={estilos.pantalla} edges={["bottom"]}>
@@ -107,9 +110,17 @@ export default function ChatScreen({ route, navigation }) {
         ) : null}
         <FlatList
           ref={lista}
-          data={mensajes}
-          keyExtractor={claveDeMensaje}
-          renderItem={({ item }) => <GloboMensaje mensaje={item} propio={esMensajePropio(item, usuario.id)} />}
+          data={elementos}
+          keyExtractor={(item) => (item.tipo === "dia" ? item.clave : claveDeMensaje(item.mensaje, item.indice))}
+          renderItem={({ item }) =>
+            item.tipo === "dia" ? (
+              <Text style={estilos.separadorDeDia} accessibilityRole="header">
+                {item.etiqueta}
+              </Text>
+            ) : (
+              <GloboMensaje mensaje={item.mensaje} propio={esMensajePropio(item.mensaje, usuario.id)} />
+            )
+          }
           contentContainerStyle={estilos.lista}
           onScroll={alDesplazar}
           scrollEventThrottle={100}
@@ -158,6 +169,19 @@ const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   lista: { padding: espacio.l, gap: espacio.s, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl },
+  // Pastilla opaca: se lee sobre cualquier fondo del chat.
+  separadorDeDia: {
+    alignSelf: "center",
+    marginVertical: espacio.s,
+    paddingHorizontal: espacio.m,
+    paddingVertical: espacio.xs,
+    borderRadius: radio.pastilla,
+    overflow: "hidden",
+    backgroundColor: colores.superficieAlta,
+    color: colores.textoSuave,
+    fontFamily: fuentes.seminegrita,
+    fontSize: 12,
+  },
   avisoDeConexion: {
     backgroundColor: colores.errorSuave,
     color: colores.error,

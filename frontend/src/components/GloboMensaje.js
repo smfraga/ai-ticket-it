@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colores, espacio, fuentes, radio } from "../theme";
 import { ETIQUETAS_DE_ROL_EN_LA_COMPRA } from "../utils/chat";
-import { formatearFecha } from "../utils/formato";
+import { horaDelMensaje } from "../utils/fechasChat";
 
 export default function GloboMensaje({ mensaje, propio }) {
   const { autor } = mensaje;
@@ -15,7 +15,7 @@ export default function GloboMensaje({ mensaje, propio }) {
           </Text>
         ) : null}
         <Text style={[estilos.texto, propio && estilos.textoPropio]}>{mensaje.mensaje}</Text>
-        <Text style={[estilos.hora, propio && estilos.horaPropia]}>{formatearFecha(mensaje.enviado)}</Text>
+        <Text style={[estilos.hora, propio && estilos.horaPropia]}>{horaDelMensaje(mensaje.enviado)}</Text>
       </View>
     </View>
   );
