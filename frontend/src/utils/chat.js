@@ -1,0 +1,17 @@
+// Mismo tope que el backend (Zod: 1 a 500 caracteres después de recortar los espacios).
+export const LARGO_MAXIMO_DE_MENSAJE = 500;
+
+export const ETIQUETAS_DE_ROL_EN_LA_COMPRA = Object.freeze({ COMPRADOR: "Comprador", ORGANIZADOR: "Organizador" });
+
+// El texto listo para mandar, o null si quedó vacío o se pasa del tope.
+export const textoEnviable = (texto) => {
+  const recortado = texto.trim();
+  if (!recortado || recortado.length > LARGO_MAXIMO_DE_MENSAJE) return null;
+  return recortado;
+};
+
+// Los globos propios van a la derecha. Se compara por id, no por rol: el mismo usuario podría tener los dos roles.
+export const esMensajePropio = (mensaje, usuarioId) => mensaje.autor.id === usuarioId;
+
+// Los mensajes no tienen id en la API: se identifican por autor, fecha y posición.
+export const claveDeMensaje = (mensaje, indice) => `${mensaje.autor.id}-${mensaje.enviado}-${indice}`;

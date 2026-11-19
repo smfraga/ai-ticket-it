@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
 import Estado from "../components/Estado";
 import CatalogoScreen from "../screens/CatalogoScreen";
+import ChatScreen from "../screens/ChatScreen";
 import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -48,6 +49,7 @@ function ComprasStack() {
         component={DetalleCompraScreen}
         options={{ title: "Compra", headerBackTitle: "Mis compras" }}
       />
+      <ComprasStackNav.Screen name="Chat" component={ChatScreen} options={{ title: "Chat", headerBackTitle: "Compra" }} />
     </ComprasStackNav.Navigator>
   );
 }

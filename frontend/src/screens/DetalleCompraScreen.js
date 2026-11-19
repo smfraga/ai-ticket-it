@@ -20,7 +20,7 @@ import { formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/f
 const AVISO_REEMBOLSADA = "Compra cancelada. Se reembolsó el total y las entradas volvieron al cupo.";
 const AVISO_CANCELADA = "Compra cancelada. Las entradas volvieron al cupo.";
 
-export default function DetalleCompraScreen({ route }) {
+export default function DetalleCompraScreen({ route, navigation }) {
   const { compraId } = route.params;
   const [compra, setCompra] = useState(null);
   const [cargando, setCargando] = useState(true);
@@ -104,6 +104,16 @@ export default function DetalleCompraScreen({ route }) {
         <Text style={tipografia.cuerpo}>
           {organizador.nombre} {organizador.apellido}
         </Text>
+      </View>
+
+      <View style={estilos.separado}>
+        <Boton
+          titulo="Chat con el organizador"
+          variante="secundario"
+          onPress={() =>
+            navigation.navigate("Chat", { compraId: compra.id, titulo: `Chat con ${organizador.nombre}` })
+          }
+        />
       </View>
 
       <Text style={estilos.seccion}>Seguimiento</Text>
