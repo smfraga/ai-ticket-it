@@ -18,7 +18,14 @@ export default function Estado({ tipo, mensaje, onReintentar }) {
 }
 
 const estilos = StyleSheet.create({
-  contenedor: { flex: 1, alignItems: "center", justifyContent: "center", padding: espacio.xxl, gap: espacio.l },
+  contenedor: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: espacio.xxl,
+    gap: espacio.l,
+    backgroundColor: colores.fondo,
+  },
   mensaje: { textAlign: "center" },
   mensajeError: { color: colores.error },
 });

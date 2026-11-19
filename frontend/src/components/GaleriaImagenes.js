@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { colores, espacio, radio } from "../theme";
+import { colores, espacio, fuentes, radio } from "../theme";
 
 const ALTO = 200;
 
@@ -50,7 +50,7 @@ const estilos = StyleSheet.create({
     height: ALTO,
     borderRadius: radio.tarjeta,
     overflow: "hidden",
-    backgroundColor: colores.primarioSuave,
+    backgroundColor: colores.superficieAlta,
     marginBottom: espacio.s,
   },
   imagen: { height: ALTO },
@@ -61,9 +61,9 @@ const estilos = StyleSheet.create({
     paddingHorizontal: espacio.s,
     paddingVertical: 2,
     borderRadius: radio.pastilla,
-    backgroundColor: "rgba(0, 0, 0, 0.55)",
-    color: "#ffffff",
+    backgroundColor: colores.capaSobreFoto,
+    color: colores.textoSobreCapa,
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: fuentes.seminegrita,
   },
 });

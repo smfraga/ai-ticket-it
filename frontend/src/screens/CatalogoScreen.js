@@ -10,7 +10,7 @@ import EventoCard from "../components/EventoCard";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { listarCategorias, listarEventos, ORDENES, PERIODOS } from "../services/eventosService";
-import { ALTO_TOQUE, colores, espacio, radio, tipografia } from "../theme";
+import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { parametrosDePrecio, RANGOS_DE_PRECIO } from "../utils/eventos";
 
 const ESPERA_DE_BUSQUEDA_MS = 400;
@@ -106,7 +106,7 @@ export default function CatalogoScreen({ navigation }) {
         <TextInput
           accessibilityLabel="Buscar eventos"
           placeholder="Buscar por nombre o descripción"
-          placeholderTextColor={colores.textoSuave}
+          placeholderTextColor={colores.textoPlaceholder}
           value={busqueda}
           onChangeText={setBusqueda}
           returnKeyType="search"
@@ -160,9 +160,10 @@ const estilos = StyleSheet.create({
     minHeight: ALTO_TOQUE,
     paddingHorizontal: espacio.m,
     borderWidth: 1,
-    borderColor: colores.borde,
+    borderColor: colores.bordeControl,
     borderRadius: radio.control,
     backgroundColor: colores.superficie,
+    fontFamily: fuentes.regular,
     fontSize: 16,
     color: colores.texto,
   },
@@ -170,5 +171,5 @@ const estilos = StyleSheet.create({
   ordenes: { flexDirection: "row", alignItems: "center", gap: espacio.s, paddingRight: espacio.l },
   lista: { padding: espacio.l, gap: espacio.m, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl, color: colores.textoSuave },
-  errorAviso: { color: colores.error, marginBottom: espacio.m },
+  errorAviso: { ...tipografia.cuerpo, color: colores.error, marginBottom: espacio.m },
 });

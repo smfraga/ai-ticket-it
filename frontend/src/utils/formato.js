@@ -26,6 +26,17 @@ export const formatearFechaEnFrase = (iso) => {
   return `${DIAS[fecha.getDay()]} ${fecha.getDate()} ${MESES[fecha.getMonth()]} a las ${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`;
 };
 
+// Las partes de la fecha para el talón de una entrada: { diaSemana: "SÁB", dia: "5", mes: "DIC", hora: "21:30" }.
+export const partesDeFecha = (iso) => {
+  const fecha = new Date(iso);
+  return {
+    diaSemana: DIAS[fecha.getDay()].toUpperCase(),
+    dia: String(fecha.getDate()),
+    mes: MESES[fecha.getMonth()].toUpperCase(),
+    hora: `${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`,
+  };
+};
+
 // "sáb 5 dic · 21:30", en la hora del celular.
 export const formatearFecha = (iso) => {
   const fecha = new Date(iso);

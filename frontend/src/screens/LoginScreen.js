@@ -5,7 +5,7 @@ import { useAuth } from "../auth/AuthContext";
 import Boton from "../components/Boton";
 import CampoTexto from "../components/CampoTexto";
 import { mensajeDeError } from "../services/api";
-import { colores, espacio, tipografia } from "../theme";
+import { colores, espacio, fuentes, tipografia } from "../theme";
 
 export default function LoginScreen({ navigation }) {
   const { login, sesionExpirada } = useAuth();
@@ -68,6 +68,6 @@ const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   contenido: { flexGrow: 1, justifyContent: "center", padding: espacio.xl, gap: espacio.m },
   formulario: { gap: espacio.l, marginTop: espacio.l },
-  error: { color: colores.error, fontSize: 14 },
-  aviso: { color: colores.aviso, fontSize: 14, fontWeight: "600" },
+  error: { fontFamily: fuentes.regular, color: colores.error, fontSize: 14 },
+  aviso: { color: colores.aviso, fontSize: 14, fontFamily: fuentes.seminegrita },
 });

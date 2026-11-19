@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from "react-native";
-import { colores, espacio, radio } from "../theme";
+import { colores, espacio, fuentes, radio } from "../theme";
 
 export default function Chip({ etiqueta, activo, onPress }) {
   return (
@@ -25,6 +25,6 @@ const estilos = StyleSheet.create({
     backgroundColor: colores.superficie,
   },
   activo: { backgroundColor: colores.primario, borderColor: colores.primario },
-  texto: { fontSize: 14, color: colores.textoSuave },
-  textoActivo: { color: colores.textoSobrePrimario, fontWeight: "600" },
+  texto: { fontFamily: fuentes.regular, fontSize: 14, color: colores.textoSuave },
+  textoActivo: { color: colores.textoSobrePrimario, fontFamily: fuentes.seminegrita },
 });

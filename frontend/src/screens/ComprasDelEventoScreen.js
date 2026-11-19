@@ -8,7 +8,7 @@ import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { listarComprasDelEvento } from "../services/comprasService";
 import { cancelarEvento } from "../services/eventosService";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { resumenDeEstados, textoDeConfirmacionDeCancelacionDeEvento } from "../utils/compras";
 import { puedeGestionarEvento, textoCupo } from "../utils/eventos";
 import { formatearFecha } from "../utils/formato";
@@ -149,12 +149,12 @@ const estilos = StyleSheet.create({
     marginTop: espacio.s,
   },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: espacio.m },
-  cupo: { fontSize: 15, fontWeight: "600", color: colores.exito, flexShrink: 1, textAlign: "right" },
+  cupo: { fontSize: 15, fontFamily: fuentes.seminegrita, color: colores.exito, flexShrink: 1, textAlign: "right" },
   agotado: { color: colores.error },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.l },
   vacio: { textAlign: "center", marginTop: espacio.xl, color: colores.textoSuave },
-  errorAviso: { color: colores.error },
-  aviso: { color: colores.exito, fontSize: 15, fontWeight: "700" },
-  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
+  errorAviso: { ...tipografia.cuerpo, color: colores.error },
+  aviso: { color: colores.exito, fontSize: 15, fontFamily: fuentes.negrita },
+  cancelado: { color: colores.error, fontSize: 15, fontFamily: fuentes.negrita },
   pie: { marginTop: espacio.xl, gap: espacio.s },
 });

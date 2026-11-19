@@ -9,7 +9,7 @@ import GloboMensaje from "../components/GloboMensaje";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { enviarMensaje, listarMensajes } from "../services/comprasService";
-import { ALTO_TOQUE, colores, espacio, radio, tipografia } from "../theme";
+import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { claveDeMensaje, esMensajePropio, LARGO_MAXIMO_DE_MENSAJE, textoEnviable } from "../utils/chat";
 
 const INTERVALO_DE_ACTUALIZACION_MS = 5000;
@@ -123,7 +123,7 @@ export default function ChatScreen({ route, navigation }) {
             <TextInput
               accessibilityLabel="Mensaje"
               placeholder="Escribí un mensaje"
-              placeholderTextColor={colores.textoSuave}
+              placeholderTextColor={colores.textoPlaceholder}
               value={texto}
               onChangeText={setTexto}
               maxLength={LARGO_MAXIMO_DE_MENSAJE}
@@ -154,6 +154,7 @@ const estilos = StyleSheet.create({
   avisoDeConexion: {
     backgroundColor: colores.errorSuave,
     color: colores.error,
+    fontFamily: fuentes.regular,
     fontSize: 13,
     paddingHorizontal: espacio.l,
     paddingVertical: espacio.s,
@@ -175,9 +176,10 @@ const estilos = StyleSheet.create({
     paddingTop: espacio.m,
     paddingBottom: espacio.m,
     borderWidth: 1,
-    borderColor: colores.borde,
+    borderColor: colores.bordeControl,
     borderRadius: radio.control,
     backgroundColor: colores.fondo,
+    fontFamily: fuentes.regular,
     fontSize: 16,
     color: colores.texto,
   },
@@ -190,6 +192,6 @@ const estilos = StyleSheet.create({
     justifyContent: "center",
   },
   enviarInactivo: { opacity: 0.4 },
-  textoEnviar: { color: colores.textoSobrePrimario, fontSize: 16, fontWeight: "600" },
-  error: { color: colores.error, fontSize: 13, fontWeight: "600" },
+  textoEnviar: { color: colores.textoSobrePrimario, fontSize: 16, fontFamily: fuentes.seminegrita },
+  error: { color: colores.error, fontSize: 13, fontFamily: fuentes.seminegrita },
 });

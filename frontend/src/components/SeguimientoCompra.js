@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import { colores, espacio, tipografia } from "../theme";
+import { colores, espacio, fuentes, tipografia } from "../theme";
 import { ETIQUETAS_DE_ESTADO, textoQuien } from "../utils/compras";
 import { formatearFecha } from "../utils/formato";
 
@@ -45,5 +45,5 @@ const estilos = StyleSheet.create({
   puntoActual: { backgroundColor: colores.primario },
   linea: { flex: 1, width: 2, backgroundColor: colores.borde, marginVertical: 2 },
   texto: { flex: 1, paddingBottom: espacio.m },
-  estadoActual: { fontWeight: "700" },
+  estadoActual: { fontFamily: fuentes.negrita },
 });

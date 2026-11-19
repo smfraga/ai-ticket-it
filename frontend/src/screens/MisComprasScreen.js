@@ -69,5 +69,5 @@ const estilos = StyleSheet.create({
   cabecera: { paddingHorizontal: espacio.l, paddingTop: espacio.m },
   lista: { padding: espacio.l, gap: espacio.m, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl, color: colores.textoSuave },
-  errorAviso: { color: colores.error, marginBottom: espacio.m },
+  errorAviso: { ...tipografia.cuerpo, color: colores.error, marginBottom: espacio.m },
 });

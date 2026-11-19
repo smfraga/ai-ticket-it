@@ -5,7 +5,7 @@ import Boton from "../components/Boton";
 import SelectorEstrellas from "../components/SelectorEstrellas";
 import { mensajeDeError } from "../services/api";
 import { reseniarCompra } from "../services/comprasService";
-import { colores, espacio, radio, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { errorDeResenia } from "../utils/compras";
 
 export default function ReseniaScreen({ route, navigation }) {
@@ -52,7 +52,7 @@ export default function ReseniaScreen({ route, navigation }) {
         <TextInput
           accessibilityLabel="Comentario"
           placeholder="Contá cómo fue tu experiencia"
-          placeholderTextColor={colores.textoSuave}
+          placeholderTextColor={colores.textoPlaceholder}
           value={detalle}
           onChangeText={setDetalle}
           multiline
@@ -75,12 +75,12 @@ const estilos = StyleSheet.create({
     minHeight: 120,
     padding: espacio.m,
     borderWidth: 1,
-    borderColor: colores.borde,
+    borderColor: colores.bordeControl,
     borderRadius: radio.control,
     backgroundColor: colores.superficie,
     fontSize: 16,
     color: colores.texto,
     marginBottom: espacio.m,
   },
-  error: { color: colores.error, fontSize: 14, fontWeight: "600", marginBottom: espacio.s },
+  error: { color: colores.error, fontSize: 14, fontFamily: fuentes.seminegrita, marginBottom: espacio.s },
 });

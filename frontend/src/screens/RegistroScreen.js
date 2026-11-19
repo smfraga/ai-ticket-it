@@ -5,7 +5,7 @@ import { ROLES, useAuth } from "../auth/AuthContext";
 import Boton from "../components/Boton";
 import CampoTexto from "../components/CampoTexto";
 import { mensajeDeError } from "../services/api";
-import { ALTO_TOQUE, colores, espacio, radio, tipografia } from "../theme";
+import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 
 const OPCIONES_DE_ROL = [
   { valor: ROLES.COMPRADOR, etiqueta: "Comprador" },
@@ -113,7 +113,7 @@ const estilos = StyleSheet.create({
     backgroundColor: colores.superficie,
   },
   rolElegido: { borderColor: colores.primario, backgroundColor: colores.primarioSuave },
-  rolTexto: { fontSize: 16, color: colores.textoSuave },
-  rolTextoElegido: { color: colores.primarioOscuro, fontWeight: "600" },
-  error: { color: colores.error, fontSize: 14 },
+  rolTexto: { fontFamily: fuentes.regular, fontSize: 16, color: colores.textoSuave },
+  rolTextoElegido: { color: colores.primarioOscuro, fontFamily: fuentes.seminegrita },
+  error: { fontFamily: fuentes.regular, color: colores.error, fontSize: 14 },
 });
