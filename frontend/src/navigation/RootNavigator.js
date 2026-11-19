@@ -6,6 +6,7 @@ import Estado from "../components/Estado";
 import CatalogoScreen from "../screens/CatalogoScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
 import LoginScreen from "../screens/LoginScreen";
+import MisComprasScreen from "../screens/MisComprasScreen";
 import PerfilScreen from "../screens/PerfilScreen";
 import RegistroScreen from "../screens/RegistroScreen";
 import { colores } from "../theme";
@@ -35,9 +36,12 @@ function EventosStack() {
 }
 
 function TabsPrincipales() {
+  const { esComprador } = useAuth();
+
   return (
     <Tabs.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colores.primario }}>
       <Tabs.Screen name="Eventos" component={EventosStack} />
+      {esComprador ? <Tabs.Screen name="MisCompras" component={MisComprasScreen} options={{ title: "Mis compras" }} /> : null}
       <Tabs.Screen name="Perfil" component={PerfilScreen} options={{ title: "Perfil" }} />
     </Tabs.Navigator>
   );
