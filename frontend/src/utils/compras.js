@@ -1,3 +1,5 @@
+import { formatearFechaEnFrase } from "./formato";
+
 export const ETIQUETAS_DE_ESTADO = Object.freeze({
   PENDIENTE: "Pendiente de pago",
   CONFIRMADA: "Confirmada",
@@ -34,7 +36,26 @@ export const textoDeConfirmacionDeCancelacion = (compra, totalFormateado) =>
 export const puedePagar = (compra) =>
   compra.estado === "PENDIENTE" && !compra.evento.yaPaso && !compra.evento.cancelado;
 
-export const textoDeConfirmacionDePago = (totalFormateado) =>
+// Hasta cuándo se puede pagar una compra PENDIENTE (7 días o hasta el evento, lo que llegue primero; el backend manda
+// `fechaLimiteDePago`, null en los demás estados). El texto cambia según quién mira.
+export const textoPlazoDePago = (compra, esElComprador) => {
+  if (!compra.fechaLimiteDePago) return null;
+  const limite = formatearFechaEnFrase(compra.fechaLimiteDePago);
+  return esElComprador
+    ? `Tenés hasta el ${limite} para pagar. Si no, la compra se cancela sola y las entradas vuelven a la venta.`
+    : `El comprador tiene hasta el ${limite} para pagar. Si no, la compra se cancela sola.`;
+};
+
+// Para la tarjeta de Mis compras: versión corta.
+export const textoPlazoDePagoCorto = (compra) =>
+  compra.fechaLimiteDePago ? `Pagá hasta el ${formatearFechaEnFrase(compra.fechaLimiteDePago)}` : null;
+
+// Quién hizo un cambio de estado. "sistema" es la plataforma: hoy solo cancela compras por el plazo de pago vencido.
+export const ID_USUARIO_SISTEMA = "sistema";
+export const textoQuien = (quien) =>
+  quien.id === ID_USUARIO_SISTEMA ? "AI Ticket It (venció el plazo de pago)" : `${quien.nombre} ${quien.apellido}`.trim();
+
+export const textoDeConfirmacionDePago =(totalFormateado) =>
   `Pago simulado: se confirma la compra por ${totalFormateado}. Después vas a poder cancelarla con reembolso hasta el día del evento.`;
 
 // Marcar como utilizada: lo hace el organizador del evento, solo desde CONFIRMADA y sin límite de fecha

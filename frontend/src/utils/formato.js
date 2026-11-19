@@ -18,6 +18,12 @@ export const formatearFechaCorta = (iso) => {
 // "★★★★☆" para una puntuación entera de 1 a 5.
 export const formatearEstrellas = (puntuacion) => "★".repeat(puntuacion) + "☆".repeat(5 - puntuacion);
 
+// "sáb 5 dic a las 21:30", para usar dentro de una frase ("Tenés hasta el …").
+export const formatearFechaEnFrase = (iso) => {
+  const fecha = new Date(iso);
+  return `${DIAS[fecha.getDay()]} ${fecha.getDate()} ${MESES[fecha.getMonth()]} a las ${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`;
+};
+
 // "sáb 5 dic · 21:30", en la hora del celular.
 export const formatearFecha = (iso) => {
   const fecha = new Date(iso);

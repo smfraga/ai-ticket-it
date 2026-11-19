@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colores, espacio, tipografia } from "../theme";
-import { ETIQUETAS_DE_ESTADO } from "../utils/compras";
+import { ETIQUETAS_DE_ESTADO, textoQuien } from "../utils/compras";
 import { formatearFecha } from "../utils/formato";
 
 // Línea de tiempo con cada cambio de estado de la compra (`historial`), del primero al último.
@@ -20,7 +20,7 @@ export default function SeguimientoCompra({ historial }) {
                 {ETIQUETAS_DE_ESTADO[cambio.estado] ?? cambio.estado}
               </Text>
               <Text style={tipografia.suave}>
-                {formatearFecha(cambio.fechaHora)} · {cambio.quien.nombre} {cambio.quien.apellido}
+                {formatearFecha(cambio.fechaHora)} · {textoQuien(cambio.quien)}
               </Text>
             </View>
           </View>

@@ -112,6 +112,21 @@ export class CompraService {
     return this.toCompraResponse(guardada, ahora);
   }
 
+  // Cancela las compras PENDIENTE cuyo plazo de pago venció (la regla es de `Compra.vencer`). La llama cada tanto
+  // `programarVencimientos`, desde server.js. Devuelve cuántas vencieron.
+  async vencerPendientes() {
+    const ahora = this.ahora();
+    const pendientes = await this.compraRepository.findByEstado(estadoCompra.PENDIENTE);
+    let vencidas = 0;
+    for (const compra of pendientes) {
+      if (compra.vencer(ahora)) {
+        await this.compraRepository.save(compra);
+        vencidas += 1;
+      }
+    }
+    return vencidas;
+  }
+
   // Solo el comprador y el organizador del evento pueden leer el chat de la compra.
   async leerMensajes(usuarioId, compraId) {
     const usuario = await this.buscarUsuario(usuarioId);
@@ -223,6 +238,8 @@ export class CompraService {
       total: compra.total,
       // Solo tiene valor si la compra está CONFIRMADA.
       diasRestantes: compra.diasRestantes(ahora),
+      // Solo tiene valor si la compra está PENDIENTE: hasta cuándo se puede pagar.
+      fechaLimiteDePago: compra.fechaLimiteDePago()?.toISOString() ?? null,
       fecha: compra.historial[0].fechaHora.toISOString(),
       evento: {
         id: compra.evento.id,
