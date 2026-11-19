@@ -18,6 +18,17 @@ export class CompraController extends BaseController {
     }
   }
 
+  async getDetalle(req, res, next) {
+    try {
+      const compraId = this.parsearId(req.params.id);
+      const compra = await this.compraService.obtenerPorId(req.usuario.id, compraId);
+
+      return res.status(200).json(compra);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async cancelar(req, res, next) {
     try {
       const compraId = this.parsearId(req.params.id);

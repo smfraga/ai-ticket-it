@@ -4,6 +4,7 @@ import { Compra } from "../domain/Compra.js";
 import { ForbiddenError, NotFoundError, UnauthorizedError } from "../errors/AppError.js";
 import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
+import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
 
 export class CompraService {
@@ -13,11 +14,13 @@ export class CompraService {
     repositorioDeEventos = eventoRepository,
     repositorioDeUsuarios = usuarioRepository,
     ahora = () => new Date(),
+    repositorioDeResenias = resenaRepository,
   ) {
     this.compraRepository = repositorioDeCompras;
     this.eventoRepository = repositorioDeEventos;
     this.usuarioRepository = repositorioDeUsuarios;
     this.ahora = ahora;
+    this.resenaRepository = repositorioDeResenias;
   }
 
   async comprar(usuarioId, eventoId, { tipoEntradaId, cantidad }) {
@@ -40,6 +43,44 @@ export class CompraService {
 
     const guardada = await this.compraRepository.save(compra);
     return this.toCompraResponse(guardada, ahora);
+  }
+
+  // Solo el comprador y el organizador del evento ven la compra (mismo criterio que el chat).
+  // Además de lo de la lista trae el comprador, el organizador, si el evento ya pasó y la reseña (o null).
+  async obtenerPorId(usuarioId, compraId) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    const compra = await this.buscarCompra(compraId);
+    if (!compra.esParticipante(usuario)) {
+      throw new ForbiddenError("Solo el comprador y el organizador del evento pueden ver esta compra");
+    }
+
+    const ahora = this.ahora();
+    const resenia = await this.resenaRepository.findByCompraId(compra.id);
+    const respuesta = this.toCompraResponse(compra, ahora);
+    const { organizador } = compra.evento;
+
+    return {
+      ...respuesta,
+      evento: {
+        ...respuesta.evento,
+        yaPaso: compra.evento.yaPaso(ahora),
+        organizador: { id: organizador.id, nombre: organizador.nombre, apellido: organizador.apellido },
+      },
+      // Solo nombre y apellido: nunca el email ni el hash del comprador.
+      comprador: {
+        id: compra.comprador.id,
+        nombre: compra.comprador.nombre,
+        apellido: compra.comprador.apellido,
+      },
+      resenia: resenia
+        ? {
+            id: resenia.id,
+            puntuacion: resenia.puntuacion,
+            detalle: resenia.detalle,
+            fecha: resenia.fecha.toISOString(),
+          }
+        : null,
+    };
   }
 
   // El comprador cancela su compra: si estaba CONFIRMADA se reembolsa enseguida (reembolso simulado).
