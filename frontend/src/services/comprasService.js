@@ -34,3 +34,8 @@ export const listarComprasDelEvento = (eventoId) => api.get(`/eventos/${eventoId
 // Devuelve { id, estado, cantidad, total, diasRestantes, fecha, evento, tipoEntrada, historial }.
 export const comprar = (eventoId, { tipoEntradaId, cantidad }) =>
   api.post(`/eventos/${eventoId}/compras`, { tipoEntradaId, cantidad });
+
+// Los chats del usuario (uno por compra con mensajes), el del último mensaje más reciente primero, y el total de
+// mensajes nuevos: { totalNoLeidos, conversaciones: [{ compraId, evento, tipoEntrada, cantidad, contraparte,
+// ultimoMensaje: { texto, enviado, propio }, noLeidos }] }. Ver la lista no marca nada como leído.
+export const listarConversaciones = () => api.get("/conversaciones");

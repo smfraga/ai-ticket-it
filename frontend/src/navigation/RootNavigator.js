@@ -3,10 +3,12 @@ import { NavigationContainer, DarkTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
+import { useMensajes } from "../auth/MensajesContext";
 import Estado from "../components/Estado";
 import CatalogoScreen from "../screens/CatalogoScreen";
 import ChatScreen from "../screens/ChatScreen";
 import ComprasDelEventoScreen from "../screens/ComprasDelEventoScreen";
+import ConversacionesScreen from "../screens/ConversacionesScreen";
 import CrearEventoScreen from "../screens/CrearEventoScreen";
 import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
@@ -19,6 +21,7 @@ import PerfilScreen from "../screens/PerfilScreen";
 import RegistroScreen from "../screens/RegistroScreen";
 import ReseniaScreen from "../screens/ReseniaScreen";
 import { colores, fuentes } from "../theme";
+import { insigniaDeNoLeidos } from "../utils/chat";
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
@@ -146,13 +149,42 @@ function OrganizadorStack() {
   );
 }
 
+const MensajesStackNav = createNativeStackNavigator();
+
+// Dentro de la pestaña Mensajes (todos): de la lista de chats al chat de una compra (el mismo ChatScreen).
+function MensajesStack() {
+  return (
+    <MensajesStackNav.Navigator screenOptions={opcionesDePila}>
+      <MensajesStackNav.Screen
+        name="Conversaciones"
+        component={ConversacionesScreen}
+        options={{ headerShown: false }}
+      />
+      <MensajesStackNav.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={{ title: "Chat", headerBackTitle: "Mensajes" }}
+      />
+    </MensajesStackNav.Navigator>
+  );
+}
+
 // Ícono de Ionicons por pestaña: lleno cuando está activa y de contorno cuando no.
 const ICONOS_DE_PESTANIA = {
   Eventos: "search",
   MisCompras: "ticket",
   Favoritos: "heart",
   MisEventosTab: "calendar",
+  Mensajes: "chatbubbles",
   Perfil: "person",
+};
+
+// El número de mensajes nuevos sobre el ícono, en naranja con texto oscuro (como el resto de la app).
+const estilosDeInsignia = {
+  backgroundColor: colores.primario,
+  color: colores.textoSobrePrimario,
+  fontFamily: fuentes.negrita,
+  fontSize: 11,
 };
 
 const opcionesDePestania = ({ route }) => ({
@@ -172,6 +204,7 @@ const opcionesDePestania = ({ route }) => ({
 
 function TabsPrincipales() {
   const { esComprador, esOrganizador } = useAuth();
+  const { totalNoLeidos } = useMensajes();
 
   return (
     <Tabs.Navigator screenOptions={opcionesDePestania}>
@@ -185,6 +218,15 @@ function TabsPrincipales() {
       {esOrganizador ? (
         <Tabs.Screen name="MisEventosTab" component={OrganizadorStack} options={{ title: "Mis eventos" }} />
       ) : null}
+      <Tabs.Screen
+        name="Mensajes"
+        component={MensajesStack}
+        options={{
+          title: "Mensajes",
+          tabBarBadge: insigniaDeNoLeidos(totalNoLeidos),
+          tabBarBadgeStyle: estilosDeInsignia,
+        }}
+      />
       <Tabs.Screen name="Perfil" component={PerfilScreen} options={{ title: "Perfil" }} />
     </Tabs.Navigator>
   );

@@ -4,6 +4,7 @@ import { Appearance } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/auth/AuthContext";
 import { FavoritosProvider } from "./src/auth/FavoritosContext";
+import { MensajesProvider } from "./src/auth/MensajesContext";
 import Estado from "./src/components/Estado";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { archivosDeFuentes } from "./src/theme";
@@ -22,7 +23,9 @@ export default function App() {
       {listo ? (
         <AuthProvider>
           <FavoritosProvider>
-            <RootNavigator />
+            <MensajesProvider>
+              <RootNavigator />
+            </MensajesProvider>
           </FavoritosProvider>
         </AuthProvider>
       ) : (

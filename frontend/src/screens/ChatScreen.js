@@ -4,6 +4,7 @@ import { useHeaderHeight } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
+import { useMensajes } from "../auth/MensajesContext";
 import Estado from "../components/Estado";
 import GloboMensaje from "../components/GloboMensaje";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -20,6 +21,7 @@ const AVISO_DE_LARGO = LARGO_MAXIMO_DE_MENSAJE - 100;
 export default function ChatScreen({ route, navigation }) {
   const { compraId, titulo } = route.params;
   const { usuario } = useAuth();
+  const { recargar: recargarConversaciones } = useMensajes();
   const alturaDelEncabezado = useHeaderHeight();
   const [mensajes, setMensajes] = useState(null); // null = todavía no llegó la primera respuesta
   const [errorDeCarga, setErrorDeCarga] = useState(null);
@@ -47,12 +49,17 @@ export default function ChatScreen({ route, navigation }) {
   }, [compraId, nuevoPedido]);
 
   // Pide los mensajes al entrar y cada 5 s mientras la pantalla está a la vista; al salir, se corta.
+  // Leer el chat lo marca como leído en el backend: después de la primera lectura y al salir se actualiza el
+  // número de la pestaña Mensajes.
   useFocusEffect(
     useCallback(() => {
-      cargar();
+      cargar().then(recargarConversaciones);
       const intervalo = setInterval(cargar, INTERVALO_DE_ACTUALIZACION_MS);
-      return () => clearInterval(intervalo);
-    }, [cargar]),
+      return () => {
+        clearInterval(intervalo);
+        recargarConversaciones();
+      };
+    }, [cargar, recargarConversaciones]),
   );
 
   const enviar = async () => {

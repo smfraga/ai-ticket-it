@@ -6,7 +6,7 @@ Plataforma de venta de entradas para eventos. Trabajo práctico individual de la
 
 Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, **organizador** o las dos cosas. La app muestra las pestañas según sus roles.
 
-**Comprador** (pestañas Eventos, Mis compras, Favoritos y Perfil):
+**Comprador** (pestañas Eventos, Mis compras, Favoritos, Mensajes y Perfil):
 
 - Explorar el catálogo: búsqueda por texto, categorías, rango de precio, eventos próximos o ya realizados y orden por fecha, precio o puntaje del organizador.
 - Ver el detalle de un evento, con sus fotos, los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
@@ -18,12 +18,14 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 - Reseñar con puntaje y comentario una compra ya utilizada.
 - Guardar eventos favoritos (♡) y verlos en su pestaña.
 
-**Organizador** (pestañas Eventos, Mis eventos y Perfil):
+**Organizador** (pestañas Eventos, Mis eventos, Mensajes y Perfil):
 
 - Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo, y una imagen opcional (URL).
 - Ver sus eventos y, de cada uno, las entradas que quedan por tipo y las compras con su estado.
 - Marcar una compra como utilizada (cuando el comprador entra al evento).
 - Responder el chat de cada compra.
+
+**Los dos** tienen la pestaña **Mensajes**: todos sus chats (uno por compra, cada uno sobre un evento) con el último mensaje y su hora, ordenados como en WhatsApp, y la cantidad de mensajes nuevos sobre el ícono de la pestaña.
 
 ## 📋 Casos de uso de la consigna
 
@@ -33,8 +35,8 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 | Organizador: ver las compras de un evento con su estado y las entradas que quedan por tipo | Mis eventos → evento | `GET /eventos?organizadorId=`, `GET /eventos/:id/compras` |
 | Comprador: buscar eventos por texto o explorarlos por categoría | Eventos | `GET /eventos?texto=&categoriaId=`, `GET /categorias` |
 | Organizador: crear un evento con tipos de entrada, cada uno con precio y cupo | Mis eventos → Crear evento | `POST /eventos` |
-| Comprador: enviar mensajes sobre una compra en cualquier momento | Detalle de la compra → Chat | `GET` y `POST /compras/:id/mensajes` |
-| Organizador: responder mensajes de una compra en cualquier momento | Compras del evento → compra → Chat | `GET` y `POST /compras/:id/mensajes` |
+| Comprador: enviar mensajes sobre una compra en cualquier momento | Detalle de la compra → Chat, o pestaña Mensajes | `GET` y `POST /compras/:id/mensajes`, `GET /conversaciones` |
+| Organizador: responder mensajes de una compra en cualquier momento | Compras del evento → compra → Chat, o pestaña Mensajes | `GET` y `POST /compras/:id/mensajes`, `GET /conversaciones` |
 | Comprador: cancelar una compra para obtener el reembolso | Detalle de la compra | `POST /compras/:id/cancelar` |
 | Cancelar solo si la compra no está utilizada y el evento no se realizó | Detalle de la compra (sin botón, con el motivo) | Regla en `Compra.cancelar` (`409`) |
 | Una vez utilizada la entrada, puntuar el evento y dejar un comentario | Detalle de la compra → Dejar reseña | `POST /compras/:id/utilizar` (organizador), `POST /compras/:id/resenia` |
@@ -66,14 +68,14 @@ El repositorio tiene dos paquetes independientes, cada uno con su propio `packag
 │   ├── .env.example    # Ejemplo de variables de entorno
 │   └── package.json
 ├── frontend/           # App móvil con React Native + Expo
-│   ├── App.js          # Componente raíz: sesión, favoritos y navegación
+│   ├── App.js          # Componente raíz: fuentes, sesión, favoritos, mensajes y navegación
 │   ├── index.js        # Registro de la app en Expo
 │   ├── src/
 │   │   ├── screens/    # Una pantalla por archivo (catálogo, detalle, compras, chat, organizador…)
 │   │   ├── components/ # Piezas reutilizables (tarjetas, botones, estado de la compra, selectores)
 │   │   ├── navigation/ # Pestañas y pilas de React Navigation según el rol
 │   │   ├── services/   # Cliente de la API (fetch con token) y un servicio por recurso
-│   │   ├── auth/       # Contextos de sesión (JWT en SecureStore) y de favoritos
+│   │   ├── auth/       # Contextos de sesión (JWT en SecureStore), favoritos y mensajes nuevos
 │   │   ├── hooks/      # useUltimoPedido: descarta respuestas viejas
 │   │   ├── utils/      # Reglas puras de pantalla (formatos, cupos, validaciones), con tests
 │   │   ├── theme/      # Colores, espacios y tipografía
@@ -109,6 +111,7 @@ App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo G
 - **`expo-secure-store`**: guarda la sesión (el token JWT) cifrada en el celular.
 - **`@react-native-community/datetimepicker`**: selector nativo de fecha y hora para crear eventos.
 - **`@expo/vector-icons`**: íconos de las pestañas.
+- **`expo-font`**, **`@expo-google-fonts/bebas-neue`** y **`@expo-google-fonts/dm-sans`**: tipografía de la app (títulos con letra de cartel y cuerpo en DM Sans).
 
 Las llamadas a la API usan `fetch` propio (`src/services/api.js`), con el token en `Authorization: Bearer`, timeout de 10 s y cierre de sesión automático si el backend responde `401`. Para tests se usa **`jest-expo`**.
 
