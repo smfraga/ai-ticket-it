@@ -60,6 +60,7 @@ export const radio = { control: 12, tarjeta: 16, pastilla: 999 };
 
 export const tipografia = {
   titulo: { fontFamily: fuentes.cartel, fontSize: 36, lineHeight: 38, letterSpacing: 0.5, color: colores.texto },
+  tituloTarjeta: { fontFamily: fuentes.cartel, fontSize: 26, lineHeight: 28, letterSpacing: 0.4, color: colores.texto },
   subtitulo: { fontFamily: fuentes.negrita, fontSize: 18, color: colores.texto },
   cuerpo: { fontFamily: fuentes.regular, fontSize: 16, color: colores.texto },
   suave: { fontFamily: fuentes.regular, fontSize: 14, color: colores.textoSuave },

@@ -87,7 +87,7 @@ export default function PanelCompra({ eventoId, tipo, onComprada, onTerminar }) 
         <Text style={estilos.total}>{formatearPrecio(total)}</Text>
       </View>
       {error ? <Text style={estilos.error}>{error}</Text> : null}
-      <Boton titulo="Comprar" onPress={pedirConfirmacion} cargando={comprando} />
+      <Boton titulo="Comprar" onPress={pedirConfirmacion} cargando={comprando} fondoDetras={colores.primarioSuave} />
     </View>
   );
 }

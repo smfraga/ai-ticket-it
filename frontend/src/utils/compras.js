@@ -153,3 +153,8 @@ export const tituloDelBotonDeChat = (base, cantidad) => {
 };
 
 export const textoEntradas = (cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;
+
+// Si la entrada todavía sirve para ir al evento (pendiente de pago o confirmada, y el evento no se canceló).
+// Decide si el talón de la tarjeta va en naranja o en gris.
+export const esEntradaVigente = (compra) =>
+  ["PENDIENTE", "CONFIRMADA"].includes(compra.estado) && !compra.evento.cancelado;
