@@ -2,6 +2,46 @@
 
 Plataforma de venta de entradas para eventos. Trabajo práctico individual de la materia **Desarrollo de Software (DDS)**, carrera **Ingeniería en Sistemas de Información**, **UTN FRBA**.
 
+## ✨ Funcionalidades
+
+Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, **organizador** o las dos cosas. La app muestra las pestañas según sus roles.
+
+**Comprador** (pestañas Eventos, Mis compras, Favoritos y Perfil):
+
+- Explorar el catálogo: búsqueda por texto, categorías, eventos próximos o ya realizados y orden por fecha, precio o puntaje del organizador.
+- Ver el detalle de un evento, con los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
+- Comprar eligiendo tipo de entrada y cantidad, sin superar el cupo (el pago está simulado: la compra se confirma en el momento).
+- Seguir sus compras: estado, días que faltan para el evento y el historial de cada cambio de estado.
+- Chatear con el organizador desde cada compra, en cualquier estado.
+- Cancelar una compra (con reembolso si estaba confirmada) mientras no esté utilizada y el evento no haya pasado.
+- Reseñar con puntaje y comentario una compra ya utilizada.
+- Guardar eventos favoritos (♡) y verlos en su pestaña.
+
+**Organizador** (pestañas Eventos, Mis eventos y Perfil):
+
+- Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo.
+- Ver sus eventos y, de cada uno, las entradas que quedan por tipo y las compras con su estado.
+- Marcar una compra como utilizada (cuando el comprador entra al evento).
+- Responder el chat de cada compra.
+
+## 📋 Casos de uso de la consigna
+
+| Caso de uso | Pantalla | Endpoints |
+|---|---|---|
+| Comprador: ver sus compras con el estado y los días que faltan si está confirmada | Mis compras | `GET /compras` |
+| Organizador: ver las compras de un evento con su estado y las entradas que quedan por tipo | Mis eventos → evento | `GET /eventos?organizadorId=`, `GET /eventos/:id/compras` |
+| Comprador: buscar eventos por texto o explorarlos por categoría | Eventos | `GET /eventos?texto=&categoriaId=`, `GET /categorias` |
+| Organizador: crear un evento con tipos de entrada, cada uno con precio y cupo | Mis eventos → Crear evento | `POST /eventos` |
+| Comprador: enviar mensajes sobre una compra en cualquier momento | Detalle de la compra → Chat | `GET` y `POST /compras/:id/mensajes` |
+| Organizador: responder mensajes de una compra en cualquier momento | Compras del evento → compra → Chat | `GET` y `POST /compras/:id/mensajes` |
+| Comprador: cancelar una compra para obtener el reembolso | Detalle de la compra | `POST /compras/:id/cancelar` |
+| Cancelar solo si la compra no está utilizada y el evento no se realizó | Detalle de la compra (sin botón, con el motivo) | Regla en `Compra.cancelar` (`409`) |
+| Una vez utilizada la entrada, puntuar el evento y dejar un comentario | Detalle de la compra → Dejar reseña | `POST /compras/:id/utilizar` (organizador), `POST /compras/:id/resenia` |
+| Ver las reseñas de eventos anteriores de cada organizador antes de comprar | Detalle del evento | `GET /organizadores/:id/resenias` |
+| Ordenar eventos por precio, fecha y puntaje del organizador | Eventos → Ordenar por | `GET /eventos?orden=` |
+| Comprar eligiendo tipo de entrada y cantidad, sin superar el cupo | Detalle del evento | `POST /eventos/:id/compras` |
+| Guardar eventos favoritos (contexto y diagrama de la consigna) | ♡ en el catálogo y el detalle, pestaña Favoritos | `POST` y `DELETE /eventos/:id/favorito`, `GET /favoritos` |
+
 ## 📦 Estructura del Proyecto
 
 El repositorio tiene dos paquetes independientes, cada uno con su propio `package.json`:
@@ -24,8 +64,18 @@ El repositorio tiene dos paquetes independientes, cada uno con su propio `packag
 │   ├── .env.example    # Ejemplo de variables de entorno
 │   └── package.json
 ├── frontend/           # App móvil con React Native + Expo
-│   ├── App.js          # Componente raíz
+│   ├── App.js          # Componente raíz: sesión, favoritos y navegación
 │   ├── index.js        # Registro de la app en Expo
+│   ├── src/
+│   │   ├── screens/    # Una pantalla por archivo (catálogo, detalle, compras, chat, organizador…)
+│   │   ├── components/ # Piezas reutilizables (tarjetas, botones, estado de la compra, selectores)
+│   │   ├── navigation/ # Pestañas y pilas de React Navigation según el rol
+│   │   ├── services/   # Cliente de la API (fetch con token) y un servicio por recurso
+│   │   ├── auth/       # Contextos de sesión (JWT en SecureStore) y de favoritos
+│   │   ├── hooks/      # useUltimoPedido: descarta respuestas viejas
+│   │   ├── utils/      # Reglas puras de pantalla (formatos, cupos, validaciones), con tests
+│   │   ├── theme/      # Colores, espacios y tipografía
+│   │   └── config.js   # URL de la API según la IP del servidor de Expo
 │   └── package.json
 ├── .gitignore
 └── README.md
@@ -50,7 +100,14 @@ La persistencia es **en memoria** (arrays y `Map`): los datos se pierden cuando 
 
 ### Frontend (`frontend/`)
 
-App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo Go**, sin necesidad de Android Studio ni Xcode.
+App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo Go**, sin necesidad de Android Studio ni Xcode. Dependencias principales:
+
+- **`@react-navigation/*`**: pestañas y pilas de pantallas.
+- **`expo-secure-store`**: guarda la sesión (el token JWT) cifrada en el celular.
+- **`@react-native-community/datetimepicker`**: selector nativo de fecha y hora para crear eventos.
+- **`@expo/vector-icons`**: íconos de las pestañas.
+
+Las llamadas a la API usan `fetch` propio (`src/services/api.js`), con el token en `Authorization: Bearer`, timeout de 10 s y cierre de sesión automático si el backend responde `401`. Para tests se usa **`jest-expo`**.
 
 ## 🚀 Inicio Rápido
 
@@ -186,9 +243,6 @@ El catálogo es público y no sabe quién lo mira, así que no marca cuáles son
 
 Cada error que llega al manejador global se escribe en la consola del servidor: los inesperados (`500`) con el stack y los del cliente (`4xx`) en una sola línea con el método, la ruta, el status y el mensaje. Nunca se registra el cuerpo de la request ni los headers, porque pueden traer contraseñas y tokens. En los tests el registro está silenciado.
 
-```bash
-
-
 #### Datos iniciales (seed)
 
 Cada vez que arranca el servidor se cargan datos de prueba en memoria. Los usuarios, las categorías y los eventos del seed tienen **ids fijos**: si el servidor se reinicia (por ejemplo, con `npm run dev`), los tokens que ya se emitieron para esos usuarios siguen valiendo. En cambio, lo que se crea después (usuarios registrados, eventos nuevos) se pierde al reiniciar, y el token de un usuario que ya no existe da `401`.
@@ -239,9 +293,9 @@ Requisitos para que el celular llegue al backend:
   Para comprobarlo, abrir `http://<ip-de-la-pc>:3000/health` en el navegador del celular: tiene que mostrar `{"status":"ok"}`.
 - En iPhone, Expo Go necesita el permiso de **Red local** (Ajustes → Expo Go).
 
-Para entrar, usar uno de los usuarios del seed (por ejemplo `carla@example.com` con contraseña `Demo1234!`) o crear una cuenta nueva.
+Para entrar, usar uno de los usuarios del seed (por ejemplo `carla@example.com` como comprador u `octavio@example.com` como organizador, con contraseña `Demo1234!`) o crear una cuenta nueva.
 
-Para correr los tests del frontend (config, cliente de la API, sesión y formato):
+Para correr los tests del frontend (configuración, cliente de la API, sesión y las reglas puras de `src/utils/`: formatos, estados y cancelación de compras, cupos, chat, reseñas, favoritos y validación del formulario de eventos). Las pantallas se prueban en el celular:
 
 ```bash
 cd frontend

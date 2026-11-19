@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -108,11 +109,28 @@ function OrganizadorStack() {
   );
 }
 
+// Ícono de Ionicons por pestaña: lleno cuando está activa y de contorno cuando no.
+const ICONOS_DE_PESTANIA = {
+  Eventos: "search",
+  MisCompras: "ticket",
+  Favoritos: "heart",
+  MisEventosTab: "calendar",
+  Perfil: "person",
+};
+
+const opcionesDePestania = ({ route }) => ({
+  headerShown: false,
+  tabBarActiveTintColor: colores.primario,
+  tabBarIcon: ({ focused, color, size }) => (
+    <Ionicons name={focused ? ICONOS_DE_PESTANIA[route.name] : `${ICONOS_DE_PESTANIA[route.name]}-outline`} size={size} color={color} />
+  ),
+});
+
 function TabsPrincipales() {
   const { esComprador, esOrganizador } = useAuth();
 
   return (
-    <Tabs.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colores.primario }}>
+    <Tabs.Navigator screenOptions={opcionesDePestania}>
       <Tabs.Screen name="Eventos" component={EventosStack} />
       {esComprador ? <Tabs.Screen name="MisCompras" component={ComprasStack} options={{ title: "Mis compras" }} /> : null}
       {esComprador ? <Tabs.Screen name="Favoritos" component={FavoritosStack} options={{ title: "Favoritos" }} /> : null}
