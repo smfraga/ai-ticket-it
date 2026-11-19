@@ -47,7 +47,9 @@ export default function EventoCard({ evento, onPress, favorito, onAlternarFavori
       </Text>
       <View style={estilos.fila}>
         <Text style={estilos.precio}>Desde {formatearPrecio(evento.precioDesde)}</Text>
-        {evento.yaPaso ? (
+        {evento.cancelado ? (
+          <Text style={estilos.cancelado}>Cancelado</Text>
+        ) : evento.yaPaso ? (
           <Text style={tipografia.suave}>Ya se realizó</Text>
         ) : (
           <Text style={[tipografia.suave, lugares === 0 && estilos.agotado]}>
@@ -84,4 +86,5 @@ const estilos = StyleSheet.create({
   puntaje: { color: colores.textoSuave, fontSize: 13 },
   precio: { color: colores.texto, fontSize: 16, fontWeight: "700", marginTop: espacio.xs },
   agotado: { color: colores.error, fontWeight: "600" },
+  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
 });
