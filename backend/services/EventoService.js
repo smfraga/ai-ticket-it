@@ -7,7 +7,7 @@ import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
 import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
-import { formatearFecha } from "./formato.js";
+import { formatearFecha, formatearPrecio } from "./formato.js";
 
 const PRECIO_MAXIMO = Number.MAX_SAFE_INTEGER;
 
@@ -82,6 +82,31 @@ export class EventoService {
     return this.toEventoResponse(guardado, puntaje, ahora);
   }
 
+  // El dominio decide quién y cuándo (403, 409). Cada compra activa se cancela (o se reembolsa si estaba
+  // confirmada) y recibe un aviso en su chat, a nombre del organizador.
+  async cancelar(usuarioId, eventoId) {
+    const organizador = await this.buscarUsuario(usuarioId);
+    const evento = await this.buscarEvento(eventoId);
+
+    const ahora = this.ahora();
+    evento.cancelar(organizador, ahora);
+    const guardado = await this.eventoRepository.save(evento);
+
+    const compras = await this.compraRepository.findByEventoId(evento.id);
+    for (const compra of compras) {
+      const estabaConfirmada = compra.estaConfirmada();
+      if (!compra.cancelarPorEvento(organizador, ahora)) continue;
+      const aviso = estabaConfirmada
+        ? `Cancelamos el evento. Te reintegramos ${formatearPrecio(compra.total)}.`
+        : "Cancelamos el evento. Tu compra pendiente quedó cancelada.";
+      compra.agregarMensaje(organizador, aviso, ahora);
+      await this.compraRepository.save(compra);
+    }
+
+    const puntaje = await this.puntajeDelOrganizador(organizador.id);
+    return this.toEventoResponse(guardado, puntaje, ahora);
+  }
+
   async avisarALasComprasActivas(evento, organizador, textoPara, ahora) {
     const compras = await this.compraRepository.findByEventoId(evento.id);
     for (const compra of compras.filter((c) => c.estaActiva())) {
@@ -129,8 +154,10 @@ export class EventoService {
     const todos = await this.eventoRepository.findAll();
 
     const hayRangoDePrecio = precioMin !== undefined || precioMax !== undefined;
+    // Los cancelados no se ofrecen en el catálogo, pero su organizador los sigue viendo en "Mis eventos".
     const eventos = todos.filter(
       (evento) =>
+        (!evento.cancelado || organizadorId !== undefined) &&
         (periodo === "todos" || (periodo === "pasados") === evento.yaPaso(ahora)) &&
         evento.coincideConTexto(texto) &&
         (categoriaId === undefined || evento.perteneceACategoria(categoriaId)) &&
@@ -185,6 +212,7 @@ export class EventoService {
       },
       precioDesde: evento.precioMinimo(),
       yaPaso: evento.yaPaso(ahora),
+      cancelado: evento.cancelado,
       tiposEntrada: evento.tiposEntrada.map((tipo) => ({
         id: tipo.id,
         nombre: tipo.nombre,

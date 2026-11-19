@@ -96,6 +96,7 @@ describe("EventoService", () => {
         organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", puntaje: 4.5 },
         precioDesde: 15000,
         yaPaso: false,
+        cancelado: false,
         tiposEntrada: [
           { id: "tipo-nuevo-0", nombre: "General", descripcion: "Campo", precio: 15000, cupo: 100, disponibles: 100 },
           { id: "tipo-nuevo-1", nombre: "VIP", descripcion: "", precio: 40000, cupo: 20, disponibles: 20 },
@@ -440,6 +441,7 @@ describe("EventoService", () => {
         organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", puntaje: 4.5 },
         precioDesde: 10000,
         yaPaso: false,
+        cancelado: false,
         tiposEntrada: [
           { id: "e1-tipo-0", nombre: "General", descripcion: "Entrada de prueba", precio: 10000, cupo: 100, disponibles: 96 },
           { id: "e1-tipo-1", nombre: "VIP", descripcion: "Entrada de prueba", precio: 30000, cupo: 100, disponibles: 100 },

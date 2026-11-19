@@ -28,6 +28,8 @@ router
     eventoController.update(req, res, next),
   );
 
+router.post("/:id/cancelar", autenticar, (req, res, next) => eventoController.cancelar(req, res, next));
+
 router
   .route("/:id/compras")
   .get(autenticar, (req, res, next) => compraController.getDeEvento(req, res, next))

@@ -11,6 +11,7 @@ export class Evento {
   organizador
   tiposEntrada
   multimedia
+  cancelado
 
   constructor(nombre, descripcion, categoria, fecha, organizador, tiposEntrada, multimedia = []) {
     validarNombre(nombre);
@@ -38,6 +39,21 @@ export class Evento {
     this.organizador = organizador;
     this.tiposEntrada = [...tiposEntrada];
     this.multimedia = [...multimedia];
+    this.cancelado = false;
+  }
+
+  // El organizador cancela un evento próximo. Las compras las resuelve cada `Compra` (cancelarPorEvento).
+  cancelar(quien, ahora = new Date()) {
+    if (!this.esOrganizador(quien)) {
+      throw new ForbiddenError("Solo el organizador del evento puede cancelarlo");
+    }
+    if (this.cancelado) {
+      throw new ConflictError("El evento ya está cancelado");
+    }
+    if (this.yaPaso(ahora)) {
+      throw new ConflictError("No se puede cancelar un evento que ya se realizó");
+    }
+    this.cancelado = true;
   }
 
   // El organizador edita un evento próximo. Solo cambia lo que viene en `datos`; `tiposEntrada`, si viene, es la
@@ -47,6 +63,9 @@ export class Evento {
   editar({ nombre, descripcion, categoria, fecha, multimedia, tiposEntrada }, quien, ahora = new Date()) {
     if (!this.esOrganizador(quien)) {
       throw new ForbiddenError("Solo el organizador del evento puede editarlo");
+    }
+    if (this.cancelado) {
+      throw new ConflictError("No se puede editar un evento cancelado");
     }
     if (this.yaPaso(ahora)) {
       throw new ConflictError("No se puede editar un evento que ya se realizó");
