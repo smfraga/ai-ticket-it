@@ -47,6 +47,14 @@ export function AuthProvider({ children }) {
 
   const registro = useCallback(async (datos) => iniciarSesion(await authService.registro(datos)), [iniciarSesion]);
 
+  // Después de editar el perfil: el usuario nuevo reemplaza al guardado, con el mismo token (que solo lleva el id
+  // y los roles). Si no se puede guardar, igual se ve el cambio hasta cerrar la app.
+  const actualizarUsuario = useCallback(async (usuarioNuevo) => {
+    const sesion = await leerSesion();
+    if (sesion) await guardarSesion({ ...sesion, usuario: usuarioNuevo });
+    setUsuario(usuarioNuevo);
+  }, []);
+
   const logout = useCallback(async () => {
     await borrarSesion();
     setSesionExpirada(false);
@@ -64,8 +72,9 @@ export function AuthProvider({ children }) {
       login,
       registro,
       logout,
+      actualizarUsuario,
     }),
-    [usuario, cargando, sesionExpirada, login, registro, logout],
+    [usuario, cargando, sesionExpirada, login, registro, logout, actualizarUsuario],
   );
 
   return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;

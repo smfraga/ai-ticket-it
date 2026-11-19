@@ -3,6 +3,19 @@ import { rolUsuario } from "./RolUsuario.js";
 
 const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Las mismas reglas al registrarse y al editar el perfil: texto no vacío.
+function validarNombre(nombre) {
+  if (typeof nombre !== "string" || !nombre.trim()) {
+    throw new ValidationError("El usuario debe tener un nombre");
+  }
+}
+
+function validarApellido(apellido) {
+  if (typeof apellido !== "string" || !apellido.trim()) {
+    throw new ValidationError("El usuario debe tener un apellido");
+  }
+}
+
 // Dos eventos son el mismo si tienen el mismo id; si todavía no tienen, si son el mismo objeto.
 function mismoEvento(uno, otro) {
   if (!uno || !otro) return false;
@@ -20,12 +33,8 @@ export class Usuario {
   favoritos;
 
   constructor(nombre, apellido, email, passwordHash, roles) {
-    if (typeof nombre !== "string" || !nombre.trim()) {
-      throw new ValidationError("El usuario debe tener un nombre");
-    }
-    if (typeof apellido !== "string" || !apellido.trim()) {
-      throw new ValidationError("El usuario debe tener un apellido");
-    }
+    validarNombre(nombre);
+    validarApellido(apellido);
     const emailNormalizado = typeof email === "string" ? email.trim().toLowerCase() : "";
     if (!emailNormalizado) {
       throw new ValidationError("El usuario debe tener un email");
@@ -52,6 +61,20 @@ export class Usuario {
     this.passwordHash = passwordHash;
     this.roles = [...roles];
     this.favoritos = [];
+  }
+
+  // Edita el nombre y el apellido desde el perfil. Los dos son opcionales (cambia solo lo que viene), pero si
+  // vienen no pueden quedar vacíos; se guardan sin espacios en los bordes. Valida todo antes de cambiar: si el
+  // apellido es inválido, el nombre tampoco cambia. El email y los roles no se editan.
+  cambiarNombre({ nombre, apellido } = {}) {
+    if (nombre === undefined && apellido === undefined) {
+      throw new ValidationError("Hay que indicar el nombre o el apellido a cambiar");
+    }
+    if (nombre !== undefined) validarNombre(nombre);
+    if (apellido !== undefined) validarApellido(apellido);
+
+    if (nombre !== undefined) this.nombre = nombre.trim();
+    if (apellido !== undefined) this.apellido = apellido.trim();
   }
 
   tieneRol(rol) {

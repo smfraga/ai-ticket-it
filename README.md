@@ -272,6 +272,14 @@ Los compradores pueden guardar eventos para encontrarlos después. Las tres ruta
 
 El catálogo es público y no sabe quién lo mira, así que no marca cuáles son favoritos: para pintar el corazón en una pantalla, se compara el id de cada evento con los de `GET /favoritos`. En el seed, Carla tiene guardados el recital de rock y el festival de jazz, y Camilo el stand up.
 
+#### Perfil
+
+Los datos del usuario logueado (el del token). Piden token.
+
+| Método y ruta  | Descripción                                                                                                                                                   |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `PATCH /perfil` | Cambia `nombre` y/o `apellido` (al menos uno, de 1 a 60 caracteres, sin los espacios de los bordes) y devuelve el usuario como en la sesión. El email y los roles no se editan (`400` si vienen). El token sigue sirviendo: solo lleva el id y los roles |
+
 #### Registro de errores
 
 Cada error que llega al manejador global se escribe en la consola del servidor: los inesperados (`500`) con el stack y los del cliente (`4xx`) en una sola línea con el método, la ruta, el status y el mensaje. Nunca se registra el cuerpo de la request ni los headers, porque pueden traer contraseñas y tokens. En los tests el registro está silenciado.
