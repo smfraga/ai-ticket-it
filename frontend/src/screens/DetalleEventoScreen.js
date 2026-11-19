@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useAuth } from "../auth/AuthContext";
 import Boton from "../components/Boton";
 import Estado from "../components/Estado";
+import PanelCompra from "../components/PanelCompra";
 import ReseniaItem from "../components/ReseniaItem";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
@@ -11,7 +13,9 @@ import { formatearFecha, formatearPrecio } from "../utils/formato";
 
 export default function DetalleEventoScreen({ route }) {
   const { eventoId } = route.params;
+  const { esComprador } = useAuth();
   const [evento, setEvento] = useState(null);
+  const [tipoElegidoId, setTipoElegidoId] = useState(null);
   const [error, setError] = useState(null);
   const [reputacion, setReputacion] = useState(null); // { organizador, resenias }
   const [errorResenias, setErrorResenias] = useState(null);
@@ -48,6 +52,8 @@ export default function DetalleEventoScreen({ route }) {
   if (!evento) return <Estado tipo="cargando" />;
 
   const { organizador } = evento;
+  const sePuedeComprar = esComprador && !evento.yaPaso;
+  const tipoElegido = evento.tiposEntrada.find((tipo) => tipo.id === tipoElegidoId) ?? null;
 
   return (
     <ScrollView style={estilos.pantalla} contentContainerStyle={estilos.contenido}>
@@ -58,18 +64,41 @@ export default function DetalleEventoScreen({ route }) {
       {evento.descripcion ? <Text style={[tipografia.cuerpo, estilos.descripcion]}>{evento.descripcion}</Text> : null}
 
       <Text style={estilos.seccion}>Entradas</Text>
-      {evento.tiposEntrada.map((tipo) => (
-        <View key={tipo.id} style={estilos.tipo}>
-          <View style={estilos.tipoTexto}>
-            <Text style={tipografia.subtitulo}>{tipo.nombre}</Text>
-            {tipo.descripcion ? <Text style={tipografia.suave}>{tipo.descripcion}</Text> : null}
-            <Text style={[tipografia.suave, tipo.disponibles === 0 && estilos.agotado]}>
-              {tipo.disponibles === 0 ? "Agotado" : `${tipo.disponibles} de ${tipo.cupo} disponibles`}
-            </Text>
-          </View>
-          <Text style={estilos.precio}>{formatearPrecio(tipo.precio)}</Text>
-        </View>
-      ))}
+      {sePuedeComprar ? <Text style={tipografia.suave}>Elegí un tipo de entrada para comprar.</Text> : null}
+      {!esComprador && !evento.yaPaso ? (
+        <Text style={tipografia.suave}>Para comprar necesitás una cuenta de comprador.</Text>
+      ) : null}
+      {evento.tiposEntrada.map((tipo) => {
+        const elegible = sePuedeComprar && tipo.disponibles > 0;
+        return (
+          <Pressable
+            key={tipo.id}
+            disabled={!elegible}
+            accessibilityRole={elegible ? "button" : undefined}
+            accessibilityState={{ selected: tipo.id === tipoElegidoId }}
+            onPress={() => setTipoElegidoId(tipo.id)}
+            style={[estilos.tipo, tipo.id === tipoElegidoId && estilos.tipoElegido]}
+          >
+            <View style={estilos.tipoTexto}>
+              <Text style={tipografia.subtitulo}>{tipo.nombre}</Text>
+              {tipo.descripcion ? <Text style={tipografia.suave}>{tipo.descripcion}</Text> : null}
+              <Text style={[tipografia.suave, tipo.disponibles === 0 && estilos.agotado]}>
+                {tipo.disponibles === 0 ? "Agotado" : `${tipo.disponibles} de ${tipo.cupo} disponibles`}
+              </Text>
+            </View>
+            <Text style={estilos.precio}>{formatearPrecio(tipo.precio)}</Text>
+          </Pressable>
+        );
+      })}
+      {sePuedeComprar && tipoElegido ? (
+        <PanelCompra
+          key={tipoElegido.id}
+          eventoId={evento.id}
+          tipo={tipoElegido}
+          onComprada={cargar}
+          onTerminar={() => setTipoElegidoId(null)}
+        />
+      ) : null}
 
       <Text style={estilos.seccion}>Organizador</Text>
       <Text style={tipografia.subtitulo}>
@@ -118,6 +147,7 @@ const estilos = StyleSheet.create({
     borderColor: colores.borde,
     padding: espacio.l,
   },
+  tipoElegido: { borderColor: colores.primario, borderWidth: 2, backgroundColor: colores.primarioSuave },
   tipoTexto: { flex: 1, gap: espacio.xs },
   precio: { fontSize: 18, fontWeight: "700", color: colores.texto },
   agotado: { color: colores.error, fontWeight: "600" },
