@@ -12,6 +12,7 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 - Ver el detalle de un evento, con los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
 - Comprar eligiendo tipo de entrada y cantidad, sin superar el cupo (el pago está simulado: la compra se confirma en el momento).
 - Seguir sus compras: estado, días que faltan para el evento y el historial de cada cambio de estado.
+- Pagar una compra que quedó pendiente de pago (pago simulado).
 - Chatear con el organizador desde cada compra, en cualquier estado.
 - Cancelar una compra (con reembolso si estaba confirmada) mientras no esté utilizada y el evento no haya pasado.
 - Reseñar con puntaje y comentario una compra ya utilizada.
@@ -211,6 +212,7 @@ Todas piden token. Comprar exige el rol de comprador; ver las compras de un even
 | `GET /compras/:id`           | El detalle de una compra: lo mismo que la lista (estado, `diasRestantes`, `historial` con cada cambio de estado) más el `comprador` (nombre y apellido), el organizador y `yaPaso` dentro de `evento`, y la `resenia` de la compra (o `null` si todavía no tiene). Solo el comprador y el organizador del evento: otro usuario recibe `403`. `400` si el id no es un UUID, `401` sin token, `404` si no existe |
 | `GET /eventos/:id/compras`   | Las compras de un evento con su estado y comprador (nombre y apellido), y el cupo restante de cada tipo de entrada. Solo el organizador del evento: otro usuario recibe `403` |
 | `POST /compras/:id/cancelar` | El comprador cancela su compra (`200` con la compra actualizada). Una `PENDIENTE` queda `CANCELADA`; una `CONFIRMADA` queda `REEMBOLSADA` (reembolso simulado). En los dos casos las entradas vuelven al cupo. `403` si no es el comprador, `404` compra inexistente, `409` si está `UTILIZADA`, ya cancelada o el evento ya se realizó |
+| `POST /compras/:id/pagar`    | El comprador paga una compra `PENDIENTE` y queda `CONFIRMADA` (`200`, pago simulado). Las compras nuevas ya se confirman al comprar; esto sirve para las que quedaron pendientes. `403` si no es el comprador, `404` compra inexistente, `409` si no está `PENDIENTE` o el evento ya se realizó |
 | `POST /compras/:id/utilizar` | El organizador del evento marca la compra como `UTILIZADA` (`200`), por ejemplo al dejar entrar al comprador. Solo desde `CONFIRMADA`: `409` en cualquier otro estado. `403` si no es el organizador de ese evento, `404` compra inexistente |
 | `GET /compras/:id/mensajes`  | El chat de la compra, del más viejo al más nuevo. Cada mensaje trae `autor` (`id`, `nombre`, `apellido` y su `rol` en esa compra: `COMPRADOR` u `ORGANIZADOR`), `mensaje` y `enviado`. Solo el comprador y el organizador del evento: otro usuario recibe `403` |
 | `POST /compras/:id/mensajes` | Escribe en el chat. Body: `{ "mensaje": "texto" }`, de 1 a 500 caracteres (se recortan los espacios de los bordes). `201` con el mensaje. `400` texto vacío o demasiado largo, `403` si no participa, `404` compra inexistente. Se puede escribir en cualquier estado de la compra |

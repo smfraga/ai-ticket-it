@@ -297,6 +297,44 @@ describe("Compra", () => {
     });
   });
 
+  describe("pagar", () => {
+    it("el comprador pasa una compra PENDIENTE a CONFIRMADA, queda en el historial y sigue ocupando el cupo", () => {
+      const compra = crearCompra({ cantidad: 2 });
+
+      compra.pagar(compra.comprador, AHORA);
+
+      expect(compra.estado).toBe(CONFIRMADA);
+      expect(compra.historial.map((cambio) => cambio.estado)).toEqual([PENDIENTE, CONFIRMADA]);
+      expect(compra.historial.at(-1).quien).toBe(compra.comprador);
+      expect(compra.tipoEntrada.vendidas).toBe(2);
+      expect(compra.diasRestantes(AHORA)).toBe(30);
+    });
+
+    it("lanza ForbiddenError si paga otro usuario, aunque sea el organizador", () => {
+      const compra = crearCompra();
+
+      expect(() => compra.pagar(compra.evento.organizador, AHORA)).toThrow(ForbiddenError);
+      expect(() => compra.pagar(crearComprador(), AHORA)).toThrow("Solo el comprador puede pagar la compra");
+      expect(compra.estado).toBe(PENDIENTE);
+    });
+
+    it("lanza ConflictError si el evento ya se realizó", () => {
+      const compra = crearCompra();
+
+      expect(() => compra.pagar(compra.comprador, enDias(31))).toThrow(
+        "No se puede pagar una compra de un evento que ya se realizó",
+      );
+      expect(compra.estado).toBe(PENDIENTE);
+    });
+
+    it.each([CONFIRMADA, UTILIZADA, CANCELADA, REEMBOLSADA])("lanza ConflictError si está %s", (estado) => {
+      const compra = crearCompraEn(estado);
+
+      expect(() => compra.pagar(compra.comprador, AHORA)).toThrow(ConflictError);
+      expect(compra.estado).toBe(estado);
+    });
+  });
+
   describe("marcarUtilizada", () => {
     it("el organizador pasa una compra CONFIRMADA a UTILIZADA y queda en el historial", () => {
       const compra = crearCompraEn(CONFIRMADA);

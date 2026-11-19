@@ -4,6 +4,7 @@ import {
   motivoSinCancelacion,
   motivoSinUtilizar,
   puedeMarcarUtilizada,
+  puedePagar,
   puedeReseniar,
   puedeCancelar,
   resumenDeEstados,
@@ -73,6 +74,16 @@ describe("textoDiasRestantes", () => {
 
   it("no muestra nada si la compra no está confirmada (null)", () => {
     expect(textoDiasRestantes(null)).toBeNull();
+  });
+});
+
+describe("puedePagar", () => {
+  it("se paga solo una PENDIENTE de un evento que no pasó", () => {
+    expect(puedePagar(compra("PENDIENTE"))).toBe(true);
+    expect(puedePagar(compra("PENDIENTE", true))).toBe(false);
+    for (const estado of ["CONFIRMADA", "UTILIZADA", "CANCELADA", "REEMBOLSADA"]) {
+      expect(puedePagar(compra(estado))).toBe(false);
+    }
   });
 });
 

@@ -88,6 +88,11 @@ export class CompraService {
     return this.cambiarEstado(usuarioId, compraId, (compra, usuario, ahora) => compra.cancelar(usuario, ahora));
   }
 
+  // El comprador paga una compra PENDIENTE (pago simulado) y queda CONFIRMADA.
+  async pagar(usuarioId, compraId) {
+    return this.cambiarEstado(usuarioId, compraId, (compra, usuario, ahora) => compra.pagar(usuario, ahora));
+  }
+
   // El organizador del evento la marca como utilizada, por ejemplo al dejar entrar al comprador.
   async utilizar(usuarioId, compraId) {
     return this.cambiarEstado(usuarioId, compraId, (compra, usuario, ahora) =>

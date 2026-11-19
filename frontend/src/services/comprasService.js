@@ -10,6 +10,9 @@ export const obtenerCompra = (id) => api.get(`/compras/${id}`);
 // Solo el comprador. Una CONFIRMADA queda REEMBOLSADA y una PENDIENTE queda CANCELADA; las entradas vuelven al cupo.
 export const cancelarCompra = (id) => api.post(`/compras/${id}/cancelar`);
 
+// Solo el comprador (403 si no), desde PENDIENTE (409 si no) y antes del evento. Pago simulado: queda CONFIRMADA.
+export const pagarCompra = (id) => api.post(`/compras/${id}/pagar`);
+
 // Solo el organizador del evento (403 si no) y solo desde CONFIRMADA (409 si no). Devuelve la compra actualizada.
 export const utilizarCompra = (id) => api.post(`/compras/${id}/utilizar`);
 

@@ -117,6 +117,18 @@ export class Compra {
     }
   }
 
+  // El comprador paga una compra PENDIENTE (pago simulado) y queda CONFIRMADA. Una compra nueva ya se confirma al
+  // comprar; esto destraba las que quedaron pendientes. No se paga un evento que ya se realizó.
+  pagar(quien, ahora = new Date()) {
+    if (!this.comprador.esElMismo(quien)) {
+      throw new ForbiddenError("Solo el comprador puede pagar la compra");
+    }
+    if (this.evento.yaPaso(ahora)) {
+      throw new ConflictError("No se puede pagar una compra de un evento que ya se realizó");
+    }
+    this.actualizarEstado(estadoCompra.CONFIRMADA, quien, ahora);
+  }
+
   // El organizador la marca al dejar entrar al comprador; solo se usa una compra confirmada.
   marcarUtilizada(quien, ahora = new Date()) {
     if (!this.evento.esOrganizador(quien)) {
