@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "../auth/AuthContext";
+import { useFavoritos } from "../auth/FavoritosContext";
 import Boton from "../components/Boton";
+import BotonFavorito from "../components/BotonFavorito";
 import Estado from "../components/Estado";
 import PanelCompra from "../components/PanelCompra";
 import ReseniaItem from "../components/ReseniaItem";
@@ -14,6 +16,7 @@ import { formatearFecha, formatearPrecio } from "../utils/formato";
 export default function DetalleEventoScreen({ route }) {
   const { eventoId } = route.params;
   const { esComprador } = useAuth();
+  const { esFavorito, alternar } = useFavoritos();
   const [evento, setEvento] = useState(null);
   const [tipoElegidoId, setTipoElegidoId] = useState(null);
   const [error, setError] = useState(null);
@@ -58,7 +61,13 @@ export default function DetalleEventoScreen({ route }) {
   return (
     <ScrollView style={estilos.pantalla} contentContainerStyle={estilos.contenido}>
       <Text style={estilos.categoria}>{evento.categoria.nombre}</Text>
-      <Text style={tipografia.titulo}>{evento.nombre}</Text>
+      <View style={estilos.encabezado}>
+        <Text style={[tipografia.titulo, estilos.titulo]}>{evento.nombre}</Text>
+        {/* También en eventos ya realizados: el backend los acepta y la pestaña Favoritos los muestra. */}
+        {esComprador ? (
+          <BotonFavorito favorito={esFavorito(evento.id)} onPress={() => alternar(evento.id)} tamanio={30} />
+        ) : null}
+      </View>
       <Text style={tipografia.cuerpo}>{formatearFecha(evento.fecha)}</Text>
       {evento.yaPaso ? <Text style={estilos.aviso}>Este evento ya se realizó.</Text> : null}
       {evento.descripcion ? <Text style={[tipografia.cuerpo, estilos.descripcion]}>{evento.descripcion}</Text> : null}
@@ -133,6 +142,8 @@ const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   contenido: { padding: espacio.l, gap: espacio.s, paddingBottom: espacio.xxl },
   categoria: { color: colores.primarioOscuro, fontSize: 13, fontWeight: "600" },
+  encabezado: { flexDirection: "row", alignItems: "flex-start", gap: espacio.s },
+  titulo: { flex: 1 },
   descripcion: { marginTop: espacio.s },
   aviso: { color: colores.aviso, fontSize: 14, fontWeight: "600" },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.xl },

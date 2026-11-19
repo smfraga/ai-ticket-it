@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../auth/AuthContext";
+import { useFavoritos } from "../auth/FavoritosContext";
 import Chip from "../components/Chip";
 import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
@@ -22,6 +25,15 @@ export default function CatalogoScreen({ navigation }) {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
   const nuevoPedido = useUltimoPedido();
+  const { esComprador } = useAuth();
+  const { esFavorito, alternar, recargar: recargarFavoritos } = useFavoritos();
+
+  // Al volver a la pestaña, los corazones se actualizan (por si se quitó un favorito desde otra pantalla o dispositivo).
+  useFocusEffect(
+    useCallback(() => {
+      recargarFavoritos();
+    }, [recargarFavoritos]),
+  );
 
   useEffect(() => {
     const espera = setTimeout(() => setTexto(busqueda.trim()), ESPERA_DE_BUSQUEDA_MS);
@@ -68,7 +80,12 @@ export default function CatalogoScreen({ navigation }) {
         data={eventos}
         keyExtractor={(evento) => evento.id}
         renderItem={({ item }) => (
-          <EventoCard evento={item} onPress={() => navigation.navigate("DetalleEvento", { eventoId: item.id })} />
+          <EventoCard
+            evento={item}
+            onPress={() => navigation.navigate("DetalleEvento", { eventoId: item.id })}
+            favorito={esFavorito(item.id)}
+            onAlternarFavorito={esComprador ? alternar : undefined}
+          />
         )}
         contentContainerStyle={estilos.lista}
         keyboardShouldPersistTaps="handled"

@@ -4,6 +4,16 @@ export const textoCupo = ({ cupo, cupoRestante }) => {
   return `${cupoRestante === 1 ? "Queda 1" : `Quedan ${cupoRestante}`} de ${cupo}`;
 };
 
+// --- Favoritos -------------------------------------------------------------------------------------------------
+
+// Un Set nuevo con el evento guardado o quitado; no modifica el anterior (React compara por referencia).
+export const conFavorito = (ids, eventoId, guardado) => {
+  const nuevos = new Set(ids);
+  if (guardado) nuevos.add(eventoId);
+  else nuevos.delete(eventoId);
+  return nuevos;
+};
+
 // --- Crear evento ---------------------------------------------------------------------------------------------
 // El formulario guarda precio y cupo como texto (lo que se tipea); se validan y convierten antes de enviar.
 // El backend vuelve a validar todo (400) y exige que la fecha sea futura.
