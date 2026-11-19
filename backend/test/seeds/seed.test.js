@@ -111,14 +111,28 @@ describe("cargarSeed", () => {
       expect(eventos.filter((e) => e.yaPaso(AHORA))).toHaveLength(3);
     });
 
-    it("las fechas son relativas a la fecha que se le pasa", async () => {
+    it("el día es relativo a la fecha que se le pasa y la hora es fija (en hora local)", async () => {
       const mañana = new Date(AHORA.getTime() + 24 * 60 * 60 * 1000);
       const otros = crearRepositorios();
 
       await cargarSeed(otros, mañana);
 
-      const [primero] = await otros.eventos.findAll();
-      expect(primero.fecha.getTime() - mañana.getTime()).toBe(12 * 24 * 60 * 60 * 1000);
+      const [rock, standUp] = await otros.eventos.findAll();
+      const enDiasALas = (dias, horas, minutos) => {
+        const fecha = new Date(mañana);
+        fecha.setDate(fecha.getDate() + dias);
+        fecha.setHours(horas, minutos, 0, 0);
+        return fecha;
+      };
+      expect(rock.fecha).toEqual(enDiasALas(12, 21, 0));
+      expect(standUp.fecha).toEqual(enDiasALas(5, 21, 30));
+    });
+
+    it("ningún evento queda a la hora en que arrancó el servidor: todos empiezan en punto o y media", () => {
+      eventos.forEach((evento) => {
+        expect([0, 30]).toContain(evento.fecha.getMinutes());
+        expect(evento.fecha.getSeconds()).toBe(0);
+      });
     });
 
     it("los dos organizadores tienen eventos, y los eventos usan al menos 4 categorías distintas", () => {
