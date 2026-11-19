@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,12 +8,15 @@ import { useAuth } from "../auth/AuthContext";
 import { useMensajes } from "../auth/MensajesContext";
 import Estado from "../components/Estado";
 import GloboMensaje from "../components/GloboMensaje";
+import SeparadorDeDia from "../components/SeparadorDeDia";
+import useFondoChat from "../hooks/useFondoChat";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { enviarMensaje, listarMensajes } from "../services/comprasService";
 import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { claveDeMensaje, esMensajePropio, LARGO_MAXIMO_DE_MENSAJE, textoEnviable } from "../utils/chat";
 import { conSeparadores } from "../utils/fechasChat";
+import { colorDelFondo } from "../utils/fondosChat";
 
 const INTERVALO_DE_ACTUALIZACION_MS = 5000;
 const DISTANCIA_PARA_SEGUIR_AL_FINAL = 80;
@@ -33,8 +37,23 @@ export default function ChatScreen({ route, navigation }) {
   const estaAlFinal = useRef(true); // si quien lee subió a ver mensajes viejos, no se lo baja de golpe
   const nuevoPedido = useUltimoPedido();
 
+  const { fondo } = useFondoChat();
+
+  // Título con la otra parte y, a la derecha, el acceso para cambiar el fondo de los chats.
   useEffect(() => {
-    if (titulo) navigation.setOptions({ title: titulo });
+    navigation.setOptions({
+      ...(titulo ? { title: titulo } : {}),
+      headerRight: () => (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Cambiar el fondo del chat"
+          hitSlop={12}
+          onPress={() => navigation.navigate("FondoChat")}
+        >
+          <Ionicons name="color-palette-outline" size={24} color={colores.primario} />
+        </Pressable>
+      ),
+    });
   }, [navigation, titulo]);
 
   const cargar = useCallback(async () => {
@@ -114,13 +133,12 @@ export default function ChatScreen({ route, navigation }) {
           keyExtractor={(item) => (item.tipo === "dia" ? item.clave : claveDeMensaje(item.mensaje, item.indice))}
           renderItem={({ item }) =>
             item.tipo === "dia" ? (
-              <Text style={estilos.separadorDeDia} accessibilityRole="header">
-                {item.etiqueta}
-              </Text>
+              <SeparadorDeDia etiqueta={item.etiqueta} />
             ) : (
               <GloboMensaje mensaje={item.mensaje} propio={esMensajePropio(item.mensaje, usuario.id)} />
             )
           }
+          style={{ backgroundColor: colorDelFondo(fondo) }}
           contentContainerStyle={estilos.lista}
           onScroll={alDesplazar}
           scrollEventThrottle={100}
@@ -169,19 +187,6 @@ const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   lista: { padding: espacio.l, gap: espacio.s, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl },
-  // Pastilla opaca: se lee sobre cualquier fondo del chat.
-  separadorDeDia: {
-    alignSelf: "center",
-    marginVertical: espacio.s,
-    paddingHorizontal: espacio.m,
-    paddingVertical: espacio.xs,
-    borderRadius: radio.pastilla,
-    overflow: "hidden",
-    backgroundColor: colores.superficieAlta,
-    color: colores.textoSuave,
-    fontFamily: fuentes.seminegrita,
-    fontSize: 12,
-  },
   avisoDeConexion: {
     backgroundColor: colores.errorSuave,
     color: colores.error,

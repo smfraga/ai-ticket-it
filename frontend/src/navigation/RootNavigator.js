@@ -14,6 +14,7 @@ import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
 import EditarEventoScreen from "../screens/EditarEventoScreen";
 import FavoritosScreen from "../screens/FavoritosScreen";
+import FondoChatScreen from "../screens/FondoChatScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MisComprasScreen from "../screens/MisComprasScreen";
 import MisEventosScreen from "../screens/MisEventosScreen";
@@ -88,6 +89,11 @@ function ComprasStack() {
         options={{ title: "Chat", headerBackTitle: "Compra" }}
       />
       <ComprasStackNav.Screen
+        name="FondoChat"
+        component={FondoChatScreen}
+        options={{ title: "Fondo del chat", headerBackTitle: "Chat" }}
+      />
+      <ComprasStackNav.Screen
         name="Resenia"
         component={ReseniaScreen}
         options={{ title: "Dejar reseña", headerBackTitle: "Compra" }}
@@ -145,6 +151,11 @@ function OrganizadorStack() {
         component={ChatScreen}
         options={{ title: "Chat", headerBackTitle: "Compra" }}
       />
+      <OrganizadorStackNav.Screen
+        name="FondoChat"
+        component={FondoChatScreen}
+        options={{ title: "Fondo del chat", headerBackTitle: "Chat" }}
+      />
     </OrganizadorStackNav.Navigator>
   );
 }
@@ -164,6 +175,11 @@ function MensajesStack() {
         name="Chat"
         component={ChatScreen}
         options={{ title: "Chat", headerBackTitle: "Mensajes" }}
+      />
+      <MensajesStackNav.Screen
+        name="FondoChat"
+        component={FondoChatScreen}
+        options={{ title: "Fondo del chat", headerBackTitle: "Chat" }}
       />
     </MensajesStackNav.Navigator>
   );

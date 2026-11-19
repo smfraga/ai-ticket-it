@@ -25,7 +25,7 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 - Marcar una compra como utilizada (cuando el comprador entra al evento).
 - Responder el chat de cada compra.
 
-**Los dos** tienen la pestaña **Mensajes**: todos sus chats (uno por compra, cada uno sobre un evento) con el último mensaje y su hora, ordenados como en WhatsApp, y la cantidad de mensajes nuevos sobre el ícono de la pestaña.
+**Los dos** tienen la pestaña **Mensajes**: todos sus chats (uno por compra, cada uno sobre un evento) con el último mensaje y su hora, ordenados como en WhatsApp, y la cantidad de mensajes nuevos sobre el ícono de la pestaña. Dentro del chat, los mensajes se separan por día ("Hoy", "Ayer", el día de la semana o la fecha) y el fondo se puede cambiar (se guarda en el celular).
 
 ## 📋 Casos de uso de la consigna
 
@@ -109,6 +109,7 @@ App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo G
 
 - **`@react-navigation/*`**: pestañas y pilas de pantallas.
 - **`expo-secure-store`**: guarda la sesión (el token JWT) cifrada en el celular.
+- **`@react-native-async-storage/async-storage`**: guarda preferencias del celular que no son secretas (el fondo de los chats).
 - **`@react-native-community/datetimepicker`**: selector nativo de fecha y hora para crear eventos.
 - **`@expo/vector-icons`**: íconos de las pestañas.
 - **`expo-font`**, **`@expo-google-fonts/bebas-neue`** y **`@expo-google-fonts/dm-sans`**: tipografía de la app (títulos con letra de cartel y cuerpo en DM Sans).
