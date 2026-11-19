@@ -42,7 +42,7 @@ export class CompraService {
     compra.actualizarEstado(estadoCompra.CONFIRMADA, comprador, ahora);
 
     const guardada = await this.compraRepository.save(compra);
-    return this.toCompraResponse(guardada, ahora);
+    return this.toCompraResponse(guardada, ahora, comprador);
   }
 
   // Solo el comprador y el organizador del evento ven la compra (mismo criterio que el chat).
@@ -56,7 +56,7 @@ export class CompraService {
 
     const ahora = this.ahora();
     const resenia = await this.resenaRepository.findByCompraId(compra.id);
-    const respuesta = this.toCompraResponse(compra, ahora);
+    const respuesta = this.toCompraResponse(compra, ahora, usuario);
     const { organizador } = compra.evento;
 
     return {
@@ -109,7 +109,7 @@ export class CompraService {
     accion(compra, usuario, ahora);
 
     const guardada = await this.compraRepository.save(compra);
-    return this.toCompraResponse(guardada, ahora);
+    return this.toCompraResponse(guardada, ahora, usuario);
   }
 
   // Cancela las compras PENDIENTE cuyo plazo de pago venció (la regla es de `Compra.vencer`). La llama cada tanto
@@ -131,9 +131,10 @@ export class CompraService {
   async leerMensajes(usuarioId, compraId) {
     const usuario = await this.buscarUsuario(usuarioId);
     const compra = await this.buscarCompra(compraId);
-    if (!compra.esParticipante(usuario)) {
-      throw new ForbiddenError("Solo el comprador y el organizador del evento pueden ver este chat");
-    }
+    // Leer el chat lo marca como leído para quien lo pide (403 si no participa). El chat de la app lo pide
+    // cada 5 s mientras está abierto, así que los mensajes que llegan con el chat abierto no quedan como nuevos.
+    compra.marcarLeido(usuario, this.ahora());
+    await this.compraRepository.save(compra);
 
     return compra.mensajes.map((mensaje) => this.toMensajeResponse(compra, mensaje));
   }
@@ -154,7 +155,7 @@ export class CompraService {
     const ahora = this.ahora();
     const compras = await this.compraRepository.findByCompradorId(comprador.id);
 
-    return compras.map((compra) => this.toCompraResponse(compra, ahora));
+    return compras.map((compra) => this.toCompraResponse(compra, ahora, comprador));
   }
 
   async listarDeEvento(usuarioId, eventoId) {
@@ -186,7 +187,7 @@ export class CompraService {
         cupoRestante: tipo.disponibles(),
       })),
       compras: compras.map((compra) => ({
-        ...this.toCompraResponse(compra, ahora),
+        ...this.toCompraResponse(compra, ahora, usuario),
         // Solo nombre y apellido: nunca el email ni el hash del comprador.
         comprador: {
           id: compra.comprador.id,
@@ -230,7 +231,8 @@ export class CompraService {
     };
   }
 
-  toCompraResponse(compra, ahora) {
+  // `usuario` es quien pide: los mensajes nuevos se cuentan desde su lado del chat.
+  toCompraResponse(compra, ahora, usuario) {
     return {
       id: compra.id,
       estado: compra.estado,
@@ -240,6 +242,7 @@ export class CompraService {
       diasRestantes: compra.diasRestantes(ahora),
       // Solo tiene valor si la compra está PENDIENTE: hasta cuándo se puede pagar.
       fechaLimiteDePago: compra.fechaLimiteDePago()?.toISOString() ?? null,
+      mensajesNoLeidos: compra.mensajesNoLeidosPara(usuario),
       fecha: compra.historial[0].fechaHora.toISOString(),
       evento: {
         id: compra.evento.id,
