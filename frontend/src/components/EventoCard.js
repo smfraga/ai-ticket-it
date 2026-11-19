@@ -25,9 +25,13 @@ export default function EventoCard({ evento, onPress }) {
       </Text>
       <View style={estilos.fila}>
         <Text style={estilos.precio}>Desde {formatearPrecio(evento.precioDesde)}</Text>
-        <Text style={[tipografia.suave, lugares === 0 && estilos.agotado]}>
-          {lugares === 0 ? "Agotado" : `${lugares} ${lugares === 1 ? "lugar" : "lugares"}`}
-        </Text>
+        {evento.yaPaso ? (
+          <Text style={tipografia.suave}>Ya se realizó</Text>
+        ) : (
+          <Text style={[tipografia.suave, lugares === 0 && estilos.agotado]}>
+            {lugares === 0 ? "Agotado" : `${lugares} ${lugares === 1 ? "lugar" : "lugares"}`}
+          </Text>
+        )}
       </View>
     </Pressable>
   );

@@ -6,7 +6,19 @@ export const ORDENES = Object.freeze([
   { valor: "puntaje", etiqueta: "Puntaje" },
 ]);
 
+export const PERIODOS = Object.freeze([
+  { valor: "proximos", etiqueta: "Próximos" },
+  { valor: "pasados", etiqueta: "Pasados" },
+  { valor: "todos", etiqueta: "Todos" },
+]);
+
 // Público: no necesita sesión. Los parámetros vacíos no se mandan (ver api.js).
-export const listarEventos = ({ texto, categoriaId, orden } = {}) => api.get("/eventos", { texto, categoriaId, orden });
+export const listarEventos = ({ texto, categoriaId, orden, periodo } = {}) =>
+  api.get("/eventos", { texto, categoriaId, orden, periodo });
+
+export const obtenerEvento = (id) => api.get(`/eventos/${id}`);
 
 export const listarCategorias = () => api.get("/categorias");
+
+// { organizador: { id, nombre, apellido, puntaje, cantidadResenias }, resenias: [...] }, las más recientes primero.
+export const listarReseniasDelOrganizador = (organizadorId) => api.get(`/organizadores/${organizadorId}/resenias`);
