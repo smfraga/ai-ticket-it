@@ -123,6 +123,8 @@ npm run format:check   # qué archivos no respetan el formato
 npm run format         # los formatea
 ```
 
+El commit que formateó todo el repo está en `.git-blame-ignore-revs`: con `git config blame.ignoreRevsFile .git-blame-ignore-revs`, `git blame` muestra quién escribió cada línea y no el cambio de formato.
+
 ## 🚀 Inicio Rápido
 
 ### Requisitos
