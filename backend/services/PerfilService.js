@@ -5,7 +5,7 @@ import {
   historialDeOrganizador,
 } from "../domain/Estadisticas.js";
 import { rolUsuario } from "../domain/RolUsuario.js";
-import { UnauthorizedError } from "../errors/AppError.js";
+import { NotFoundError, UnauthorizedError } from "../errors/AppError.js";
 import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
 import { resenaRepository } from "../repositories/ResenaRepository.js";
@@ -100,6 +100,30 @@ export class PerfilService {
     usuario.cambiarNombre(datos);
     const guardado = await this.usuarioRepository.save(usuario);
     return toUsuarioResponse(guardado);
+  }
+
+  // `imagen` es un data URL ("data:image/jpeg;base64,...") ya validado por formato; el dominio decide si los bytes
+  // son una imagen aceptable (tipo real y tamaño). Devuelve el usuario con la ruta nueva de su foto.
+  async cambiarFoto(usuarioId, imagen) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    const base64 = imagen.slice(imagen.indexOf(",") + 1);
+    usuario.cambiarFoto(Buffer.from(base64, "base64"));
+    return toUsuarioResponse(await this.usuarioRepository.save(usuario));
+  }
+
+  async quitarFoto(usuarioId) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    usuario.quitarFoto();
+    return toUsuarioResponse(await this.usuarioRepository.save(usuario));
+  }
+
+  // La foto de cualquier usuario (la ven los demás en el chat): { tipo, datos }. 404 si no existe o no tiene.
+  async fotoDe(usuarioId) {
+    const usuario = await this.usuarioRepository.findById(usuarioId);
+    if (!usuario?.foto) {
+      throw new NotFoundError("El usuario no tiene foto");
+    }
+    return { tipo: usuario.foto.tipo, datos: usuario.foto.datos };
   }
 
   // Los datos viven en memoria: si el servidor se reinició, el token puede ser de un usuario que ya no existe.

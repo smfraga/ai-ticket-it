@@ -16,6 +16,18 @@ function validarApellido(apellido) {
   }
 }
 
+// Foto de perfil: la app la achica a 256×256 antes de mandarla, así que 64 KB sobran.
+export const TAMANIO_MAXIMO_DE_FOTO = 64 * 1024;
+
+// El tipo se decide por los primeros bytes del archivo y no por lo que diga quien lo manda.
+const FIRMAS_DE_IMAGEN = [
+  { tipo: "image/jpeg", bytes: [0xff, 0xd8, 0xff] },
+  { tipo: "image/png", bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+];
+
+const tipoDeImagen = (datos) =>
+  FIRMAS_DE_IMAGEN.find(({ bytes }) => bytes.every((byte, i) => datos[i] === byte))?.tipo ?? null;
+
 // Dos eventos son el mismo si tienen el mismo id; si todavía no tienen, si son el mismo objeto.
 function mismoEvento(uno, otro) {
   if (!uno || !otro) return false;
@@ -31,6 +43,8 @@ export class Usuario {
   passwordHash;
   roles;
   favoritos;
+  foto; // { tipo, datos (Buffer), version } o null
+  versionDeFoto;
 
   constructor(nombre, apellido, email, passwordHash, roles) {
     validarNombre(nombre);
@@ -61,6 +75,8 @@ export class Usuario {
     this.passwordHash = passwordHash;
     this.roles = [...roles];
     this.favoritos = [];
+    this.foto = null;
+    this.versionDeFoto = 0;
   }
 
   // Edita el nombre y el apellido desde el perfil. Los dos son opcionales (cambia solo lo que viene), pero si
@@ -75,6 +91,30 @@ export class Usuario {
 
     if (nombre !== undefined) this.nombre = nombre.trim();
     if (apellido !== undefined) this.apellido = apellido.trim();
+  }
+
+  // Guarda la foto de perfil (bytes de un JPEG o PNG, hasta 64 KB) y sube su versión: la URL de la foto lleva la
+  // versión, así el celular no muestra una vieja que tenía guardada.
+  cambiarFoto(datos) {
+    if (!Buffer.isBuffer(datos) || datos.length === 0) {
+      throw new ValidationError("Hay que mandar una imagen");
+    }
+    if (datos.length > TAMANIO_MAXIMO_DE_FOTO) {
+      throw new ValidationError(`La foto no puede superar los ${TAMANIO_MAXIMO_DE_FOTO / 1024} KB`);
+    }
+    const tipo = tipoDeImagen(datos);
+    if (!tipo) {
+      throw new ValidationError("La foto tiene que ser una imagen JPEG o PNG");
+    }
+    this.versionDeFoto += 1;
+    this.foto = { tipo, datos, version: this.versionDeFoto };
+  }
+
+  // Quita la foto (vuelven las iniciales). Sin foto no es un error: no cambia nada.
+  quitarFoto() {
+    if (!this.foto) return;
+    this.versionDeFoto += 1;
+    this.foto = null;
   }
 
   tieneRol(rol) {

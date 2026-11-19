@@ -84,6 +84,7 @@ export default {
             apellido: { type: "string" },
             email: { type: "string" },
             roles: { type: "array", items: ref("Rol") },
+            foto: { type: "string", nullable: true, description: "Ruta de su foto de perfil, o null" },
           },
         },
       },

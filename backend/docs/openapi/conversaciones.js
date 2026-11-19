@@ -39,6 +39,7 @@ export default {
           properties: {
             ...persona.properties,
             rol: { type: "string", enum: ["COMPRADOR", "ORGANIZADOR"], description: "Su rol en esta compra" },
+            foto: { type: "string", nullable: true, description: "Ruta de su foto de perfil, o null" },
           },
         },
         ultimoMensaje: {

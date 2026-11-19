@@ -1,8 +1,51 @@
-import { body, conToken, error, fecha, ok, ref } from "./comun.js";
+import { body, conToken, error, fecha, idPath, ok, ref } from "./comun.js";
+
+const foto = {
+  type: "string",
+  nullable: true,
+  description: "Ruta de la foto de perfil con su versión (`/usuarios/{id}/foto?v=3`), o null si no tiene",
+};
 
 export default {
-  tags: [{ name: "Perfil", description: "Los datos del usuario logueado (el del token)" }],
+  tags: [{ name: "Perfil", description: "Los datos del usuario logueado (el del token) y las fotos de perfil" }],
   paths: {
+    "/perfil/foto": {
+      put: conToken({
+        tags: ["Perfil"],
+        summary: "Cambiar mi foto de perfil",
+        description:
+          "La foto como data URL de un JPEG o PNG en base64 (la app la achica a 256×256). El tipo se verifica por " +
+          "los primeros bytes; hasta 64 KB de imagen. La respuesta trae la ruta nueva en `foto` (cambia la versión).",
+        requestBody: body("FotoNueva"),
+        responses: { 200: ok("El usuario con su foto", ref("Usuario")), 400: error("BadRequest") },
+      }),
+      delete: conToken({
+        tags: ["Perfil"],
+        summary: "Quitar mi foto de perfil",
+        description: "Vuelven las iniciales. Sin foto no es un error.",
+        responses: { 200: ok("El usuario sin foto", ref("Usuario")) },
+      }),
+    },
+    "/usuarios/{id}/foto": {
+      get: {
+        tags: ["Perfil"],
+        summary: "Foto de perfil de un usuario",
+        description:
+          "Pública (la ven los demás en el chat). Devuelve la imagen, no JSON, con caché de un día (la ruta lleva la versión).",
+        parameters: [idPath("Id del usuario")],
+        responses: {
+          200: {
+            description: "La imagen",
+            content: {
+              "image/jpeg": { schema: { type: "string", format: "binary" } },
+              "image/png": { schema: { type: "string", format: "binary" } },
+            },
+          },
+          400: error("BadRequest"),
+          404: error("NotFound"),
+        },
+      },
+    },
     "/perfil": {
       get: conToken({
         tags: ["Perfil"],
@@ -140,6 +183,15 @@ export default {
         apellido: { type: "string" },
         email: { type: "string" },
         roles: { type: "array", items: ref("Rol") },
+        foto,
+      },
+    },
+    FotoNueva: {
+      type: "object",
+      required: ["imagen"],
+      additionalProperties: false,
+      properties: {
+        imagen: { type: "string", maxLength: 90000, example: "data:image/jpeg;base64,/9j/4AAQSkZJRg..." },
       },
     },
   },

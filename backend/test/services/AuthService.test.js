@@ -54,6 +54,7 @@ describe("AuthService", () => {
         apellido: "Pérez",
         email: "ana@example.com",
         roles: ["COMPRADOR", "ORGANIZADOR"],
+        foto: null,
       });
     });
 

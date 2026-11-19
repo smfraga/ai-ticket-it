@@ -31,6 +31,7 @@ describe("Autenticación (API completa)", () => {
         apellido: "Pérez",
         email: "ana@example.com",
         roles: ["COMPRADOR"],
+        foto: null,
       });
       expect(JSON.stringify(respuesta.body)).not.toContain(registroValido.password);
       expect(respuesta.body.usuario).not.toHaveProperty("passwordHash");

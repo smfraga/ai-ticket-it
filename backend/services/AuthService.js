@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { Usuario } from "../domain/Usuario.js";
 import { ConflictError, UnauthorizedError } from "../errors/AppError.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
+import { rutaDeFoto } from "./fotos.js";
 
 // bcryptjs es JavaScript puro: con costo 12 el seed tardaría demasiado en arrancar.
 const COSTO_BCRYPT = 10;
@@ -18,6 +19,7 @@ export const toUsuarioResponse = (usuario) => ({
   apellido: usuario.apellido,
   email: usuario.email,
   roles: usuario.roles,
+  foto: rutaDeFoto(usuario),
 });
 
 export class AuthService {

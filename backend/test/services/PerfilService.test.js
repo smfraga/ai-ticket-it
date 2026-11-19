@@ -26,6 +26,7 @@ describe("PerfilService.editar", () => {
       apellido: "Gómez",
       email: "carla@example.com",
       roles: ["COMPRADOR"],
+      foto: null,
     });
     expect(repositorio.save).toHaveBeenCalledWith(carla);
   });

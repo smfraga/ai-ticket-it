@@ -82,7 +82,7 @@ describe("CompraService.listarConversaciones", () => {
         },
         tipoEntrada: { nombre: rockConChat.tipoEntrada.nombre },
         cantidad: 2,
-        contraparte: { id: "olivia", nombre: "Olivia", apellido: "Rossi", rol: "ORGANIZADOR" },
+        contraparte: { id: "olivia", nombre: "Olivia", apellido: "Rossi", rol: "ORGANIZADOR", foto: null },
         ultimoMensaje: { texto: "A las 20", enviado: enHoras(-49).toISOString(), propio: false },
         noLeidos: 1,
       },
@@ -93,7 +93,13 @@ describe("CompraService.listarConversaciones", () => {
     const { conversaciones } = await service.listarConversaciones("olivia");
     const jazz = conversaciones.find((c) => c.compraId === "jazz-camilo");
 
-    expect(jazz.contraparte).toEqual({ id: "camilo", nombre: "Camilo", apellido: "Díaz", rol: "COMPRADOR" });
+    expect(jazz.contraparte).toEqual({
+      id: "camilo",
+      nombre: "Camilo",
+      apellido: "Díaz",
+      rol: "COMPRADOR",
+      foto: null,
+    });
     expect(jazz.evento.imagen).toBeNull();
   });
 

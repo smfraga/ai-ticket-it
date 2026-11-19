@@ -312,7 +312,7 @@ describe("CompraService", () => {
         const respuesta = await service.enviarMensaje("carla", "c1", "¿A qué hora abren?");
 
         expect(respuesta).toEqual({
-          autor: { id: "carla", nombre: "Carla", apellido: "Gómez", rol: "COMPRADOR" },
+          autor: { id: "carla", nombre: "Carla", apellido: "Gómez", rol: "COMPRADOR", foto: null },
           mensaje: "¿A qué hora abren?",
           enviado: AHORA.toISOString(),
         });

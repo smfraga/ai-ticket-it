@@ -276,12 +276,15 @@ El catálogo es público y no sabe quién lo mira, así que no marca cuáles son
 
 #### Perfil
 
-Los datos del usuario logueado (el del token). Piden token.
+Los datos del usuario logueado (el del token), que piden token, y la foto de perfil de cualquier usuario, que es pública. Las respuestas con un usuario (la sesión, el perfil, la `contraparte` de `GET /conversaciones` y el `autor` de cada mensaje) traen `foto` con la ruta de su foto, o `null`.
 
 | Método y ruta  | Descripción                                                                                                                                                   |
 |----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `GET /perfil`   | Los datos del usuario y, según sus roles, `comprador` y `organizador` (o `null` si no tiene ese rol), cada uno con `estadisticas` e `historial`. Comprador: entradas compradas, total gastado, eventos a los que fue, reseñas dejadas, categoría preferida y próximo evento; historial con los eventos a los que fue (compras `UTILIZADA`). Organizador: eventos creados (próximos, realizados, cancelados), entradas vendidas, recaudación, evento más vendido, puntaje y cantidad de reseñas; historial con sus eventos realizados y lo vendido en cada uno. Una entrada cuenta si la compra está `CONFIRMADA` o `UTILIZADA` |
 | `PATCH /perfil` | Cambia `nombre` y/o `apellido` (al menos uno, de 1 a 60 caracteres, sin los espacios de los bordes) y devuelve el usuario como en la sesión. El email y los roles no se editan (`400` si vienen). El token sigue sirviendo: solo lleva el id y los roles |
+| `PUT /perfil/foto` | Cambia la foto de perfil. Body: `{ "imagen": "data:image/jpeg;base64,..." }` (JPEG o PNG; la app la achica a 256×256). El tipo se verifica por los primeros bytes y la imagen puede pesar hasta 64 KB (`400` si no). Un body de más de 100 KB lo corta `express.json()` con `413`. Devuelve el usuario con `foto`: la ruta con su versión (`/usuarios/:id/foto?v=2`), que cambia con cada foto nueva |
+| `DELETE /perfil/foto` | Quita la foto (vuelven las iniciales); sin foto no es un error. Devuelve el usuario con `foto: null` |
+| `GET /usuarios/:id/foto` | **Pública.** La imagen (no JSON), con caché de un día. `404` si el usuario no existe o no tiene foto |
 
 #### Registro de errores
 
