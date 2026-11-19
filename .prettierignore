@@ -1,0 +1,7 @@
+node_modules/
+coverage/
+package-lock.json
+frontend/.expo/
+frontend/dist/
+frontend/web-build/
+frontend/assets/

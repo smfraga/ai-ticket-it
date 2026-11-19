@@ -1,0 +1,21 @@
+{
+  "name": "ai-ticket-it",
+  "private": true,
+  "description": "Herramientas de calidad para todo el repo (ESLint y Prettier). El backend y el frontend tienen su propio package.json.",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint backend frontend",
+    "lint:fix": "eslint backend frontend --fix",
+    "format": "prettier --write backend frontend",
+    "format:check": "prettier --check backend frontend"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "prettier": "^3.10.1"
+  }
+}

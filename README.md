@@ -95,6 +95,7 @@ Construido con Express 5. Dependencias principales:
 - **`bcryptjs`**: guarda las contraseñas como hash, nunca en texto plano.
 - **`zod`**: valida el cuerpo de las requests.
 - **`dotenv`**: carga las variables de entorno desde el archivo `.env`.
+- **`swagger-ui-express`**: sirve la documentación interactiva de la API en `/api-docs`.
 
 Para tests se usan **`jest`** y **`supertest`** (requests HTTP sobre la app, sin levantar el servidor). Para desarrollo, **`nodemon`** reinicia el servidor al guardar cambios.
 
@@ -110,6 +111,17 @@ App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo G
 - **`@expo/vector-icons`**: íconos de las pestañas.
 
 Las llamadas a la API usan `fetch` propio (`src/services/api.js`), con el token en `Authorization: Bearer`, timeout de 10 s y cierre de sesión automático si el backend responde `401`. Para tests se usa **`jest-expo`**.
+
+### Calidad de código (raíz del repo)
+
+**ESLint** (reglas recomendadas de JavaScript, de React y de hooks) y **Prettier** (formato) se instalan en la raíz y revisan el backend y el frontend. La configuración está en `eslint.config.mjs` y `.prettierrc.json`.
+
+```bash
+npm install            # en la raíz, solo la primera vez
+npm run lint           # problemas de código (variables sin usar, hooks mal usados, nombres no definidos…)
+npm run format:check   # qué archivos no respetan el formato
+npm run format         # los formatea
+```
 
 ## 🚀 Inicio Rápido
 
