@@ -59,6 +59,9 @@ export class Compra {
     if (!Number.isInteger(cantidad) || cantidad <= 0) {
       throw new ValidationError("La cantidad debe ser un número entero positivo");
     }
+    if (evento.cancelado) {
+      throw new ConflictError("No se pueden comprar entradas de un evento cancelado");
+    }
     if (evento.yaPaso(ahora)) {
       throw new ConflictError("No se pueden comprar entradas de un evento que ya se realizó");
     }
@@ -81,6 +84,11 @@ export class Compra {
 
   estaUtilizada() {
     return this.estado === estadoCompra.UTILIZADA;
+  }
+
+  // Pendiente de pago o confirmada: la compra sigue en pie para el evento (se le avisan los cambios).
+  estaActiva() {
+    return this.estado === estadoCompra.PENDIENTE || this.estaConfirmada();
   }
 
   puedePasarA(nuevoEstado) {
@@ -117,11 +125,30 @@ export class Compra {
     }
   }
 
+  // El organizador canceló el evento: una compra confirmada se reembolsa (CANCELADA y enseguida REEMBOLSADA) y una
+  // pendiente queda CANCELADA, con el organizador como responsable. Las demás no cambian (una cancelada o reembolsada
+  // ya liberó el cupo). Devuelve si la compra cambió.
+  cancelarPorEvento(quien, ahora = new Date()) {
+    if (!this.evento.esOrganizador(quien)) {
+      throw new ForbiddenError("Solo el organizador del evento puede cancelar sus compras");
+    }
+    if (!this.estaActiva()) return false;
+    const estabaConfirmada = this.estaConfirmada();
+    this.actualizarEstado(estadoCompra.CANCELADA, quien, ahora);
+    if (estabaConfirmada) {
+      this.actualizarEstado(estadoCompra.REEMBOLSADA, quien, ahora);
+    }
+    return true;
+  }
+
   // El comprador paga una compra PENDIENTE (pago simulado) y queda CONFIRMADA. Una compra nueva ya se confirma al
   // comprar; esto destraba las que quedaron pendientes. No se paga un evento que ya se realizó.
   pagar(quien, ahora = new Date()) {
     if (!this.comprador.esElMismo(quien)) {
       throw new ForbiddenError("Solo el comprador puede pagar la compra");
+    }
+    if (this.evento.cancelado) {
+      throw new ConflictError("No se puede pagar una compra de un evento cancelado");
     }
     if (this.evento.yaPaso(ahora)) {
       throw new ConflictError("No se puede pagar una compra de un evento que ya se realizó");

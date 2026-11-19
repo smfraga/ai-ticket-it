@@ -58,7 +58,7 @@ export default function DetalleEventoScreen({ route }) {
   const { organizador } = evento;
   // Nadie compra en su propio evento (el backend responde 403): un usuario con los dos roles lo gestiona en Mis eventos.
   const esPropio = organizador.id === usuario.id;
-  const sePuedeComprar = esComprador && !evento.yaPaso && !esPropio;
+  const sePuedeComprar = esComprador && !evento.yaPaso && !evento.cancelado && !esPropio;
   const tipoElegido = evento.tiposEntrada.find((tipo) => tipo.id === tipoElegidoId) ?? null;
 
   return (
@@ -73,14 +73,18 @@ export default function DetalleEventoScreen({ route }) {
         ) : null}
       </View>
       <Text style={tipografia.cuerpo}>{formatearFecha(evento.fecha)}</Text>
-      {evento.yaPaso ? <Text style={estilos.aviso}>Este evento ya se realizó.</Text> : null}
+      {evento.cancelado ? (
+        <Text style={estilos.cancelado}>El organizador canceló este evento: ya no se venden entradas.</Text>
+      ) : evento.yaPaso ? (
+        <Text style={estilos.aviso}>Este evento ya se realizó.</Text>
+      ) : null}
       {evento.descripcion ? <Text style={[tipografia.cuerpo, estilos.descripcion]}>{evento.descripcion}</Text> : null}
 
       <Text style={estilos.seccion}>Entradas</Text>
       {sePuedeComprar ? <Text style={tipografia.suave}>Elegí un tipo de entrada para comprar.</Text> : null}
       {esPropio ? (
         <Text style={tipografia.suave}>Es tu evento: sus ventas están en Mis eventos.</Text>
-      ) : !esComprador && !evento.yaPaso ? (
+      ) : !esComprador && !evento.yaPaso && !evento.cancelado ? (
         <Text style={tipografia.suave}>Para comprar necesitás una cuenta de comprador.</Text>
       ) : null}
       {evento.tiposEntrada.map((tipo) => {
@@ -152,6 +156,7 @@ const estilos = StyleSheet.create({
   titulo: { flex: 1 },
   descripcion: { marginTop: espacio.s },
   aviso: { color: colores.aviso, fontSize: 14, fontWeight: "600" },
+  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.xl },
   tipo: {
     flexDirection: "row",

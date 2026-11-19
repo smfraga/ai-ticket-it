@@ -78,6 +78,10 @@ export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada, imagen
     if (!tipo.nombre.trim()) return `${numero}: escribí el nombre (por ejemplo, General o VIP).`;
     if (leerPrecio(tipo.precio) === null) return `${numero}: el precio tiene que ser un número (0 si es gratis).`;
     if (leerCupo(tipo.cupo) === null) return `${numero}: el cupo tiene que ser un número entero mayor a 0.`;
+    // Solo al editar: un tipo con ventas no puede quedar con menos cupo que lo vendido (el backend da 409).
+    if (tipo.vendidas > 0 && leerCupo(tipo.cupo) < tipo.vendidas) {
+      return `${numero}: el cupo no puede ser menor a las ${tipo.vendidas} entradas vendidas.`;
+    }
   }
 
   const nombres = tiposEntrada.map((tipo) => tipo.nombre.trim().toLowerCase());
@@ -92,12 +96,53 @@ export const armarEventoParaEnviar = ({ nombre, descripcion, categoriaId, fecha,
   ...(imagen.trim() ? { multimedia: [imagen.trim()] } : {}),
   categoriaId,
   fecha: fecha.toISOString(),
-  tiposEntrada: tiposEntrada.map((tipo) => ({
-    nombre: tipo.nombre.trim(),
-    precio: leerPrecio(tipo.precio),
-    cupo: leerCupo(tipo.cupo),
+  tiposEntrada: tiposEntrada.map(tipoParaEnviar),
+});
+
+// Con `id` si el tipo ya existía (al editar); sin `id`, el backend lo crea.
+const tipoParaEnviar = (tipo) => ({
+  ...(tipo.id ? { id: tipo.id } : {}),
+  nombre: tipo.nombre.trim(),
+  precio: leerPrecio(tipo.precio),
+  cupo: leerCupo(tipo.cupo),
+});
+
+// --- Editar evento --------------------------------------------------------------------------------------------
+
+// El evento de GET /eventos/:id con la forma del formulario. `vendidas` sale de cupo - disponibles: con ventas, la
+// pantalla bloquea el precio y no deja quitar el tipo (las mismas reglas que el backend).
+export const eventoAFormulario = (evento) => ({
+  nombre: evento.nombre,
+  descripcion: evento.descripcion ?? "",
+  imagen: evento.multimedia?.[0] ?? "",
+  categoriaId: evento.categoria.id,
+  fecha: new Date(evento.fecha),
+  tiposEntrada: evento.tiposEntrada.map((tipo) => ({
+    id: tipo.id,
+    nombre: tipo.nombre,
+    precio: String(tipo.precio),
+    cupo: String(tipo.cupo),
+    vendidas: tipo.cupo - tipo.disponibles,
   })),
 });
+
+// El cuerpo de PATCH /eventos/:id. Manda todo el formulario (la descripción vacía también, para poder borrarla).
+// El formulario edita solo la primera imagen: las demás del evento se conservan.
+export const armarEdicionParaEnviar = (formulario, eventoOriginal) => {
+  const resto = (eventoOriginal.multimedia ?? []).slice(1);
+  const imagen = formulario.imagen.trim();
+  return {
+    nombre: formulario.nombre.trim(),
+    descripcion: formulario.descripcion.trim(),
+    categoriaId: formulario.categoriaId,
+    fecha: formulario.fecha.toISOString(),
+    multimedia: imagen ? [imagen, ...resto] : resto,
+    tiposEntrada: formulario.tiposEntrada.map(tipoParaEnviar),
+  };
+};
+
+// Se puede editar o cancelar solo un evento propio que no pasó ni está cancelado (respuesta de GET /eventos/:id/compras).
+export const puedeGestionarEvento = (evento) => !evento.yaPaso && !evento.cancelado;
 
 // "Mis eventos" pide periodo=todos (del más viejo al más nuevo). Se muestran primero los próximos, del más
 // cercano al más lejano, y después los ya realizados, del más reciente al más viejo.

@@ -155,6 +155,13 @@ export default function DetalleCompraScreen({ route, navigation }) {
       <EstadoCompra estado={compra.estado} />
       <Text style={tipografia.titulo}>{compra.evento.nombre}</Text>
       <Text style={tipografia.cuerpo}>{formatearFecha(compra.evento.fecha)}</Text>
+      {compra.evento.cancelado ? (
+        <Text style={estilos.cancelado}>
+          {esElComprador
+            ? "El organizador canceló el evento. El seguimiento muestra qué pasó con tu compra."
+            : "Cancelaste este evento."}
+        </Text>
+      ) : null}
       {dias ? <Text style={estilos.dias}>{dias}</Text> : null}
 
       <View style={estilos.tarjeta}>
@@ -244,6 +251,7 @@ const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   contenido: { padding: espacio.l, gap: espacio.s, paddingBottom: espacio.xxl },
   dias: { color: colores.exito, fontSize: 16, fontWeight: "700" },
+  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
   tarjeta: {
     backgroundColor: colores.superficie,
     borderRadius: radio.tarjeta,

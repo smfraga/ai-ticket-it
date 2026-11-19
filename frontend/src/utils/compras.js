@@ -10,7 +10,10 @@ export const ETIQUETAS_DE_ESTADO = Object.freeze({
 // El backend lo vuelve a validar (409); esto decide si se muestra el botón.
 export const ESTADOS_CANCELABLES = Object.freeze(["PENDIENTE", "CONFIRMADA"]);
 
-export const puedeCancelar = (compra) => ESTADOS_CANCELABLES.includes(compra.estado) && !compra.evento.yaPaso;
+// Si el organizador canceló el evento, sus compras ya quedaron canceladas o reembolsadas; `cancelado` se mira igual
+// por si llega una respuesta vieja.
+export const puedeCancelar = (compra) =>
+  ESTADOS_CANCELABLES.includes(compra.estado) && !compra.evento.yaPaso && !compra.evento.cancelado;
 
 // Por qué no hay botón de cancelar; null si se puede cancelar o si el estado ya lo explica (cancelada, reembolsada).
 export const motivoSinCancelacion = (compra) => {
@@ -28,7 +31,8 @@ export const textoDeConfirmacionDeCancelacion = (compra, totalFormateado) =>
     : "Se cancela la compra y las entradas vuelven al cupo.";
 
 // Pagar: una compra PENDIENTE de un evento que todavía no se realizó (el backend lo vuelve a validar con 409).
-export const puedePagar = (compra) => compra.estado === "PENDIENTE" && !compra.evento.yaPaso;
+export const puedePagar = (compra) =>
+  compra.estado === "PENDIENTE" && !compra.evento.yaPaso && !compra.evento.cancelado;
 
 export const textoDeConfirmacionDePago = (totalFormateado) =>
   `Pago simulado: se confirma la compra por ${totalFormateado}. Después vas a poder cancelarla con reembolso hasta el día del evento.`;
@@ -88,4 +92,21 @@ export const resumenDeEstados = (compras) => {
   return partes.length ? partes.join(" · ") : null;
 };
 
-export const textoEntradas = (cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;
+// Para el organizador, antes de cancelar el evento: qué les pasa a las compras activas (mismas reglas que el backend).
+export const textoDeConfirmacionDeCancelacionDeEvento = (compras) => {
+  const confirmadas = compras.filter((compra) => compra.estado === "CONFIRMADA").length;
+  const pendientes = compras.filter((compra) => compra.estado === "PENDIENTE").length;
+  const partes = [];
+  if (confirmadas > 0) {
+    partes.push(confirmadas === 1 ? "se reembolsa 1 compra confirmada" : `se reembolsan ${confirmadas} compras confirmadas`);
+  }
+  if (pendientes > 0) {
+    partes.push(pendientes === 1 ? "se cancela 1 compra pendiente" : `se cancelan ${pendientes} compras pendientes`);
+  }
+  if (partes.length === 0) return "El evento sale del catálogo. No tiene compras activas. No se puede deshacer.";
+  partes.push("cada comprador recibe un aviso en el chat");
+  const efecto = `${partes.slice(0, -1).join(", ")} y ${partes[partes.length - 1]}`;
+  return `El evento sale del catálogo: ${efecto}. No se puede deshacer.`;
+};
+
+export const textoEntradas =(cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;

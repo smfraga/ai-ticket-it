@@ -24,6 +24,7 @@ export default function CompraCard({ compra, onPress, mostrarComprador = false }
         <>
           <Text style={tipografia.subtitulo}>{compra.evento.nombre}</Text>
           <Text style={tipografia.suave}>{formatearFecha(compra.evento.fecha)}</Text>
+          {compra.evento.cancelado ? <Text style={estilos.cancelado}>El organizador canceló el evento</Text> : null}
         </>
       )}
       {dias ? <Text style={estilos.dias}>{dias}</Text> : null}
@@ -49,6 +50,7 @@ const estilos = StyleSheet.create({
   },
   presionada: { opacity: 0.85 },
   dias: { color: colores.exito, fontSize: 15, fontWeight: "700" },
+  cancelado: { color: colores.error, fontSize: 15, fontWeight: "700" },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: espacio.xs },
   total: { fontSize: 16, fontWeight: "700", color: colores.texto },
 });

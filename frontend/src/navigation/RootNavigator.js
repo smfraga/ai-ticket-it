@@ -10,6 +10,7 @@ import ComprasDelEventoScreen from "../screens/ComprasDelEventoScreen";
 import CrearEventoScreen from "../screens/CrearEventoScreen";
 import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
+import EditarEventoScreen from "../screens/EditarEventoScreen";
 import FavoritosScreen from "../screens/FavoritosScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MisComprasScreen from "../screens/MisComprasScreen";
@@ -93,6 +94,11 @@ function OrganizadorStack() {
         name="CrearEvento"
         component={CrearEventoScreen}
         options={{ title: "Crear evento", headerBackTitle: "Mis eventos" }}
+      />
+      <OrganizadorStackNav.Screen
+        name="EditarEvento"
+        component={EditarEventoScreen}
+        options={{ title: "Editar evento", headerBackTitle: "Compras" }}
       />
       <OrganizadorStackNav.Screen
         name="ComprasDelEvento"

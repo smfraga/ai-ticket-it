@@ -157,7 +157,13 @@ export class CompraService {
     const compras = await this.compraRepository.findByEventoId(evento.id);
 
     return {
-      evento: { id: evento.id, nombre: evento.nombre, fecha: evento.fecha.toISOString() },
+      evento: {
+        id: evento.id,
+        nombre: evento.nombre,
+        fecha: evento.fecha.toISOString(),
+        yaPaso: evento.yaPaso(ahora),
+        cancelado: evento.cancelado,
+      },
       tiposEntrada: evento.tiposEntrada.map((tipo) => ({
         id: tipo.id,
         nombre: tipo.nombre,
@@ -218,7 +224,12 @@ export class CompraService {
       // Solo tiene valor si la compra está CONFIRMADA.
       diasRestantes: compra.diasRestantes(ahora),
       fecha: compra.historial[0].fechaHora.toISOString(),
-      evento: { id: compra.evento.id, nombre: compra.evento.nombre, fecha: compra.evento.fecha.toISOString() },
+      evento: {
+        id: compra.evento.id,
+        nombre: compra.evento.nombre,
+        fecha: compra.evento.fecha.toISOString(),
+        cancelado: compra.evento.cancelado,
+      },
       tipoEntrada: {
         id: compra.tipoEntrada.id,
         nombre: compra.tipoEntrada.nombre,

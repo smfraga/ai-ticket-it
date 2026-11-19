@@ -35,6 +35,26 @@ export const crearEventoValidation = z
   })
   .strict();
 
+// Todo opcional: se cambia solo lo que viene. `tiposEntrada`, si viene, es la lista completa (con `id` los que
+// ya existían, sin `id` los nuevos).
+export const editarEventoValidation = z
+  .object({
+    nombre: z.string().trim().min(1, "El nombre es obligatorio"),
+    descripcion: z.string().trim(),
+    categoriaId: idValidation,
+    fecha: z
+      .string()
+      .datetime({ offset: true, message: "La fecha debe tener formato ISO, por ejemplo 2026-12-20T21:00:00Z" })
+      .transform((fecha) => new Date(fecha)),
+    tiposEntrada: z
+      .array(tipoEntradaValidation.extend({ id: idValidation.optional() }))
+      .min(1, "El evento debe tener al menos un tipo de entrada"),
+    multimedia: z.array(z.string().trim().url("Cada elemento de multimedia debe ser una URL")),
+  })
+  .partial()
+  .strict()
+  .refine((datos) => Object.keys(datos).length > 0, { message: "No hay nada para editar" });
+
 // Los parámetros de la query llegan como texto: "" se trata como "no enviado" y los números se convierten.
 const precioDeQuery = z.preprocess(
   (valor) => (valor === "" ? undefined : valor),
