@@ -86,9 +86,7 @@ describe("AuthService", () => {
       usuarioRepository.findByEmail.mockResolvedValue({ id: "otro" });
 
       await expect(service.registro(datosDeRegistro())).rejects.toThrow(ConflictError);
-      await expect(service.registro(datosDeRegistro())).rejects.toThrow(
-        "Ya existe un usuario con ese email",
-      );
+      await expect(service.registro(datosDeRegistro())).rejects.toThrow("Ya existe un usuario con ese email");
       expect(usuarioRepository.save).not.toHaveBeenCalled();
     });
 
@@ -136,13 +134,9 @@ describe("AuthService", () => {
     });
 
     it("responde el mismo mensaje y status para email inexistente y contraseña incorrecta", async () => {
-      const errorEmail = await service
-        .login({ email: "nadie@example.com", password: PASSWORD })
-        .catch((e) => e);
+      const errorEmail = await service.login({ email: "nadie@example.com", password: PASSWORD }).catch((e) => e);
       usuarioRepository.findByEmail.mockResolvedValue(usuarioGuardado());
-      const errorPassword = await service
-        .login({ email: "ana@example.com", password: "otra-cosa" })
-        .catch((e) => e);
+      const errorPassword = await service.login({ email: "ana@example.com", password: "otra-cosa" }).catch((e) => e);
 
       expect(errorEmail.message).toBe("Email o contraseña incorrectos");
       expect(errorEmail.message).toBe(errorPassword.message);

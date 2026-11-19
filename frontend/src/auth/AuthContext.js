@@ -40,7 +40,10 @@ export function AuthProvider({ children }) {
     setUsuario(sesion.usuario);
   }, []);
 
-  const login = useCallback(async (email, password) => iniciarSesion(await authService.login(email, password)), [iniciarSesion]);
+  const login = useCallback(
+    async (email, password) => iniciarSesion(await authService.login(email, password)),
+    [iniciarSesion],
+  );
 
   const registro = useCallback(async (datos) => iniciarSesion(await authService.registro(datos)), [iniciarSesion]);
 

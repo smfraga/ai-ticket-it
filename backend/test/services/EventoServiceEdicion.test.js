@@ -100,9 +100,9 @@ describe("EventoService.editar", () => {
     const tipos = evento.tiposEntrada.map(({ id, nombre, precio, cupo }) => ({ id, nombre, precio, cupo }));
     tipos[0].cupo = 1; // la compra confirmada y la pendiente reservaron 2 cada una
 
-    await expect(
-      service.editar("olivia", "evento", { fecha: enDias(60), tiposEntrada: tipos }),
-    ).rejects.toThrow(ConflictError);
+    await expect(service.editar("olivia", "evento", { fecha: enDias(60), tiposEntrada: tipos })).rejects.toThrow(
+      ConflictError,
+    );
     expect(eventoRepository.save).not.toHaveBeenCalled();
     expect(compraRepository.save).not.toHaveBeenCalled();
   });

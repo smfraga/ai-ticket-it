@@ -41,7 +41,9 @@ export default function ReseniaScreen({ route, navigation }) {
     >
       <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled">
         <Text style={tipografia.titulo}>¿Cómo estuvo {nombreEvento}?</Text>
-        <Text style={tipografia.suave}>Tu reseña la van a ver otros compradores en los eventos de este organizador.</Text>
+        <Text style={tipografia.suave}>
+          Tu reseña la van a ver otros compradores en los eventos de este organizador.
+        </Text>
 
         <Text style={[tipografia.etiqueta, estilos.separado]}>Puntuación</Text>
         <SelectorEstrellas valor={puntuacion} onCambiar={setPuntuacion} />

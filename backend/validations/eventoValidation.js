@@ -9,9 +9,7 @@ const tipoEntradaValidation = z
   .object({
     nombre: z.string().trim().min(1, "El nombre del tipo de entrada es obligatorio"),
     descripcion: z.string().trim().optional(),
-    precio: z
-      .number({ invalid_type_error: "El precio debe ser un número" })
-      .min(0, "El precio no puede ser negativo"),
+    precio: z.number({ invalid_type_error: "El precio debe ser un número" }).min(0, "El precio no puede ser negativo"),
     cupo: z
       .number({ invalid_type_error: "El cupo debe ser un número" })
       .int("El cupo debe ser un número entero")
@@ -28,9 +26,7 @@ export const crearEventoValidation = z
       .string()
       .datetime({ offset: true, message: "La fecha debe tener formato ISO, por ejemplo 2026-12-20T21:00:00Z" })
       .transform((fecha) => new Date(fecha)),
-    tiposEntrada: z
-      .array(tipoEntradaValidation)
-      .min(1, "El evento debe tener al menos un tipo de entrada"),
+    tiposEntrada: z.array(tipoEntradaValidation).min(1, "El evento debe tener al menos un tipo de entrada"),
     multimedia: z.array(z.string().trim().url("Cada elemento de multimedia debe ser una URL")).default([]),
   })
   .strict();
@@ -61,8 +57,7 @@ const precioDeQuery = z.preprocess(
   z.coerce.number({ invalid_type_error: "Debe ser un número" }).min(0, "No puede ser negativo").optional(),
 );
 
-const opcionDe = (valores) =>
-  z.enum(valores, { errorMap: () => ({ message: `Tiene que ser ${valores.join(", ")}` }) });
+const opcionDe = (valores) => z.enum(valores, { errorMap: () => ({ message: `Tiene que ser ${valores.join(", ")}` }) });
 
 export const filtrosEventosValidation = z
   .object({

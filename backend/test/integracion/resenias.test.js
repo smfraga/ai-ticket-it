@@ -221,7 +221,9 @@ describe("Reseñas (API completa)", () => {
     });
 
     it("el puntaje del organizador no se mezcla con el de otro", async () => {
-      const respuesta = await request(app).get(`/organizadores/${(await usuarioRepository.findByEmail("octavio@example.com")).id}/resenias`);
+      const respuesta = await request(app).get(
+        `/organizadores/${(await usuarioRepository.findByEmail("octavio@example.com")).id}/resenias`,
+      );
 
       expect(respuesta.body.organizador).toMatchObject({ puntaje: null, cantidadResenias: 0 });
       expect(respuesta.body.resenias).toEqual([]);

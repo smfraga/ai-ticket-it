@@ -36,42 +36,31 @@ describe("Resenia", () => {
   });
 
   it("lanza ValidationError si falta la compra", () => {
-    expect(() => new Resenia(null, crearComprador(), 4, "Bueno")).toThrow(
-      "La reseña debe ser de una compra",
-    );
+    expect(() => new Resenia(null, crearComprador(), 4, "Bueno")).toThrow("La reseña debe ser de una compra");
   });
 
-  it.each([PENDIENTE, CONFIRMADA, CANCELADA, REEMBOLSADA])(
-    "lanza ConflictError si la compra está %s",
-    (estado) => {
-      const compra = crearCompraEn(estado);
+  it.each([PENDIENTE, CONFIRMADA, CANCELADA, REEMBOLSADA])("lanza ConflictError si la compra está %s", (estado) => {
+    const compra = crearCompraEn(estado);
 
-      expect(() => reseniaCon(compra)).toThrow(ConflictError);
-      expect(() => reseniaCon(compra)).toThrow("Solo se puede reseñar una compra utilizada");
-    },
-  );
+    expect(() => reseniaCon(compra)).toThrow(ConflictError);
+    expect(() => reseniaCon(compra)).toThrow("Solo se puede reseñar una compra utilizada");
+  });
 
   it.each([0, 6, 3.5, "5", null])("lanza ValidationError si la puntuación es %p", (puntuacion) => {
     const compra = crearCompraEn(UTILIZADA);
 
     expect(() => reseniaCon(compra, { puntuacion })).toThrow(ValidationError);
-    expect(() => reseniaCon(compra, { puntuacion })).toThrow(
-      "La puntuación debe ser un número entero entre 1 y 5",
-    );
+    expect(() => reseniaCon(compra, { puntuacion })).toThrow("La puntuación debe ser un número entero entre 1 y 5");
   });
 
   it.each([null, "", "   "])("lanza ValidationError si el comentario es %p", (detalle) => {
-    expect(() => reseniaCon(crearCompraEn(UTILIZADA), { detalle })).toThrow(
-      "La reseña debe tener un comentario",
-    );
+    expect(() => reseniaCon(crearCompraEn(UTILIZADA), { detalle })).toThrow("La reseña debe tener un comentario");
   });
 
   it("lanza ForbiddenError si la escribe alguien que no es el comprador", () => {
     const compra = crearCompraEn(UTILIZADA);
 
     expect(() => reseniaCon(compra, { autor: compra.evento.organizador })).toThrow(ForbiddenError);
-    expect(() => reseniaCon(compra, { autor: crearComprador() })).toThrow(
-      "Solo el comprador puede reseñar su compra",
-    );
+    expect(() => reseniaCon(compra, { autor: crearComprador() })).toThrow("Solo el comprador puede reseñar su compra");
   });
 });

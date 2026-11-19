@@ -11,11 +11,7 @@ const MS_POR_DIA = 24 * 60 * 60 * 1000;
 export const PLAZO_DE_PAGO_DIAS = 7;
 
 // Las compras en estos estados ocupan lugar en el cupo del tipo de entrada.
-const ESTADOS_QUE_OCUPAN_CUPO = [
-  estadoCompra.PENDIENTE,
-  estadoCompra.CONFIRMADA,
-  estadoCompra.UTILIZADA,
-];
+const ESTADOS_QUE_OCUPAN_CUPO = [estadoCompra.PENDIENTE, estadoCompra.CONFIRMADA, estadoCompra.UTILIZADA];
 
 function ocupaCupo(estado) {
   return ESTADOS_QUE_OCUPAN_CUPO.includes(estado);
@@ -29,16 +25,16 @@ function inicioDelDia(fecha) {
 }
 
 export class Compra {
-  id
-  comprador
-  evento
-  tipoEntrada
-  cantidad
-  total
-  estado
-  mensajes
-  historial
-  lecturas
+  id;
+  comprador;
+  evento;
+  tipoEntrada;
+  cantidad;
+  total;
+  estado;
+  mensajes;
+  historial;
+  lecturas;
 
   constructor(comprador, evento, tipoEntrada, cantidad, ahora = new Date()) {
     if (!comprador) {
@@ -210,9 +206,7 @@ export class Compra {
 
   agregarMensaje(usuario, texto, ahora = new Date()) {
     if (!this.esParticipante(usuario)) {
-      throw new ForbiddenError(
-        "Solo el comprador y el organizador del evento pueden escribir en este chat",
-      );
+      throw new ForbiddenError("Solo el comprador y el organizador del evento pueden escribir en este chat");
     }
     const mensaje = new Mensaje(usuario, texto, ahora);
     this.mensajes.push(mensaje);

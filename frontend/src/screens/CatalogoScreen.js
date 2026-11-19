@@ -94,9 +94,7 @@ export default function CatalogoScreen({ navigation }) {
         keyboardDismissMode="on-drag"
         refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
         ListHeaderComponent={error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
-        ListEmptyComponent={
-          <Text style={[tipografia.cuerpo, estilos.vacio]}>{textoVacio}</Text>
-        }
+        ListEmptyComponent={<Text style={[tipografia.cuerpo, estilos.vacio]}>{textoVacio}</Text>}
       />
     );
   };

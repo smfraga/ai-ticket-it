@@ -36,10 +36,14 @@ export default function PanelCompra({ eventoId, tipo, onComprada, onTerminar }) 
   };
 
   const pedirConfirmacion = () =>
-    Alert.alert("Confirmar compra", `${textoDeEntradas(cantidadValida)} de ${tipo.nombre} por ${formatearPrecio(total)}.`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Comprar", onPress: confirmar },
-    ]);
+    Alert.alert(
+      "Confirmar compra",
+      `${textoDeEntradas(cantidadValida)} de ${tipo.nombre} por ${formatearPrecio(total)}.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Comprar", onPress: confirmar },
+      ],
+    );
 
   if (compra) {
     return (
@@ -51,7 +55,9 @@ export default function PanelCompra({ eventoId, tipo, onComprada, onTerminar }) 
         <Text style={tipografia.subtitulo}>Total {formatearPrecio(compra.total)}</Text>
         {compra.diasRestantes !== null ? (
           <Text style={tipografia.suave}>
-            {compra.diasRestantes === 0 ? "El evento es hoy." : `Faltan ${compra.diasRestantes} ${compra.diasRestantes === 1 ? "día" : "días"}.`}
+            {compra.diasRestantes === 0
+              ? "El evento es hoy."
+              : `Faltan ${compra.diasRestantes} ${compra.diasRestantes === 1 ? "día" : "días"}.`}
           </Text>
         ) : null}
         <Boton titulo="Seguir viendo el evento" variante="secundario" onPress={onTerminar} />

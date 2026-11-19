@@ -2,13 +2,7 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { ForbiddenError, NotFoundError, UnauthorizedError } from "../../errors/AppError.js";
 import { EventoService } from "../../services/EventoService.js";
 import { FavoritoService } from "../../services/FavoritoService.js";
-import {
-  AHORA,
-  crearComprador,
-  crearEvento,
-  crearOrganizador,
-  enDias,
-} from "../helpers/domainFactories.js";
+import { AHORA, crearComprador, crearEvento, crearOrganizador, enDias } from "../helpers/domainFactories.js";
 
 describe("FavoritoService", () => {
   let usuarioRepository;

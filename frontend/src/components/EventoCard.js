@@ -39,7 +39,9 @@ export default function EventoCard({ evento, onPress, favorito, onAlternarFavori
       </View>
       <View style={estilos.fila}>
         <Text style={[tipografia.subtitulo, estilos.nombre]}>{evento.nombre}</Text>
-        {conCorazon ? <BotonFavorito favorito={Boolean(favorito)} onPress={() => onAlternarFavorito(evento.id)} /> : null}
+        {conCorazon ? (
+          <BotonFavorito favorito={Boolean(favorito)} onPress={() => onAlternarFavorito(evento.id)} />
+        ) : null}
       </View>
       <Text style={tipografia.suave}>{formatearFecha(evento.fecha)}</Text>
       <Text style={tipografia.suave}>

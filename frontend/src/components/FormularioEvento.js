@@ -167,8 +167,8 @@ export default function FormularioEvento({ inicial, textoBoton, onEnviar }) {
               </View>
               {conVentas ? (
                 <Text style={tipografia.suave}>
-                  {tipo.vendidas === 1 ? "1 entrada vendida" : `${tipo.vendidas} entradas vendidas`}: el precio
-                  queda fijo, el tipo no se puede quitar y el cupo no puede ser menor.
+                  {tipo.vendidas === 1 ? "1 entrada vendida" : `${tipo.vendidas} entradas vendidas`}: el precio queda
+                  fijo, el tipo no se puede quitar y el cupo no puede ser menor.
                 </Text>
               ) : null}
             </View>

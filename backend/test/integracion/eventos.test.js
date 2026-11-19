@@ -91,10 +91,7 @@ describe("Eventos (API completa)", () => {
     });
 
     it("responde 401 con un token inválido", async () => {
-      const respuesta = await request(app)
-        .post("/eventos")
-        .set("Authorization", "Bearer falso")
-        .send(eventoNuevo());
+      const respuesta = await request(app).post("/eventos").set("Authorization", "Bearer falso").send(eventoNuevo());
 
       expect(respuesta.status).toBe(401);
     });
@@ -184,19 +181,17 @@ describe("Eventos (API completa)", () => {
       });
       const organizador = await usuarioRepository.findByEmail("olivia@example.com");
       await eventoRepository.save(
-        new Evento(
-          "Concierto del catálogo ya realizado",
-          "Pasó el mes pasado",
-          rock,
-          enDias(-30),
-          organizador,
-          [new TipoEntrada("General", "", 7000, 80)],
-        ),
+        new Evento("Concierto del catálogo ya realizado", "Pasó el mes pasado", rock, enDias(-30), organizador, [
+          new TipoEntrada("General", "", 7000, 80),
+        ]),
       );
     });
 
     const nombres = (respuesta) => respuesta.body.map((evento) => evento.nombre);
-    const delCatalogo = (query) => request(app).get("/eventos").query({ texto: "catálogo", ...query });
+    const delCatalogo = (query) =>
+      request(app)
+        .get("/eventos")
+        .query({ texto: "catálogo", ...query });
 
     it("no pide token", async () => {
       expect((await request(app).get("/eventos")).status).toBe(200);
@@ -250,9 +245,12 @@ describe("Eventos (API completa)", () => {
       ]);
       expect(deOlivia.body.every((evento) => evento.organizador.id === olivia.id)).toBe(true);
 
-      expect(await request(app).get("/eventos").query({ organizadorId: ID_INEXISTENTE }).then((r) => r.body)).toEqual(
-        [],
-      );
+      expect(
+        await request(app)
+          .get("/eventos")
+          .query({ organizadorId: ID_INEXISTENTE })
+          .then((r) => r.body),
+      ).toEqual([]);
     });
 
     it("filtra por rango de precio", async () => {

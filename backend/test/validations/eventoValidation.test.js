@@ -118,9 +118,7 @@ describe("filtrosEventosValidation", () => {
   it("acepta todos los valores de periodo, orden y dirección", () => {
     PERIODOS.forEach((periodo) => expect(filtrosEventosValidation.safeParse({ periodo }).success).toBe(true));
     ORDENES.forEach((orden) => expect(filtrosEventosValidation.safeParse({ orden }).success).toBe(true));
-    DIRECCIONES.forEach((direccion) =>
-      expect(filtrosEventosValidation.safeParse({ direccion }).success).toBe(true),
-    );
+    DIRECCIONES.forEach((direccion) => expect(filtrosEventosValidation.safeParse({ direccion }).success).toBe(true));
   });
 
   it("recorta el texto y lo deja sin definir si queda vacío", () => {

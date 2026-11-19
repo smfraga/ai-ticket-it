@@ -156,7 +156,13 @@ describe("ResenaService", () => {
 
   describe("listarDeEvento", () => {
     const resenia = (comprador, puntuacion, fecha, otroEvento = evento) =>
-      Object.assign(crearResenia({ compra: Object.assign(crearCompraEn(estadoCompra.UTILIZADA, { comprador, evento: otroEvento })) , puntuacion }), { fecha });
+      Object.assign(
+        crearResenia({
+          compra: Object.assign(crearCompraEn(estadoCompra.UTILIZADA, { comprador, evento: otroEvento })),
+          puntuacion,
+        }),
+        { fecha },
+      );
 
     it("devuelve las reseñas del evento y el puntaje del organizador (todas sus reseñas)", async () => {
       const otroEvento = Object.assign(crearEvento({ organizador: olivia, fecha: enDias(20) }), {

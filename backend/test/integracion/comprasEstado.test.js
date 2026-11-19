@@ -48,8 +48,7 @@ describe("Cancelar y utilizar compras (API completa)", () => {
     return respuesta.body;
   };
   const disponibles = async () =>
-    (await request(app).get(`/eventos/${evento.id}`)).body.tiposEntrada.find((t) => t.id === general.id)
-      .disponibles;
+    (await request(app).get(`/eventos/${evento.id}`)).body.tiposEntrada.find((t) => t.id === general.id).disponibles;
 
   beforeAll(async () => {
     process.env.JWT_SECRET = SECRETO_DE_PRUEBA;

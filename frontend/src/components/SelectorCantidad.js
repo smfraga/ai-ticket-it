@@ -20,11 +20,21 @@ function BotonCantidad({ simbolo, etiqueta, onPress, deshabilitado }) {
 export default function SelectorCantidad({ valor, onCambiar, minimo = 1, maximo }) {
   return (
     <View style={estilos.fila}>
-      <BotonCantidad simbolo="−" etiqueta="Una entrada menos" deshabilitado={valor <= minimo} onPress={() => onCambiar(valor - 1)} />
+      <BotonCantidad
+        simbolo="−"
+        etiqueta="Una entrada menos"
+        deshabilitado={valor <= minimo}
+        onPress={() => onCambiar(valor - 1)}
+      />
       <Text style={estilos.valor} accessibilityLabel={`${valor} entradas`}>
         {valor}
       </Text>
-      <BotonCantidad simbolo="+" etiqueta="Una entrada más" deshabilitado={valor >= maximo} onPress={() => onCambiar(valor + 1)} />
+      <BotonCantidad
+        simbolo="+"
+        etiqueta="Una entrada más"
+        deshabilitado={valor >= maximo}
+        onPress={() => onCambiar(valor + 1)}
+      />
     </View>
   );
 }

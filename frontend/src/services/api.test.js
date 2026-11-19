@@ -57,7 +57,10 @@ describe("api", () => {
 
   it("en un 400 de validación muestra el primer detalle", async () => {
     fetch.mockResolvedValue(
-      respuesta(400, { message: "El cuerpo de la request es inválido", details: [{ message: "La contraseña debe tener al menos 8 caracteres" }] }),
+      respuesta(400, {
+        message: "El cuerpo de la request es inválido",
+        details: [{ message: "La contraseña debe tener al menos 8 caracteres" }],
+      }),
     );
 
     const error = await api.post("/auth/registro", {}).catch((e) => e);

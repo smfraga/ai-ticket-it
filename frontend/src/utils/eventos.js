@@ -70,7 +70,8 @@ export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada, imagen
     return "La imagen tiene que ser una dirección web que empiece con https:// (o dejala vacía).";
   }
   if (!categoriaId) return "Elegí una categoría.";
-  if (!(fecha instanceof Date) || fecha.getTime() <= ahora.getTime()) return "La fecha del evento tiene que ser futura.";
+  if (!(fecha instanceof Date) || fecha.getTime() <= ahora.getTime())
+    return "La fecha del evento tiene que ser futura.";
   if (tiposEntrada.length === 0) return "Agregá al menos un tipo de entrada.";
 
   for (const [i, tipo] of tiposEntrada.entries()) {

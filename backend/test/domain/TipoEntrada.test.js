@@ -25,7 +25,11 @@ describe("TipoEntrada", () => {
   it.each([
     ["sin nombre", { nombre: "" }, "El tipo de entrada debe tener un nombre"],
     ["con precio negativo", { precio: -1 }, "El precio del tipo de entrada debe ser un número mayor o igual a 0"],
-    ["con precio que no es número", { precio: "1000" }, "El precio del tipo de entrada debe ser un número mayor o igual a 0"],
+    [
+      "con precio que no es número",
+      { precio: "1000" },
+      "El precio del tipo de entrada debe ser un número mayor o igual a 0",
+    ],
     ["con cupo 0", { cupo: 0 }, "El cupo del tipo de entrada debe ser un número entero positivo"],
     ["con cupo decimal", { cupo: 1.5 }, "El cupo del tipo de entrada debe ser un número entero positivo"],
   ])("lanza ValidationError %s", (_, cambios, mensaje) => {
@@ -74,9 +78,7 @@ describe("TipoEntrada", () => {
     });
 
     it("lanza ValidationError con una cantidad inválida", () => {
-      expect(() => crearTipoEntrada().reservar(0)).toThrow(
-        "La cantidad debe ser un número entero positivo",
-      );
+      expect(() => crearTipoEntrada().reservar(0)).toThrow("La cantidad debe ser un número entero positivo");
     });
   });
 

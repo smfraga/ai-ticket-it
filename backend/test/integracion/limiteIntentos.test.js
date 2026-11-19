@@ -34,7 +34,13 @@ describe("Límite de intentos de login (API completa)", () => {
   it("el registro no tiene límite de intentos", async () => {
     const respuesta = await request(app)
       .post("/auth/registro")
-      .send({ nombre: "Luz", apellido: "Gómez", roles: ["COMPRADOR"], email: "luz@example.com", password: "una-contraseña-larga" });
+      .send({
+        nombre: "Luz",
+        apellido: "Gómez",
+        roles: ["COMPRADOR"],
+        email: "luz@example.com",
+        password: "una-contraseña-larga",
+      });
 
     expect(respuesta.status).toBe(201);
   });

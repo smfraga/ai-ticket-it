@@ -47,7 +47,13 @@ export default function LoginScreen({ navigation }) {
               autoComplete="email"
               keyboardType="email-address"
             />
-            <CampoTexto etiqueta="Contraseña" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" />
+            <CampoTexto
+              etiqueta="Contraseña"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+            />
             {error ? <Text style={estilos.error}>{error}</Text> : null}
             <Boton titulo="Ingresar" onPress={ingresar} cargando={enviando} />
             <Boton titulo="Crear cuenta" variante="secundario" onPress={() => navigation.navigate("Registro")} />

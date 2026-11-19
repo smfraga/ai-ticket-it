@@ -45,10 +45,7 @@ export function crearOrganizador(overrides = {}) {
 }
 
 export function crearCategoria(overrides = {}) {
-  return new Categoria(
-    overrides.nombre ?? unico("Categoría"),
-    overrides.descripcion ?? "Categoría de prueba",
-  );
+  return new Categoria(overrides.nombre ?? unico("Categoría"), overrides.descripcion ?? "Categoría de prueba");
 }
 
 export function crearTipoEntrada(overrides = {}) {
@@ -68,10 +65,7 @@ export function crearEvento(overrides = {}) {
     overrides.categoria ?? crearCategoria(),
     overrides.fecha ?? enDias(30),
     overrides.organizador ?? crearOrganizador(),
-    overrides.tiposEntrada ?? [
-      crearTipoEntrada(),
-      crearTipoEntrada({ nombre: "VIP", precio: 25000, cupo: 20 }),
-    ],
+    overrides.tiposEntrada ?? [crearTipoEntrada(), crearTipoEntrada({ nombre: "VIP", precio: 25000, cupo: 20 })],
     overrides.multimedia ?? [],
   );
 }

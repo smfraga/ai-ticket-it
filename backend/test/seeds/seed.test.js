@@ -159,7 +159,6 @@ describe("cargarSeed", () => {
         });
       });
     });
-
   });
 
   describe("compras de los eventos próximos", () => {
@@ -168,12 +167,7 @@ describe("cargarSeed", () => {
     it("carga 8 compras que cubren todos los estados salvo UTILIZADA", () => {
       expect(proximas()).toHaveLength(8);
       expect(new Set(proximas().map((c) => c.estado))).toEqual(
-        new Set([
-          estadoCompra.PENDIENTE,
-          estadoCompra.CONFIRMADA,
-          estadoCompra.CANCELADA,
-          estadoCompra.REEMBOLSADA,
-        ]),
+        new Set([estadoCompra.PENDIENTE, estadoCompra.CONFIRMADA, estadoCompra.CANCELADA, estadoCompra.REEMBOLSADA]),
       );
     });
 
@@ -366,7 +360,13 @@ describe("cargarSeed", () => {
       const porPuntaje = await service.buscar({ orden: "puntaje" });
 
       expect(porDefecto).toHaveLength(5);
-      expect(porPuntaje.map((e) => e.organizador.nombre)).toEqual(["Olivia", "Olivia", "Octavio", "Octavio", "Octavio"]);
+      expect(porPuntaje.map((e) => e.organizador.nombre)).toEqual([
+        "Olivia",
+        "Olivia",
+        "Octavio",
+        "Octavio",
+        "Octavio",
+      ]);
       expect(porPuntaje.map((e) => e.organizador.puntaje)).toEqual([4.5, 4.5, 2.5, 2.5, 2.5]);
     });
 

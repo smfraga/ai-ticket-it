@@ -4,7 +4,9 @@ const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "o
 // Manual a propósito: no depende de que el motor del celular traiga los datos de Intl para es-AR.
 export const formatearPrecio = (monto) => {
   if (monto === 0) return "Gratis";
-  return `$${Math.round(monto).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+  return `$${Math.round(monto)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
 };
 
 const dosDigitos = (n) => String(n).padStart(2, "0");

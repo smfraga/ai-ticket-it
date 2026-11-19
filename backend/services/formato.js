@@ -8,4 +8,7 @@ export const formatearFecha = (fecha) =>
   `${DIAS[fecha.getDay()]} ${fecha.getDate()} ${MESES[fecha.getMonth()]} a las ${dosDigitos(fecha.getHours())}:${dosDigitos(fecha.getMinutes())}`;
 
 // "$12.000"
-export const formatearPrecio = (monto) => `$${Math.round(monto).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+export const formatearPrecio = (monto) =>
+  `$${Math.round(monto)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;

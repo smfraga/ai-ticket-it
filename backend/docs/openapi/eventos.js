@@ -22,23 +22,44 @@ export default {
         summary: "Buscar eventos",
         description:
           "Público. Por defecto, solo los próximos y ordenados por fecha. Los cancelados no aparecen, salvo al " +
-          "filtrar por `organizadorId` (\"Mis eventos\"). Un parámetro desconocido responde 400.",
+          'filtrar por `organizadorId` ("Mis eventos"). Un parámetro desconocido responde 400.',
         parameters: [
-          query("texto", { type: "string", maxLength: 100 }, "En nombre y descripción, sin mayúsculas ni tildes; todas las palabras"),
+          query(
+            "texto",
+            { type: "string", maxLength: 100 },
+            "En nombre y descripción, sin mayúsculas ni tildes; todas las palabras",
+          ),
           query("categoriaId", { type: "string", format: "uuid" }, "Solo esa categoría"),
-          query("organizadorId", { type: "string", format: "uuid" }, "Solo los eventos de ese organizador (incluye cancelados)"),
-          query("precioMin", { type: "number", minimum: 0 }, "Con alguna entrada desde este precio (`tuPrecioEstaEntre`)"),
+          query(
+            "organizadorId",
+            { type: "string", format: "uuid" },
+            "Solo los eventos de ese organizador (incluye cancelados)",
+          ),
+          query(
+            "precioMin",
+            { type: "number", minimum: 0 },
+            "Con alguna entrada desde este precio (`tuPrecioEstaEntre`)",
+          ),
           query("precioMax", { type: "number", minimum: 0 }, "Con alguna entrada hasta este precio"),
           query("periodo", { type: "string", enum: ["proximos", "pasados", "todos"], default: "proximos" }),
-          query("orden", { type: "string", enum: ["fecha", "precio", "puntaje"], default: "fecha" }, "`precio`: la entrada más barata; `puntaje`: el del organizador"),
-          query("direccion", { type: "string", enum: ["asc", "desc"] }, "Por defecto `asc`, salvo `puntaje` (`desc`). Sin puntaje, siempre al final"),
+          query(
+            "orden",
+            { type: "string", enum: ["fecha", "precio", "puntaje"], default: "fecha" },
+            "`precio`: la entrada más barata; `puntaje`: el del organizador",
+          ),
+          query(
+            "direccion",
+            { type: "string", enum: ["asc", "desc"] },
+            "Por defecto `asc`, salvo `puntaje` (`desc`). Sin puntaje, siempre al final",
+          ),
         ],
         responses: { 200: ok("Los eventos que cumplen los filtros", lista("Evento")), 400: error("BadRequest") },
       },
       post: conToken({
         tags: ["Eventos"],
         summary: "Crear un evento",
-        description: "Solo con rol ORGANIZADOR. La fecha tiene que ser futura y los tipos de entrada, de nombres distintos.",
+        description:
+          "Solo con rol ORGANIZADOR. La fecha tiene que ser futura y los tipos de entrada, de nombres distintos.",
         requestBody: body("EventoNuevo"),
         responses: {
           201: ok("Evento creado, con los ids de sus tipos de entrada", ref("Evento")),
@@ -129,7 +150,12 @@ export default {
             id: { type: "string" },
             nombre: { type: "string" },
             apellido: { type: "string" },
-            puntaje: { type: "number", nullable: true, example: 4.5, description: "Promedio de sus reseñas; null sin reseñas" },
+            puntaje: {
+              type: "number",
+              nullable: true,
+              example: 4.5,
+              description: "Promedio de sus reseñas; null sin reseñas",
+            },
           },
         },
         precioDesde: { type: "number", example: 12000 },
@@ -175,7 +201,10 @@ export default {
             type: "object",
             required: ["nombre", "precio", "cupo"],
             additionalProperties: false,
-            properties: { id: { type: "string", format: "uuid", description: "Solo los que ya existían" }, ...tipoEntradaDatos },
+            properties: {
+              id: { type: "string", format: "uuid", description: "Solo los que ya existían" },
+              ...tipoEntradaDatos,
+            },
           },
         },
       },

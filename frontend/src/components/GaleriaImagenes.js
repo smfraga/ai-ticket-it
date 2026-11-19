@@ -22,12 +22,7 @@ export default function GaleriaImagenes({ urls = [] }) {
   return (
     <View style={estilos.contenedor} onLayout={({ nativeEvent }) => setAncho(nativeEvent.layout.width)}>
       {ancho > 0 ? (
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={alDesplazar}
-        >
+        <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={alDesplazar}>
           {visibles.map((url, i) => (
             <Image
               key={url}

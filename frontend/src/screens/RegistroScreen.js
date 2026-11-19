@@ -50,7 +50,12 @@ export default function RegistroScreen({ navigation }) {
           <Text style={tipografia.titulo}>Crear cuenta</Text>
 
           <CampoTexto etiqueta="Nombre" value={datos.nombre} onChangeText={cambiar("nombre")} autoCapitalize="words" />
-          <CampoTexto etiqueta="Apellido" value={datos.apellido} onChangeText={cambiar("apellido")} autoCapitalize="words" />
+          <CampoTexto
+            etiqueta="Apellido"
+            value={datos.apellido}
+            onChangeText={cambiar("apellido")}
+            autoCapitalize="words"
+          />
           <CampoTexto
             etiqueta="Email"
             value={datos.email}

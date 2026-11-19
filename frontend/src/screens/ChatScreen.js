@@ -75,7 +75,8 @@ export default function ChatScreen({ route, navigation }) {
 
   const alDesplazar = ({ nativeEvent }) => {
     const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
-    estaAlFinal.current = contentSize.height - (contentOffset.y + layoutMeasurement.height) < DISTANCIA_PARA_SEGUIR_AL_FINAL;
+    estaAlFinal.current =
+      contentSize.height - (contentOffset.y + layoutMeasurement.height) < DISTANCIA_PARA_SEGUIR_AL_FINAL;
   };
 
   const bajarSiCorresponde = () => {
@@ -94,7 +95,9 @@ export default function ChatScreen({ route, navigation }) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={alturaDelEncabezado}
       >
-        {errorDeCarga ? <Text style={estilos.avisoDeConexion}>Sin conexión: {errorDeCarga}. Se reintenta solo.</Text> : null}
+        {errorDeCarga ? (
+          <Text style={estilos.avisoDeConexion}>Sin conexión: {errorDeCarga}. Se reintenta solo.</Text>
+        ) : null}
         <FlatList
           ref={lista}
           data={mensajes}

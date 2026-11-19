@@ -30,9 +30,7 @@ describe("enums de dominio", () => {
   });
 
   it("las transiciones de un estado no se pueden modificar", () => {
-    expect(() => transicionesCompra[estadoCompra.UTILIZADA].push(estadoCompra.CANCELADA)).toThrow(
-      TypeError,
-    );
+    expect(() => transicionesCompra[estadoCompra.UTILIZADA].push(estadoCompra.CANCELADA)).toThrow(TypeError);
     expect(transicionesCompra[estadoCompra.UTILIZADA]).toEqual([]);
   });
 

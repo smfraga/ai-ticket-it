@@ -4,7 +4,12 @@ const organizadorConPuntaje = {
   type: "object",
   properties: {
     ...persona.properties,
-    puntaje: { type: "number", nullable: true, example: 4.5, description: "Promedio de las reseñas de todos sus eventos" },
+    puntaje: {
+      type: "number",
+      nullable: true,
+      example: 4.5,
+      description: "Promedio de las reseñas de todos sus eventos",
+    },
   },
 };
 
@@ -51,7 +56,8 @@ export default {
       get: {
         tags: ["Reseñas"],
         summary: "Reseñas de un organizador",
-        description: "Público. Todas las de sus eventos, para mostrar la reputación antes de comprar. 404 si no es organizador.",
+        description:
+          "Público. Todas las de sus eventos, para mostrar la reputación antes de comprar. 404 si no es organizador.",
         parameters: [idPath("Id del usuario organizador")],
         responses: {
           200: ok("El organizador con su puntaje y sus reseñas", {

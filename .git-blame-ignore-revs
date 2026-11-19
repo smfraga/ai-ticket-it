@@ -1,0 +1,5 @@
+# Commits que solo cambian el formato: `git blame` los saltea con
+# git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Formato aplicado con Prettier
+96ab120c6c7e4701038487ee28713c95997a5807

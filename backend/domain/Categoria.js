@@ -1,9 +1,9 @@
 import { ValidationError } from "../errors/AppError.js";
 
 export class Categoria {
-  id
-  nombre
-  descripcion
+  id;
+  nombre;
+  descripcion;
 
   constructor(nombre, descripcion = "") {
     if (typeof nombre !== "string" || !nombre.trim()) {

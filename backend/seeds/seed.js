@@ -33,8 +33,7 @@ const fechaDeEvento = (ahora, dias, hora) => {
 // Los usuarios, categorías, eventos y tipos de entrada del seed tienen ids fijos (con formato UUID).
 // Así, cuando el servidor se reinicia, los tokens que ya se emitieron siguen apuntando a los mismos usuarios.
 const GRUPOS_DE_IDS = { usuario: 1, categoria: 2, evento: 3, tipoEntrada: 4 };
-const idFijo = (grupo, numero) =>
-  `00000000-0000-4000-8000-${GRUPOS_DE_IDS[grupo]}${String(numero).padStart(11, "0")}`;
+const idFijo = (grupo, numero) => `00000000-0000-4000-8000-${GRUPOS_DE_IDS[grupo]}${String(numero).padStart(11, "0")}`;
 
 const USUARIOS = [
   { nombre: "Olivia", apellido: "Rossi", email: "olivia@example.com", roles: [ORGANIZADOR] },
@@ -58,7 +57,10 @@ const EVENTOS = [
   {
     nombre: "Rock en el Río de la Plata",
     hora: "21:00",
-    multimedia: ["https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=70", "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=70"],
+    multimedia: [
+      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=70",
+      "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=70",
+    ],
     descripcion: "Una noche de rock nacional con las bandas más escuchadas del año.",
     categoria: 0,
     organizador: 0,
@@ -72,7 +74,10 @@ const EVENTOS = [
   {
     nombre: "Noche de Stand Up",
     hora: "21:30",
-    multimedia: ["https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800&q=70", "https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=800&q=70"],
+    multimedia: [
+      "https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800&q=70",
+      "https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=800&q=70",
+    ],
     descripcion: "Seis humoristas en un mismo escenario. Humor para toda la noche.",
     categoria: 1,
     organizador: 1,
@@ -144,7 +149,10 @@ const EVENTOS = [
   {
     nombre: "Maratón Solidaria 10K",
     hora: "08:00",
-    multimedia: ["https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800&q=70", "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=800&q=70"],
+    multimedia: [
+      "https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800&q=70",
+      "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=800&q=70",
+    ],
     descripcion: "Carrera de 10 kilómetros a beneficio de comedores barriales.",
     categoria: 4,
     organizador: 0,
@@ -164,12 +172,54 @@ const FAVORITOS = [
 // `evento` es una posición en EVENTOS, `tipo` una posición en sus tipos de entrada y `comprador` en USUARIOS.
 // Puntajes resultantes: Olivia (5, 4, 5 y 4) promedia 4.5 y Octavio (3 y 2) promedia 2.5.
 const COMPRAS_CON_RESENIA = [
-  { evento: 5, tipo: 0, comprador: 2, cantidad: 2, puntuacion: 5, detalle: "Una puesta increíble, el elenco estuvo impecable." },
-  { evento: 5, tipo: 0, comprador: 3, cantidad: 1, puntuacion: 4, detalle: "Muy buena actuación, el sonido podía estar mejor." },
-  { evento: 7, tipo: 0, comprador: 2, cantidad: 1, puntuacion: 5, detalle: "Muy bien organizada, los puestos de hidratación estaban a tiempo." },
-  { evento: 7, tipo: 0, comprador: 3, cantidad: 2, puntuacion: 4, detalle: "Linda experiencia, la entrega de remeras se demoró un poco." },
-  { evento: 6, tipo: 0, comprador: 2, cantidad: 3, puntuacion: 3, detalle: "Buena música, pero el show empezó una hora tarde." },
-  { evento: 6, tipo: 0, comprador: 3, cantidad: 1, puntuacion: 2, detalle: "Mucha espera en el ingreso y poco lugar para sentarse." },
+  {
+    evento: 5,
+    tipo: 0,
+    comprador: 2,
+    cantidad: 2,
+    puntuacion: 5,
+    detalle: "Una puesta increíble, el elenco estuvo impecable.",
+  },
+  {
+    evento: 5,
+    tipo: 0,
+    comprador: 3,
+    cantidad: 1,
+    puntuacion: 4,
+    detalle: "Muy buena actuación, el sonido podía estar mejor.",
+  },
+  {
+    evento: 7,
+    tipo: 0,
+    comprador: 2,
+    cantidad: 1,
+    puntuacion: 5,
+    detalle: "Muy bien organizada, los puestos de hidratación estaban a tiempo.",
+  },
+  {
+    evento: 7,
+    tipo: 0,
+    comprador: 3,
+    cantidad: 2,
+    puntuacion: 4,
+    detalle: "Linda experiencia, la entrega de remeras se demoró un poco.",
+  },
+  {
+    evento: 6,
+    tipo: 0,
+    comprador: 2,
+    cantidad: 3,
+    puntuacion: 3,
+    detalle: "Buena música, pero el show empezó una hora tarde.",
+  },
+  {
+    evento: 6,
+    tipo: 0,
+    comprador: 3,
+    cantidad: 1,
+    puntuacion: 2,
+    detalle: "Mucha espera en el ingreso y poco lugar para sentarse.",
+  },
 ];
 
 // Compras de eventos próximos, para tener datos en todos los estados salvo UTILIZADA (que solo tiene sentido
@@ -210,10 +260,7 @@ const COMPRAS_PROXIMAS = [
   { evento: 3, tipo: 0, comprador: 2, cantidad: 1, diasAtras: 10, estado: estadoCompra.CANCELADA, vencida: true },
 ];
 
-export async function cargarSeed(
-  repositorios = {},
-  ahora = new Date(),
-) {
+export async function cargarSeed(repositorios = {}, ahora = new Date()) {
   const {
     usuarios = usuarioRepository,
     categorias = categoriaRepository,
