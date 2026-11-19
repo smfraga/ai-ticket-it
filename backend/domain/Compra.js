@@ -48,6 +48,11 @@ export class Compra {
     if (!comprador.tieneRol(rolUsuario.COMPRADOR)) {
       throw new ForbiddenError("Solo un usuario comprador puede comprar entradas");
     }
+    // Un usuario con los dos roles no puede comprar en su propio evento: después podría marcar la entrada
+    // como utilizada y reseñarse a sí mismo para subir su puntaje.
+    if (evento.esOrganizador(comprador)) {
+      throw new ForbiddenError("No podés comprar entradas de tu propio evento");
+    }
     if (!evento.tieneTipoEntrada(tipoEntrada)) {
       throw new ValidationError("El tipo de entrada no pertenece al evento");
     }

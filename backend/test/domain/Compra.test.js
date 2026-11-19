@@ -100,6 +100,23 @@ describe("Compra", () => {
       expect(evento.tiposEntrada[0].vendidas).toBe(0);
     });
 
+    it("lanza ForbiddenError si un usuario con los dos roles compra en su propio evento, y no reserva", () => {
+      const ambosRoles = crearUsuario({ id: "u-ambos", roles: [rolUsuario.COMPRADOR, rolUsuario.ORGANIZADOR] });
+      const evento = crearEvento({ organizador: ambosRoles });
+
+      expect(() => crearCompra({ evento, comprador: ambosRoles })).toThrow(ForbiddenError);
+      expect(() => crearCompra({ evento, comprador: ambosRoles })).toThrow(
+        "No podés comprar entradas de tu propio evento",
+      );
+      expect(evento.tiposEntrada[0].vendidas).toBe(0);
+    });
+
+    it("el mismo usuario con los dos roles sí puede comprar en el evento de otro organizador", () => {
+      const ambosRoles = crearUsuario({ id: "u-ambos", roles: [rolUsuario.COMPRADOR, rolUsuario.ORGANIZADOR] });
+
+      expect(() => crearCompra({ comprador: ambosRoles })).not.toThrow();
+    });
+
     it("lanza ConflictError si no hay cupo suficiente, y no reserva", () => {
       const evento = crearEvento({ tiposEntrada: [crearTipoEntrada({ cupo: 5 })] });
 

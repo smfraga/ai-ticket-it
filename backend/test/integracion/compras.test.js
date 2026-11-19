@@ -96,6 +96,28 @@ describe("Compras (API completa)", () => {
       expect(respuesta.status).toBe(403);
     });
 
+    it("403 si un usuario con los dos roles compra en su propio evento (y el cupo no cambia)", async () => {
+      const tokenAmbos = (await registrar({ email: "ambos@example.com", roles: ["COMPRADOR", "ORGANIZADOR"] })).body
+        .token;
+      const propio = (
+        await request(app)
+          .post("/eventos")
+          .set(bearer(tokenAmbos))
+          .send({
+            nombre: "Evento propio",
+            categoriaId: evento.categoria.id,
+            fecha: enDias(15).toISOString(),
+            tiposEntrada: [{ nombre: "General", precio: 1000, cupo: 10 }],
+          })
+      ).body;
+
+      const respuesta = await comprar(tokenAmbos, propio.id, { tipoEntradaId: propio.tiposEntrada[0].id, cantidad: 1 });
+
+      expect(respuesta.status).toBe(403);
+      expect(respuesta.body.message).toBe("No podés comprar entradas de tu propio evento");
+      expect((await request(app).get(`/eventos/${propio.id}`)).body.tiposEntrada[0].disponibles).toBe(10);
+    });
+
     it.each([
       ["cantidad 0", { cantidad: 0 }],
       ["cantidad decimal", { cantidad: 1.5 }],
