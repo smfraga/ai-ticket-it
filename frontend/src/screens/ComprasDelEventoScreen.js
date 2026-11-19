@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import Boton from "../components/Boton";
 import CompraCard from "../components/CompraCard";
 import Estado from "../components/Estado";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -8,12 +9,13 @@ import { mensajeDeError } from "../services/api";
 import { listarComprasDelEvento } from "../services/comprasService";
 import { colores, espacio, radio, tipografia } from "../theme";
 import { resumenDeEstados } from "../utils/compras";
-import { textoCupo } from "../utils/eventos";
+import { puedeGestionarEvento, textoCupo } from "../utils/eventos";
 import { formatearFecha } from "../utils/formato";
 
 // Vista del organizador: entradas que quedan de cada tipo y las compras del evento con su estado.
 export default function ComprasDelEventoScreen({ route, navigation }) {
-  const { eventoId, nombreEvento, recienCreado = false } = route.params;
+  // `aviso`: lo manda la pantalla de la que se viene ("¡Evento creado!…", "¡Cambios guardados!").
+  const { eventoId, nombreEvento, aviso } = route.params;
   const [datos, setDatos] = useState(null); // { evento, tiposEntrada, compras }
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -52,8 +54,15 @@ export default function ComprasDelEventoScreen({ route, navigation }) {
   const cabecera = (
     <View style={estilos.cabecera}>
       {error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
-      {recienCreado ? <Text style={estilos.aviso}>¡Evento creado! Ya está a la venta en el catálogo.</Text> : null}
+      {aviso ? <Text style={estilos.aviso}>{aviso}</Text> : null}
       <Text style={tipografia.cuerpo}>{formatearFecha(datos.evento.fecha)}</Text>
+      {puedeGestionarEvento(datos.evento) ? (
+        <Boton
+          titulo="Editar evento"
+          variante="secundario"
+          onPress={() => navigation.navigate("EditarEvento", { eventoId })}
+        />
+      ) : null}
 
       <View style={estilos.tarjeta}>
         <Text style={tipografia.etiqueta}>Entradas disponibles</Text>

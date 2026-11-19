@@ -34,5 +34,9 @@ export const quitarFavorito = (eventoId) => api.delete(`/eventos/${eventoId}/fav
 // tiposEntrada: [{ nombre, precio, cupo }] }. Devuelve el evento creado, con el formato del catálogo.
 export const crearEvento = (datos) => api.post("/eventos", datos);
 
+// Solo el organizador del evento. Cuerpo: lo que cambia (ver armarEdicionParaEnviar en utils/eventos.js); los tipos
+// con `id` se editan, sin `id` se crean y los que faltan se quitan. 409 si viola una regla (cupo, precio con ventas).
+export const editarEvento = (id, datos) => api.patch(`/eventos/${id}`, datos);
+
 // { organizador: { id, nombre, apellido, puntaje, cantidadResenias }, resenias: [...] }, las más recientes primero.
 export const listarReseniasDelOrganizador = (organizadorId) => api.get(`/organizadores/${organizadorId}/resenias`);
