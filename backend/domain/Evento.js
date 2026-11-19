@@ -88,6 +88,11 @@ export class Evento {
   perteneceACategoria(categoriaId) {
     return this.categoria.id === categoriaId;
   }
+
+  // Por id, para filtrar el catálogo; `esOrganizador` recibe la entidad y sirve para autorizar.
+  esDelOrganizador(organizadorId) {
+    return this.organizador.id === organizadorId;
+  }
 }
 
 function normalizar(texto) {

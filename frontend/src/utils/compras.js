@@ -27,6 +27,19 @@ export const textoDeConfirmacionDeCancelacion = (compra, totalFormateado) =>
     ? `Se cancelan las entradas y se te reembolsa ${totalFormateado}.`
     : "Se cancela la compra y las entradas vuelven al cupo.";
 
+// Marcar como utilizada: lo hace el organizador del evento, solo desde CONFIRMADA y sin límite de fecha
+// (el backend lo vuelve a validar con 403 y 409).
+export const puedeMarcarUtilizada = (compra) => compra.estado === "CONFIRMADA";
+
+// Por qué el organizador no ve el botón; null si puede marcarla o si el estado ya lo explica.
+export const motivoSinUtilizar = (compra) =>
+  compra.estado === "PENDIENTE" ? "La compra todavía no está confirmada: no se puede marcar como utilizada." : null;
+
+export const textoDeConfirmacionDeUso = (compra) =>
+  `Confirmá que ${compra.comprador.nombre} ${compra.comprador.apellido} usó ${
+    compra.cantidad === 1 ? "su entrada" : `sus ${compra.cantidad} entradas`
+  }. Después ya no se puede cancelar y podrá dejar su reseña.`;
+
 // Reseñar: solo una compra UTILIZADA que todavía no tiene reseña (el backend lo vuelve a validar con 409).
 export const puedeReseniar = (compra) => compra.estado === "UTILIZADA" && !compra.resenia;
 
@@ -49,6 +62,24 @@ export const textoDiasRestantes = (dias) => {
   if (dias === 0) return "El evento es hoy";
   if (dias === 1) return "Falta 1 día";
   return `Faltan ${dias} días`;
+};
+
+const PLURALES_DE_ESTADO = Object.freeze({
+  PENDIENTE: ["pendiente de pago", "pendientes de pago"],
+  CONFIRMADA: ["confirmada", "confirmadas"],
+  UTILIZADA: ["utilizada", "utilizadas"],
+  CANCELADA: ["cancelada", "canceladas"],
+  REEMBOLSADA: ["reembolsada", "reembolsadas"],
+});
+
+// Para el organizador: "3 confirmadas · 1 utilizada · 1 reembolsada", en el orden del ciclo de vida de la compra.
+// Los estados sin compras no aparecen; sin compras, null.
+export const resumenDeEstados = (compras) => {
+  const partes = Object.keys(PLURALES_DE_ESTADO)
+    .map((estado) => [estado, compras.filter((compra) => compra.estado === estado).length])
+    .filter(([, cantidad]) => cantidad > 0)
+    .map(([estado, cantidad]) => `${cantidad} ${PLURALES_DE_ESTADO[estado][cantidad === 1 ? 0 : 1]}`);
+  return partes.length ? partes.join(" · ") : null;
 };
 
 export const textoEntradas = (cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;

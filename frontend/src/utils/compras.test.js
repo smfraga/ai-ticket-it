@@ -2,9 +2,13 @@ import {
   errorDeResenia,
   ETIQUETAS_DE_ESTADO,
   motivoSinCancelacion,
+  motivoSinUtilizar,
+  puedeMarcarUtilizada,
   puedeReseniar,
   puedeCancelar,
+  resumenDeEstados,
   textoDeConfirmacionDeCancelacion,
+  textoDeConfirmacionDeUso,
   textoDiasRestantes,
   textoEntradas,
 } from "./compras";
@@ -69,6 +73,39 @@ describe("textoDiasRestantes", () => {
 
   it("no muestra nada si la compra no está confirmada (null)", () => {
     expect(textoDiasRestantes(null)).toBeNull();
+  });
+});
+
+describe("puedeMarcarUtilizada y motivoSinUtilizar", () => {
+  it("solo se marca una compra CONFIRMADA, aunque el evento no haya pasado", () => {
+    expect(puedeMarcarUtilizada(compra("CONFIRMADA"))).toBe(true);
+    for (const estado of ["PENDIENTE", "UTILIZADA", "CANCELADA", "REEMBOLSADA"]) {
+      expect(puedeMarcarUtilizada(compra(estado))).toBe(false);
+    }
+  });
+
+  it("explica por qué una PENDIENTE no se puede marcar; en los demás estados alcanza con la etiqueta", () => {
+    expect(motivoSinUtilizar(compra("PENDIENTE"))).toMatch(/no está confirmada/);
+    expect(motivoSinUtilizar(compra("UTILIZADA"))).toBeNull();
+    expect(motivoSinUtilizar(compra("CANCELADA"))).toBeNull();
+  });
+
+  it("la confirmación nombra al comprador y concuerda con la cantidad", () => {
+    const comprador = { nombre: "Carla", apellido: "Gómez" };
+    expect(textoDeConfirmacionDeUso({ comprador, cantidad: 1 })).toContain("Carla Gómez usó su entrada");
+    expect(textoDeConfirmacionDeUso({ comprador, cantidad: 3 })).toContain("usó sus 3 entradas");
+  });
+});
+
+describe("resumenDeEstados", () => {
+  it("cuenta por estado, en el orden del ciclo de vida y concordando en número", () => {
+    const compras = ["REEMBOLSADA", "CONFIRMADA", "UTILIZADA", "CONFIRMADA", "PENDIENTE"].map((estado) => ({ estado }));
+
+    expect(resumenDeEstados(compras)).toBe("1 pendiente de pago · 2 confirmadas · 1 utilizada · 1 reembolsada");
+  });
+
+  it("sin compras devuelve null", () => {
+    expect(resumenDeEstados([])).toBeNull();
   });
 });
 

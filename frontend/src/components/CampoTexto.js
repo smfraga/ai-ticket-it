@@ -1,14 +1,15 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { ALTO_TOQUE, colores, espacio, radio, tipografia } from "../theme";
 
-export default function CampoTexto({ etiqueta, error, ...props }) {
+// `style` se suma al del campo (por ejemplo, para un campo de varias líneas) en lugar de reemplazarlo.
+export default function CampoTexto({ etiqueta, error, style, ...props }) {
   return (
     <View style={estilos.contenedor}>
       {etiqueta ? <Text style={tipografia.etiqueta}>{etiqueta}</Text> : null}
       <TextInput
         accessibilityLabel={etiqueta}
         placeholderTextColor={colores.textoSuave}
-        style={[estilos.input, error && estilos.inputConError]}
+        style={[estilos.input, error && estilos.inputConError, style]}
         {...props}
       />
       {error ? <Text style={estilos.error}>{error}</Text> : null}

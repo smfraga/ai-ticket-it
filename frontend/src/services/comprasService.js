@@ -10,6 +10,9 @@ export const obtenerCompra = (id) => api.get(`/compras/${id}`);
 // Solo el comprador. Una CONFIRMADA queda REEMBOLSADA y una PENDIENTE queda CANCELADA; las entradas vuelven al cupo.
 export const cancelarCompra = (id) => api.post(`/compras/${id}/cancelar`);
 
+// Solo el organizador del evento (403 si no) y solo desde CONFIRMADA (409 si no). Devuelve la compra actualizada.
+export const utilizarCompra = (id) => api.post(`/compras/${id}/utilizar`);
+
 // Chat de la compra: lo leen y escriben el comprador y el organizador del evento, en cualquier estado.
 // Cada mensaje: { autor: { id, nombre, apellido, rol }, mensaje, enviado }, del más viejo al más nuevo.
 export const listarMensajes = (compraId) => api.get(`/compras/${compraId}/mensajes`);
@@ -19,6 +22,10 @@ export const enviarMensaje = (compraId, mensaje) => api.post(`/compras/${compraI
 // Solo el comprador, una vez por compra y con la compra UTILIZADA. Puntuación entera de 1 a 5 y comentario obligatorio.
 export const reseniarCompra = (compraId, { puntuacion, detalle }) =>
   api.post(`/compras/${compraId}/resenia`, { puntuacion, detalle });
+
+// Solo el organizador del evento (403 si no). Devuelve { evento, tiposEntrada: [{ id, nombre, cupo, cupoRestante }],
+// compras: [...] }, cada compra con `comprador` (id, nombre y apellido), las más recientes primero.
+export const listarComprasDelEvento = (eventoId) => api.get(`/eventos/${eventoId}/compras`);
 
 // Requiere sesión de comprador. El pago está simulado: la compra vuelve CONFIRMADA en el mismo pedido.
 // Devuelve { id, estado, cantidad, total, diasRestantes, fecha, evento, tipoEntrada, historial }.

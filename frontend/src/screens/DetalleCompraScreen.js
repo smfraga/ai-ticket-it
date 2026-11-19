@@ -8,13 +8,16 @@ import EstadoCompra from "../components/EstadoCompra";
 import SeguimientoCompra from "../components/SeguimientoCompra";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
-import { cancelarCompra, obtenerCompra } from "../services/comprasService";
+import { cancelarCompra, obtenerCompra, utilizarCompra } from "../services/comprasService";
 import { colores, espacio, radio, tipografia } from "../theme";
 import {
   motivoSinCancelacion,
+  motivoSinUtilizar,
   puedeCancelar,
+  puedeMarcarUtilizada,
   puedeReseniar,
   textoDeConfirmacionDeCancelacion,
+  textoDeConfirmacionDeUso,
   textoDiasRestantes,
   textoEntradas,
 } from "../utils/compras";
@@ -22,6 +25,7 @@ import { formatearEstrellas, formatearFecha, formatearFechaCorta, formatearPreci
 
 const AVISO_REEMBOLSADA = "Compra cancelada. Se reembolsó el total y las entradas volvieron al cupo.";
 const AVISO_CANCELADA = "Compra cancelada. Las entradas volvieron al cupo.";
+const AVISO_UTILIZADA = "Entrada marcada como utilizada. El comprador ya puede dejar su reseña.";
 
 export default function DetalleCompraScreen({ route, navigation }) {
   const { compraId } = route.params;
@@ -31,6 +35,8 @@ export default function DetalleCompraScreen({ route, navigation }) {
   const [error, setError] = useState(null);
   const [cancelando, setCancelando] = useState(false);
   const [errorDeCancelar, setErrorDeCancelar] = useState(null);
+  const [marcando, setMarcando] = useState(false);
+  const [errorDeMarcar, setErrorDeMarcar] = useState(null);
   const [aviso, setAviso] = useState(null);
   const nuevoPedido = useUltimoPedido();
 
@@ -75,14 +81,42 @@ export default function DetalleCompraScreen({ route, navigation }) {
       { text: "Cancelar compra", style: "destructive", onPress: cancelar },
     ]);
 
+  const marcarUtilizada = async () => {
+    setErrorDeMarcar(null);
+    setMarcando(true);
+    try {
+      await utilizarCompra(compraId);
+      setAviso(AVISO_UTILIZADA);
+    } catch (e) {
+      setErrorDeMarcar(mensajeDeError(e));
+    } finally {
+      setMarcando(false);
+      cargar(); // como al cancelar: el seguimiento muestra el estado real, también tras un 409
+    }
+  };
+
+  const pedirConfirmacionDeUso = () =>
+    Alert.alert("Marcar como utilizada", textoDeConfirmacionDeUso(compra), [
+      { text: "Volver", style: "cancel" },
+      { text: "Marcar utilizada", onPress: marcarUtilizada },
+    ]);
+
   if (error && !compra) return <Estado tipo="error" mensaje={error} onReintentar={cargar} />;
   if (!compra) return <Estado tipo="cargando" />;
 
   const dias = textoDiasRestantes(compra.diasRestantes);
   const motivo = motivoSinCancelacion(compra);
+  const motivoDeUso = motivoSinUtilizar(compra);
   const { organizador } = compra.evento;
-  // Cancelar y reseñar son del comprador; el organizador va a reutilizar esta pantalla más adelante.
-  const esElComprador = compra.comprador.id === usuario.id;
+  const { comprador } = compra;
+  // La misma pantalla sirve a las dos partes; se decide por id y no por rol, porque un usuario puede tener los dos.
+  // Cancelar y reseñar son del comprador; marcar utilizada, del organizador del evento.
+  const esElComprador = comprador.id === usuario.id;
+  const esElOrganizador = organizador.id === usuario.id;
+  // En la tarjeta y en el chat se muestra a la otra parte.
+  const contraparte = esElComprador
+    ? { etiqueta: "Organizador", persona: organizador, chat: "Chat con el organizador" }
+    : { etiqueta: "Comprador", persona: comprador, chat: "Chat con el comprador" };
 
   return (
     <ScrollView
@@ -109,21 +143,31 @@ export default function DetalleCompraScreen({ route, navigation }) {
         <Text style={tipografia.suave}>
           {formatearPrecio(compra.tipoEntrada.precio)} cada una · comprada el {formatearFechaCorta(compra.fecha)}
         </Text>
-        <Text style={[tipografia.etiqueta, estilos.separado]}>Organizador</Text>
+        <Text style={[tipografia.etiqueta, estilos.separado]}>{contraparte.etiqueta}</Text>
         <Text style={tipografia.cuerpo}>
-          {organizador.nombre} {organizador.apellido}
+          {contraparte.persona.nombre} {contraparte.persona.apellido}
         </Text>
       </View>
 
       <View style={estilos.separado}>
         <Boton
-          titulo="Chat con el organizador"
+          titulo={contraparte.chat}
           variante="secundario"
           onPress={() =>
-            navigation.navigate("Chat", { compraId: compra.id, titulo: `Chat con ${organizador.nombre}` })
+            navigation.navigate("Chat", { compraId: compra.id, titulo: `Chat con ${contraparte.persona.nombre}` })
           }
         />
       </View>
+
+      {!esElOrganizador ? null : puedeMarcarUtilizada(compra) ? (
+        <View style={estilos.acciones}>
+          <Text style={tipografia.cuerpo}>¿El comprador ya ingresó al evento?</Text>
+          {errorDeMarcar ? <Text style={estilos.error}>{errorDeMarcar}</Text> : null}
+          <Boton titulo="Marcar como utilizada" onPress={pedirConfirmacionDeUso} cargando={marcando} />
+        </View>
+      ) : motivoDeUso ? (
+        <Text style={[tipografia.suave, estilos.separado]}>{motivoDeUso}</Text>
+      ) : null}
 
       <Text style={estilos.seccion}>Seguimiento</Text>
       <SeguimientoCompra historial={compra.historial} />

@@ -137,6 +137,7 @@ Parámetros de `GET /eventos` (todos opcionales):
 |----------------|------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
 | `texto`        | hasta 100 caracteres                           | Busca en el nombre y la descripción, sin distinguir mayúsculas ni tildes. Varias palabras: tienen que estar todas |
 | `categoriaId`  | id de una categoría                            | Solo los eventos de esa categoría                                                                            |
+| `organizadorId` | id de un usuario                              | Solo los eventos de ese organizador (la app lo usa con `periodo=todos` para "Mis eventos")                   |
 | `precioMin`, `precioMax` | números                              | Eventos con al menos una entrada dentro del rango                                                            |
 | `periodo`      | `proximos` (por defecto), `pasados`, `todos`   | Qué eventos mostrar según su fecha                                                                           |
 | `orden`        | `fecha` (por defecto), `precio`, `puntaje`     | `precio` usa la entrada más barata del evento; `puntaje` es el promedio de reseñas del organizador            |

@@ -5,10 +5,13 @@ import { useAuth } from "../auth/AuthContext";
 import Estado from "../components/Estado";
 import CatalogoScreen from "../screens/CatalogoScreen";
 import ChatScreen from "../screens/ChatScreen";
+import ComprasDelEventoScreen from "../screens/ComprasDelEventoScreen";
+import CrearEventoScreen from "../screens/CrearEventoScreen";
 import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
 import LoginScreen from "../screens/LoginScreen";
 import MisComprasScreen from "../screens/MisComprasScreen";
+import MisEventosScreen from "../screens/MisEventosScreen";
 import PerfilScreen from "../screens/PerfilScreen";
 import RegistroScreen from "../screens/RegistroScreen";
 import ReseniaScreen from "../screens/ReseniaScreen";
@@ -60,13 +63,44 @@ function ComprasStack() {
   );
 }
 
+const OrganizadorStackNav = createNativeStackNavigator();
+
+// Dentro de la pestaña Mis eventos (organizador): de sus eventos a las compras de uno, y de ahí al detalle
+// y al chat de una compra (las mismas pantallas que usa el comprador).
+function OrganizadorStack() {
+  return (
+    <OrganizadorStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
+      <OrganizadorStackNav.Screen name="MisEventos" component={MisEventosScreen} options={{ headerShown: false }} />
+      <OrganizadorStackNav.Screen
+        name="CrearEvento"
+        component={CrearEventoScreen}
+        options={{ title: "Crear evento", headerBackTitle: "Mis eventos" }}
+      />
+      <OrganizadorStackNav.Screen
+        name="ComprasDelEvento"
+        component={ComprasDelEventoScreen}
+        options={{ title: "Compras del evento", headerBackTitle: "Mis eventos" }}
+      />
+      <OrganizadorStackNav.Screen
+        name="DetalleCompra"
+        component={DetalleCompraScreen}
+        options={{ title: "Compra", headerBackTitle: "Compras" }}
+      />
+      <OrganizadorStackNav.Screen name="Chat" component={ChatScreen} options={{ title: "Chat", headerBackTitle: "Compra" }} />
+    </OrganizadorStackNav.Navigator>
+  );
+}
+
 function TabsPrincipales() {
-  const { esComprador } = useAuth();
+  const { esComprador, esOrganizador } = useAuth();
 
   return (
     <Tabs.Navigator screenOptions={{ headerShown: false, tabBarActiveTintColor: colores.primario }}>
       <Tabs.Screen name="Eventos" component={EventosStack} />
       {esComprador ? <Tabs.Screen name="MisCompras" component={ComprasStack} options={{ title: "Mis compras" }} /> : null}
+      {esOrganizador ? (
+        <Tabs.Screen name="MisEventosTab" component={OrganizadorStack} options={{ title: "Mis eventos" }} />
+      ) : null}
       <Tabs.Screen name="Perfil" component={PerfilScreen} options={{ title: "Perfil" }} />
     </Tabs.Navigator>
   );

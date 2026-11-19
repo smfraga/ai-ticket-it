@@ -4,7 +4,8 @@ import { textoDiasRestantes, textoEntradas } from "../utils/compras";
 import { formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
 import EstadoCompra from "./EstadoCompra";
 
-export default function CompraCard({ compra, onPress }) {
+// `mostrarComprador`: en la vista del organizador, cada compra dice de quién es.
+export default function CompraCard({ compra, onPress, mostrarComprador = false }) {
   const dias = textoDiasRestantes(compra.diasRestantes);
 
   return (
@@ -15,8 +16,16 @@ export default function CompraCard({ compra, onPress }) {
       style={({ pressed }) => [estilos.tarjeta, pressed && estilos.presionada]}
     >
       <EstadoCompra estado={compra.estado} />
-      <Text style={tipografia.subtitulo}>{compra.evento.nombre}</Text>
-      <Text style={tipografia.suave}>{formatearFecha(compra.evento.fecha)}</Text>
+      {mostrarComprador ? (
+        <Text style={tipografia.subtitulo}>
+          {compra.comprador.nombre} {compra.comprador.apellido}
+        </Text>
+      ) : (
+        <>
+          <Text style={tipografia.subtitulo}>{compra.evento.nombre}</Text>
+          <Text style={tipografia.suave}>{formatearFecha(compra.evento.fecha)}</Text>
+        </>
+      )}
       {dias ? <Text style={estilos.dias}>{dias}</Text> : null}
       <View style={estilos.fila}>
         <Text style={tipografia.cuerpo}>
