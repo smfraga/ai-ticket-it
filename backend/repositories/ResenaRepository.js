@@ -27,6 +27,13 @@ export class ResenaRepository {
       .sort(masRecientesPrimero);
   }
 
+  // Las reseñas que dejó un comprador (para su perfil).
+  async findByCompradorId(compradorId) {
+    return [...this.resenias.values()]
+      .filter((resenia) => resenia.comprador.id === compradorId)
+      .sort(masRecientesPrimero);
+  }
+
   async findByEventoId(eventoId) {
     return [...this.resenias.values()].filter((resenia) => resenia.evento.id === eventoId).sort(masRecientesPrimero);
   }

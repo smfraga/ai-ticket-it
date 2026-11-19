@@ -8,6 +8,7 @@ const perfilController = new PerfilController();
 const router = express.Router();
 
 // El perfil del usuario logueado (el del token).
+router.get("/", autenticar, (req, res, next) => perfilController.obtener(req, res, next));
 router.patch("/", autenticar, validate(editarPerfilValidation), (req, res, next) =>
   perfilController.editar(req, res, next),
 );

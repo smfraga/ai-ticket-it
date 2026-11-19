@@ -278,6 +278,7 @@ Los datos del usuario logueado (el del token). Piden token.
 
 | Método y ruta  | Descripción                                                                                                                                                   |
 |----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET /perfil`   | Los datos del usuario y, según sus roles, `comprador` y `organizador` (o `null` si no tiene ese rol), cada uno con `estadisticas` e `historial`. Comprador: entradas compradas, total gastado, eventos a los que fue, reseñas dejadas, categoría preferida y próximo evento; historial con los eventos a los que fue (compras `UTILIZADA`). Organizador: eventos creados (próximos, realizados, cancelados), entradas vendidas, recaudación, evento más vendido, puntaje y cantidad de reseñas; historial con sus eventos realizados y lo vendido en cada uno. Una entrada cuenta si la compra está `CONFIRMADA` o `UTILIZADA` |
 | `PATCH /perfil` | Cambia `nombre` y/o `apellido` (al menos uno, de 1 a 60 caracteres, sin los espacios de los bordes) y devuelve el usuario como en la sesión. El email y los roles no se editan (`400` si vienen). El token sigue sirviendo: solo lleva el id y los roles |
 
 #### Registro de errores

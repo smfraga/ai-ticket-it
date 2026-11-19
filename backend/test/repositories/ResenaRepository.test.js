@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import { ResenaRepository } from "../../repositories/ResenaRepository.js";
-import { crearEvento, crearOrganizador, crearResenia, enDias } from "../helpers/domainFactories.js";
+import { crearComprador, crearEvento, crearOrganizador, crearResenia, enDias } from "../helpers/domainFactories.js";
 
 function reseniaDeOrganizador(organizador, puntuacion = 4) {
   const evento = crearEvento({ organizador });
@@ -66,6 +66,20 @@ describe("ResenaRepository", () => {
       nueva.fecha = enDias(-1);
 
       expect(await repositorio.findByOrganizadorId("olivia")).toEqual([nueva, vieja]);
+    });
+  });
+
+  describe("findByCompradorId", () => {
+    it("devuelve solo las reseñas que dejó ese comprador, las más recientes primero", async () => {
+      const carla = crearComprador({ id: "carla" });
+      const vieja = crearResenia({ fecha: enDias(-5), compraOverrides: { comprador: carla } });
+      const nueva = crearResenia({ fecha: enDias(-1), compraOverrides: { comprador: carla } });
+      await repositorio.save(vieja);
+      await repositorio.save(nueva);
+      await repositorio.save(crearResenia({ compraOverrides: { comprador: crearComprador({ id: "camilo" }) } }));
+
+      expect(await repositorio.findByCompradorId("carla")).toEqual([nueva, vieja]);
+      expect(await repositorio.findByCompradorId("nadie")).toEqual([]);
     });
   });
 

@@ -1,11 +1,96 @@
+import {
+  estadisticasDeComprador,
+  estadisticasDeOrganizador,
+  historialDeComprador,
+  historialDeOrganizador,
+} from "../domain/Estadisticas.js";
+import { rolUsuario } from "../domain/RolUsuario.js";
 import { UnauthorizedError } from "../errors/AppError.js";
+import { compraRepository } from "../repositories/CompraRepository.js";
+import { eventoRepository } from "../repositories/EventoRepository.js";
+import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
 import { toUsuarioResponse } from "./AuthService.js";
 
-// El perfil del usuario logueado. Las reglas (qué se puede cambiar y cómo) son de `Usuario`.
+// El perfil del usuario logueado. Las reglas (qué se puede cambiar, cómo se calculan los números) son del dominio:
+// `Usuario` y `Estadisticas`; acá solo se buscan los datos y se arma la respuesta.
 export class PerfilService {
-  constructor(repositorioDeUsuarios = usuarioRepository) {
+  // `ahora` es un reloj inyectable para poder probar sin depender de la fecha real.
+  constructor(
+    repositorioDeUsuarios = usuarioRepository,
+    repositorioDeCompras = compraRepository,
+    repositorioDeEventos = eventoRepository,
+    repositorioDeResenias = resenaRepository,
+    ahora = () => new Date(),
+  ) {
     this.usuarioRepository = repositorioDeUsuarios;
+    this.compraRepository = repositorioDeCompras;
+    this.eventoRepository = repositorioDeEventos;
+    this.resenaRepository = repositorioDeResenias;
+    this.ahora = ahora;
+  }
+
+  // Los datos, las estadísticas y el historial, solo de los roles que tiene (el otro va en null).
+  async obtener(usuarioId) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    const ahora = this.ahora();
+    return {
+      usuario: toUsuarioResponse(usuario),
+      comprador: usuario.tieneRol(rolUsuario.COMPRADOR) ? await this.comoComprador(usuario, ahora) : null,
+      organizador: usuario.tieneRol(rolUsuario.ORGANIZADOR) ? await this.comoOrganizador(usuario, ahora) : null,
+    };
+  }
+
+  async comoComprador(usuario, ahora) {
+    const compras = await this.compraRepository.findByCompradorId(usuario.id);
+    const resenias = await this.resenaRepository.findByCompradorId(usuario.id);
+    const { proximoEvento, ...estadisticas } = estadisticasDeComprador(compras, resenias.length, ahora);
+    return {
+      estadisticas: { ...estadisticas, proximoEvento: proximoEvento ? this.toEventoResumen(proximoEvento) : null },
+      historial: historialDeComprador(compras).map(({ evento, compras: delEvento }) => ({
+        evento: this.toEventoResumen(evento),
+        compras: delEvento.map((compra) => ({
+          id: compra.id,
+          cantidad: compra.cantidad,
+          total: compra.total,
+          tipoEntrada: { nombre: compra.tipoEntrada.nombre },
+        })),
+      })),
+    };
+  }
+
+  async comoOrganizador(usuario, ahora) {
+    const eventos = (await this.eventoRepository.findAll()).filter((evento) => evento.esDelOrganizador(usuario.id));
+    const compras = (
+      await Promise.all(eventos.map((evento) => this.compraRepository.findByEventoId(evento.id)))
+    ).flat();
+    const resenias = await this.resenaRepository.findByOrganizadorId(usuario.id);
+    const { eventoMasVendido, ...estadisticas } = estadisticasDeOrganizador(eventos, compras, resenias, ahora);
+    return {
+      estadisticas: {
+        ...estadisticas,
+        eventoMasVendido: eventoMasVendido
+          ? {
+              evento: this.toEventoResumen(eventoMasVendido.evento),
+              entradasVendidas: eventoMasVendido.entradasVendidas,
+            }
+          : null,
+      },
+      historial: historialDeOrganizador(eventos, compras, ahora).map(({ evento, ...ventas }) => ({
+        evento: this.toEventoResumen(evento),
+        ...ventas,
+      })),
+    };
+  }
+
+  toEventoResumen(evento) {
+    return {
+      id: evento.id,
+      nombre: evento.nombre,
+      fecha: evento.fecha.toISOString(),
+      imagen: evento.multimedia?.[0] ?? null,
+      categoria: evento.categoria.nombre,
+    };
   }
 
   // Cambia nombre y apellido y devuelve el usuario como en la sesión. El token no cambia: solo lleva el id y los
