@@ -17,6 +17,13 @@ function ocupaCupo(estado) {
   return ESTADOS_QUE_OCUPAN_CUPO.includes(estado);
 }
 
+// Medianoche del mismo día, en la hora local del servidor.
+function inicioDelDia(fecha) {
+  const inicio = new Date(fecha);
+  inicio.setHours(0, 0, 0, 0);
+  return inicio.getTime();
+}
+
 export class Compra {
   id
   comprador
@@ -40,6 +47,11 @@ export class Compra {
     }
     if (!comprador.tieneRol(rolUsuario.COMPRADOR)) {
       throw new ForbiddenError("Solo un usuario comprador puede comprar entradas");
+    }
+    // Un usuario con los dos roles no puede comprar en su propio evento: después podría marcar la entrada
+    // como utilizada y reseñarse a sí mismo para subir su puntaje.
+    if (evento.esOrganizador(comprador)) {
+      throw new ForbiddenError("No podés comprar entradas de tu propio evento");
     }
     if (!evento.tieneTipoEntrada(tipoEntrada)) {
       throw new ValidationError("El tipo de entrada no pertenece al evento");
@@ -105,6 +117,18 @@ export class Compra {
     }
   }
 
+  // El comprador paga una compra PENDIENTE (pago simulado) y queda CONFIRMADA. Una compra nueva ya se confirma al
+  // comprar; esto destraba las que quedaron pendientes. No se paga un evento que ya se realizó.
+  pagar(quien, ahora = new Date()) {
+    if (!this.comprador.esElMismo(quien)) {
+      throw new ForbiddenError("Solo el comprador puede pagar la compra");
+    }
+    if (this.evento.yaPaso(ahora)) {
+      throw new ConflictError("No se puede pagar una compra de un evento que ya se realizó");
+    }
+    this.actualizarEstado(estadoCompra.CONFIRMADA, quien, ahora);
+  }
+
   // El organizador la marca al dejar entrar al comprador; solo se usa una compra confirmada.
   marcarUtilizada(quien, ahora = new Date()) {
     if (!this.evento.esOrganizador(quien)) {
@@ -113,11 +137,12 @@ export class Compra {
     this.actualizarEstado(estadoCompra.UTILIZADA, quien, ahora);
   }
 
-  // Días que faltan para el evento, solo para compras confirmadas.
+  // Días de calendario que faltan para el evento (0 = es hoy), solo para compras confirmadas de eventos que
+  // todavía no se realizaron; si no, null. Se cuentan fechas y no horas: un evento de mañana a las 00:30 está
+  // a 1 día aunque falten 3 horas, y uno de hoy a la noche, a 0. Math.round absorbe un posible cambio de horario.
   diasRestantes(ahora = new Date()) {
-    if (!this.estaConfirmada()) return null;
-    const msRestantes = this.evento.fecha.getTime() - ahora.getTime();
-    return Math.max(0, Math.ceil(msRestantes / MS_POR_DIA));
+    if (!this.estaConfirmada() || this.evento.yaPaso(ahora)) return null;
+    return Math.round((inicioDelDia(this.evento.fecha) - inicioDelDia(ahora)) / MS_POR_DIA);
   }
 
   esParticipante(usuario) {

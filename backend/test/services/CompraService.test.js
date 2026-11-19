@@ -218,6 +218,45 @@ describe("CompraService", () => {
     });
   });
 
+  describe("pagar", () => {
+    const guardarCompra = (estado) => {
+      const compra = Object.assign(crearCompraEn(estado, { comprador: carla, evento }), { id: "c1" });
+      compraRepository.findById.mockImplementation(async (id) => (id === "c1" ? compra : null));
+      return compra;
+    };
+
+    it("el comprador pasa una compra PENDIENTE a CONFIRMADA y se guarda", async () => {
+      const compra = guardarCompra(estadoCompra.PENDIENTE);
+
+      const respuesta = await service.pagar("carla", "c1");
+
+      expect(respuesta.estado).toBe(estadoCompra.CONFIRMADA);
+      expect(respuesta.diasRestantes).toEqual(expect.any(Number));
+      expect(respuesta.historial.at(-1).quien.id).toBe("carla");
+      expect(compraRepository.save).toHaveBeenCalledWith(compra);
+    });
+
+    it("403 si paga otro comprador o el organizador, sin guardar", async () => {
+      guardarCompra(estadoCompra.PENDIENTE);
+
+      await expect(service.pagar("camilo", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(service.pagar("olivia", "c1")).rejects.toBeInstanceOf(ForbiddenError);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("409 si ya estaba confirmada, sin guardar", async () => {
+      guardarCompra(estadoCompra.CONFIRMADA);
+
+      await expect(service.pagar("carla", "c1")).rejects.toBeInstanceOf(ConflictError);
+      expect(compraRepository.save).not.toHaveBeenCalled();
+    });
+
+    it("404 si la compra no existe y 401 si el usuario del token ya no existe", async () => {
+      await expect(service.pagar("carla", "otra")).rejects.toBeInstanceOf(NotFoundError);
+      await expect(service.pagar("fantasma", "c1")).rejects.toBeInstanceOf(UnauthorizedError);
+    });
+  });
+
   describe("utilizar", () => {
     const guardarCompra = (estado) => {
       const compra = Object.assign(crearCompraEn(estado, { comprador: carla, evento }), { id: "c1" });

@@ -100,6 +100,23 @@ describe("Compra", () => {
       expect(evento.tiposEntrada[0].vendidas).toBe(0);
     });
 
+    it("lanza ForbiddenError si un usuario con los dos roles compra en su propio evento, y no reserva", () => {
+      const ambosRoles = crearUsuario({ id: "u-ambos", roles: [rolUsuario.COMPRADOR, rolUsuario.ORGANIZADOR] });
+      const evento = crearEvento({ organizador: ambosRoles });
+
+      expect(() => crearCompra({ evento, comprador: ambosRoles })).toThrow(ForbiddenError);
+      expect(() => crearCompra({ evento, comprador: ambosRoles })).toThrow(
+        "No podés comprar entradas de tu propio evento",
+      );
+      expect(evento.tiposEntrada[0].vendidas).toBe(0);
+    });
+
+    it("el mismo usuario con los dos roles sí puede comprar en el evento de otro organizador", () => {
+      const ambosRoles = crearUsuario({ id: "u-ambos", roles: [rolUsuario.COMPRADOR, rolUsuario.ORGANIZADOR] });
+
+      expect(() => crearCompra({ comprador: ambosRoles })).not.toThrow();
+    });
+
     it("lanza ConflictError si no hay cupo suficiente, y no reserva", () => {
       const evento = crearEvento({ tiposEntrada: [crearTipoEntrada({ cupo: 5 })] });
 
@@ -280,6 +297,44 @@ describe("Compra", () => {
     });
   });
 
+  describe("pagar", () => {
+    it("el comprador pasa una compra PENDIENTE a CONFIRMADA, queda en el historial y sigue ocupando el cupo", () => {
+      const compra = crearCompra({ cantidad: 2 });
+
+      compra.pagar(compra.comprador, AHORA);
+
+      expect(compra.estado).toBe(CONFIRMADA);
+      expect(compra.historial.map((cambio) => cambio.estado)).toEqual([PENDIENTE, CONFIRMADA]);
+      expect(compra.historial.at(-1).quien).toBe(compra.comprador);
+      expect(compra.tipoEntrada.vendidas).toBe(2);
+      expect(compra.diasRestantes(AHORA)).toBe(30);
+    });
+
+    it("lanza ForbiddenError si paga otro usuario, aunque sea el organizador", () => {
+      const compra = crearCompra();
+
+      expect(() => compra.pagar(compra.evento.organizador, AHORA)).toThrow(ForbiddenError);
+      expect(() => compra.pagar(crearComprador(), AHORA)).toThrow("Solo el comprador puede pagar la compra");
+      expect(compra.estado).toBe(PENDIENTE);
+    });
+
+    it("lanza ConflictError si el evento ya se realizó", () => {
+      const compra = crearCompra();
+
+      expect(() => compra.pagar(compra.comprador, enDias(31))).toThrow(
+        "No se puede pagar una compra de un evento que ya se realizó",
+      );
+      expect(compra.estado).toBe(PENDIENTE);
+    });
+
+    it.each([CONFIRMADA, UTILIZADA, CANCELADA, REEMBOLSADA])("lanza ConflictError si está %s", (estado) => {
+      const compra = crearCompraEn(estado);
+
+      expect(() => compra.pagar(compra.comprador, AHORA)).toThrow(ConflictError);
+      expect(compra.estado).toBe(estado);
+    });
+  });
+
   describe("marcarUtilizada", () => {
     it("el organizador pasa una compra CONFIRMADA a UTILIZADA y queda en el historial", () => {
       const compra = crearCompraEn(CONFIRMADA);
@@ -336,14 +391,35 @@ describe("Compra", () => {
       expect(crearCompraEn(CONFIRMADA).diasRestantes(AHORA)).toBe(30);
     });
 
-    it("redondea hacia arriba los días incompletos", () => {
-      const evento = crearEvento({ fecha: enDias(1.5) });
+    // Fechas en hora local: los días se cuentan por fecha de calendario, no por horas.
+    describe("cuenta días de calendario", () => {
+      const hoyALas = (horas, minutos = 0, dias = 0) => {
+        const fecha = new Date(2026, 10, 19, horas, minutos);
+        fecha.setDate(fecha.getDate() + dias);
+        return fecha;
+      };
+      const diasHasta = (fechaDelEvento, ahora) =>
+        crearCompraEn(CONFIRMADA, { evento: crearEvento({ fecha: fechaDelEvento }) }).diasRestantes(ahora);
 
-      expect(crearCompraEn(CONFIRMADA, { evento }).diasRestantes(AHORA)).toBe(2);
+      it("un evento de hoy a la noche, visto a la mañana, es hoy (0)", () => {
+        expect(diasHasta(hoyALas(21), hoyALas(9))).toBe(0);
+      });
+
+      it("un evento de mañana a la madrugada está a 1 día aunque falten pocas horas", () => {
+        expect(diasHasta(hoyALas(0, 30, 1), hoyALas(22))).toBe(1);
+      });
+
+      it("un evento de mañana a la noche, visto a la mañana, está a 1 día (no a 2)", () => {
+        expect(diasHasta(hoyALas(21, 0, 1), hoyALas(9))).toBe(1);
+      });
+
+      it("un evento dentro de 30 días, a cualquier hora, está a 30", () => {
+        expect(diasHasta(hoyALas(8, 0, 30), hoyALas(23, 59))).toBe(30);
+      });
     });
 
-    it("devuelve 0 si el evento ya pasó", () => {
-      expect(crearCompraEn(CONFIRMADA).diasRestantes(enDias(40))).toBe(0);
+    it("devuelve null si el evento ya pasó, aunque la compra siga CONFIRMADA", () => {
+      expect(crearCompraEn(CONFIRMADA).diasRestantes(enDias(40))).toBeNull();
     });
 
     it.each([PENDIENTE, UTILIZADA, CANCELADA, REEMBOLSADA])("devuelve null si está %s", (estado) => {

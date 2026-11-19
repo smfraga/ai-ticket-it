@@ -21,6 +21,15 @@ const MS_POR_DIA = 24 * MS_POR_HORA;
 
 const sumarDias = (fecha, dias) => new Date(fecha.getTime() + dias * MS_POR_DIA);
 
+// El día del evento es relativo a hoy, pero la hora es fija ("21:30"), en la hora local del servidor:
+// así una noche de stand up no queda a la hora en que arrancó el backend.
+const fechaDeEvento = (ahora, dias, hora) => {
+  const [horas, minutos] = hora.split(":").map(Number);
+  const fecha = sumarDias(ahora, dias);
+  fecha.setHours(horas, minutos, 0, 0);
+  return fecha;
+};
+
 // Los usuarios, categorías, eventos y tipos de entrada del seed tienen ids fijos (con formato UUID).
 // Así, cuando el servidor se reinicia, los tokens que ya se emitieron siguen apuntando a los mismos usuarios.
 const GRUPOS_DE_IDS = { usuario: 1, categoria: 2, evento: 3, tipoEntrada: 4 };
@@ -43,10 +52,13 @@ const CATEGORIAS = [
 ];
 
 // `organizador` y `categoria` son posiciones en USUARIOS y CATEGORIAS; `dias` es relativo a hoy
-// (positivo: todavía no se hizo; negativo: ya se realizó).
+// (positivo: todavía no se hizo; negativo: ya se realizó) y `hora` es la hora local de inicio.
+// `multimedia` son fotos de Unsplash (uso libre) acordes a cada evento; se verificó que cada URL responda una imagen.
 const EVENTOS = [
   {
     nombre: "Rock en el Río de la Plata",
+    hora: "21:00",
+    multimedia: ["https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=70", "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=70"],
     descripcion: "Una noche de rock nacional con las bandas más escuchadas del año.",
     categoria: 0,
     organizador: 0,
@@ -59,6 +71,8 @@ const EVENTOS = [
   },
   {
     nombre: "Noche de Stand Up",
+    hora: "21:30",
+    multimedia: ["https://images.unsplash.com/photo-1585699324551-f6c309eedeca?w=800&q=70", "https://images.unsplash.com/photo-1527224857830-43a7acc85260?w=800&q=70"],
     descripcion: "Seis humoristas en un mismo escenario. Humor para toda la noche.",
     categoria: 1,
     organizador: 1,
@@ -70,6 +84,8 @@ const EVENTOS = [
   },
   {
     nombre: "Festival de Jazz en el Parque",
+    hora: "17:00",
+    multimedia: ["https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?w=800&q=70"],
     descripcion: "Jazz en vivo al aire libre, con feria gastronómica y de diseño.",
     categoria: 2,
     organizador: 0,
@@ -81,6 +97,8 @@ const EVENTOS = [
   },
   {
     nombre: "Congreso de Desarrollo de Software",
+    hora: "09:00",
+    multimedia: ["https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=70"],
     descripcion: "Dos jornadas de charlas y talleres sobre desarrollo, testing e inteligencia artificial.",
     categoria: 3,
     organizador: 1,
@@ -92,6 +110,8 @@ const EVENTOS = [
   },
   {
     nombre: "Clásico de Fútbol Amateur",
+    hora: "15:30",
+    multimedia: ["https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&q=70"],
     descripcion: "El partido más esperado del torneo de ligas barriales.",
     categoria: 4,
     organizador: 1,
@@ -103,6 +123,8 @@ const EVENTOS = [
   },
   {
     nombre: "Obra: El Gran Teatro del Mundo",
+    hora: "20:00",
+    multimedia: ["https://images.unsplash.com/photo-1503095396549-807759245b35?w=800&q=70"],
     descripcion: "Una puesta clásica con elenco estable y vestuario de época.",
     categoria: 1,
     organizador: 0,
@@ -111,6 +133,8 @@ const EVENTOS = [
   },
   {
     nombre: "Recital Aniversario Folklore",
+    hora: "21:00",
+    multimedia: ["https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=70"],
     descripcion: "Guitarreada con peñas invitadas para festejar el aniversario.",
     categoria: 0,
     organizador: 1,
@@ -119,6 +143,8 @@ const EVENTOS = [
   },
   {
     nombre: "Maratón Solidaria 10K",
+    hora: "08:00",
+    multimedia: ["https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800&q=70", "https://images.unsplash.com/photo-1513593771513-7b58b6c4af38?w=800&q=70"],
     descripcion: "Carrera de 10 kilómetros a beneficio de comedores barriales.",
     categoria: 4,
     organizador: 0,
@@ -221,9 +247,10 @@ export async function cargarSeed(
       datos.nombre,
       datos.descripcion,
       categoriasCreadas[datos.categoria],
-      sumarDias(ahora, datos.dias),
+      fechaDeEvento(ahora, datos.dias, datos.hora),
       usuariosCreados[datos.organizador],
       tiposEntrada,
+      datos.multimedia,
     );
     evento.id = idFijo("evento", i + 1);
     eventosCreados.push(await eventos.save(evento));

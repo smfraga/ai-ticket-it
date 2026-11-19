@@ -5,6 +5,7 @@ import { useFavoritos } from "../auth/FavoritosContext";
 import Boton from "../components/Boton";
 import BotonFavorito from "../components/BotonFavorito";
 import Estado from "../components/Estado";
+import GaleriaImagenes from "../components/GaleriaImagenes";
 import PanelCompra from "../components/PanelCompra";
 import ReseniaItem from "../components/ReseniaItem";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -15,7 +16,7 @@ import { formatearFecha, formatearPrecio } from "../utils/formato";
 
 export default function DetalleEventoScreen({ route }) {
   const { eventoId } = route.params;
-  const { esComprador } = useAuth();
+  const { usuario, esComprador } = useAuth();
   const { esFavorito, alternar } = useFavoritos();
   const [evento, setEvento] = useState(null);
   const [tipoElegidoId, setTipoElegidoId] = useState(null);
@@ -55,11 +56,14 @@ export default function DetalleEventoScreen({ route }) {
   if (!evento) return <Estado tipo="cargando" />;
 
   const { organizador } = evento;
-  const sePuedeComprar = esComprador && !evento.yaPaso;
+  // Nadie compra en su propio evento (el backend responde 403): un usuario con los dos roles lo gestiona en Mis eventos.
+  const esPropio = organizador.id === usuario.id;
+  const sePuedeComprar = esComprador && !evento.yaPaso && !esPropio;
   const tipoElegido = evento.tiposEntrada.find((tipo) => tipo.id === tipoElegidoId) ?? null;
 
   return (
     <ScrollView style={estilos.pantalla} contentContainerStyle={estilos.contenido}>
+      <GaleriaImagenes urls={evento.multimedia} />
       <Text style={estilos.categoria}>{evento.categoria.nombre}</Text>
       <View style={estilos.encabezado}>
         <Text style={[tipografia.titulo, estilos.titulo]}>{evento.nombre}</Text>
@@ -74,7 +78,9 @@ export default function DetalleEventoScreen({ route }) {
 
       <Text style={estilos.seccion}>Entradas</Text>
       {sePuedeComprar ? <Text style={tipografia.suave}>Elegí un tipo de entrada para comprar.</Text> : null}
-      {!esComprador && !evento.yaPaso ? (
+      {esPropio ? (
+        <Text style={tipografia.suave}>Es tu evento: sus ventas están en Mis eventos.</Text>
+      ) : !esComprador && !evento.yaPaso ? (
         <Text style={tipografia.suave}>Para comprar necesitás una cuenta de comprador.</Text>
       ) : null}
       {evento.tiposEntrada.map((tipo) => {

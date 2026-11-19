@@ -4,6 +4,24 @@ export const textoCupo = ({ cupo, cupoRestante }) => {
   return `${cupoRestante === 1 ? "Queda 1" : `Quedan ${cupoRestante}`} de ${cupo}`;
 };
 
+// --- Filtro de precio del catálogo -----------------------------------------------------------------------------
+// El backend filtra con Evento.tuPrecioEstaEntre(min, max): entra un evento si alguna de sus entradas está en el
+// rango (extremos incluidos). "Cualquiera" no manda nada.
+export const RANGOS_DE_PRECIO = Object.freeze([
+  { valor: "cualquiera", etiqueta: "Cualquiera" },
+  { valor: "hasta5000", etiqueta: "Hasta $5.000", precioMax: 5000 },
+  { valor: "5000a10000", etiqueta: "$5.000 a $10.000", precioMin: 5000, precioMax: 10000 },
+  { valor: "masDe10000", etiqueta: "Más de $10.000", precioMin: 10000 },
+]);
+// Los rangos se eligieron para que, con el seed, cada uno muestre eventos distintos: un rango ancho (por ejemplo
+// $5.000 a $15.000) incluía a todos, porque cada evento tiene alguna entrada en ese rango.
+
+// { precioMin, precioMax } para listarEventos; los que no aplican quedan undefined y no se mandan.
+export const parametrosDePrecio = (valor) => {
+  const rango = RANGOS_DE_PRECIO.find((r) => r.valor === valor);
+  return { precioMin: rango?.precioMin, precioMax: rango?.precioMax };
+};
+
 // --- Favoritos -------------------------------------------------------------------------------------------------
 
 // Un Set nuevo con el evento guardado o quitado; no modifica el anterior (React compara por referencia).
@@ -43,8 +61,14 @@ export const leerCupo = (texto) => {
 };
 
 // El primer problema del formulario, o null si se puede enviar. Los tipos se numeran desde 1, como en pantalla.
-export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada }, ahora = new Date()) => {
+// Imagen opcional: vacía, o una URL http(s) sin espacios (el backend la vuelve a validar).
+const URL_DE_IMAGEN = /^https?:\/\/[^\s/$.?#][^\s]*$/i;
+
+export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada, imagen = "" }, ahora = new Date()) => {
   if (!nombre.trim()) return "Escribí el nombre del evento.";
+  if (imagen.trim() && !URL_DE_IMAGEN.test(imagen.trim())) {
+    return "La imagen tiene que ser una dirección web que empiece con https:// (o dejala vacía).";
+  }
   if (!categoriaId) return "Elegí una categoría.";
   if (!(fecha instanceof Date) || fecha.getTime() <= ahora.getTime()) return "La fecha del evento tiene que ser futura.";
   if (tiposEntrada.length === 0) return "Agregá al menos un tipo de entrada.";
@@ -62,9 +86,10 @@ export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada }, ahor
 };
 
 // El cuerpo de POST /eventos. Llamar solo si errorDeEvento devolvió null.
-export const armarEventoParaEnviar = ({ nombre, descripcion, categoriaId, fecha, tiposEntrada }) => ({
+export const armarEventoParaEnviar = ({ nombre, descripcion, categoriaId, fecha, tiposEntrada, imagen = "" }) => ({
   nombre: nombre.trim(),
   ...(descripcion.trim() ? { descripcion: descripcion.trim() } : {}),
+  ...(imagen.trim() ? { multimedia: [imagen.trim()] } : {}),
   categoriaId,
   fecha: fecha.toISOString(),
   tiposEntrada: tiposEntrada.map((tipo) => ({

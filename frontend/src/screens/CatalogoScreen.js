@@ -11,6 +11,7 @@ import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { listarCategorias, listarEventos, ORDENES, PERIODOS } from "../services/eventosService";
 import { ALTO_TOQUE, colores, espacio, radio, tipografia } from "../theme";
+import { parametrosDePrecio, RANGOS_DE_PRECIO } from "../utils/eventos";
 
 const ESPERA_DE_BUSQUEDA_MS = 400;
 
@@ -20,6 +21,7 @@ export default function CatalogoScreen({ navigation }) {
   const [categoriaId, setCategoriaId] = useState(null);
   const [orden, setOrden] = useState("fecha");
   const [periodo, setPeriodo] = useState("proximos");
+  const [rangoDePrecio, setRangoDePrecio] = useState("cualquiera");
   const [categorias, setCategorias] = useState([]);
   const [eventos, setEventos] = useState(null); // null = todavía no llegó la primera respuesta
   const [cargando, setCargando] = useState(true);
@@ -45,14 +47,14 @@ export default function CatalogoScreen({ navigation }) {
     setCargando(true);
     setError(null);
     try {
-      const lista = await listarEventos({ texto, categoriaId, orden, periodo });
+      const lista = await listarEventos({ texto, categoriaId, orden, periodo, ...parametrosDePrecio(rangoDePrecio) });
       if (esVigente()) setEventos(lista);
     } catch (e) {
       if (esVigente()) setError(mensajeDeError(e));
     } finally {
       if (esVigente()) setCargando(false);
     }
-  }, [texto, categoriaId, orden, periodo, nuevoPedido]);
+  }, [texto, categoriaId, orden, periodo, rangoDePrecio, nuevoPedido]);
 
   useEffect(() => {
     cargar();
@@ -65,7 +67,7 @@ export default function CatalogoScreen({ navigation }) {
       .catch(() => {});
   }, []);
 
-  const hayFiltros = texto !== "" || categoriaId !== null;
+  const hayFiltros = texto !== "" || categoriaId !== null || rangoDePrecio !== "cualquiera";
   const textoVacio = hayFiltros
     ? "No encontramos eventos con esos filtros."
     : periodo === "pasados"
@@ -130,6 +132,17 @@ export default function CatalogoScreen({ navigation }) {
             <Chip key={valor} etiqueta={etiqueta} activo={periodo === valor} onPress={() => setPeriodo(valor)} />
           ))}
         </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.ordenes}>
+          <Text style={tipografia.etiqueta}>Precio</Text>
+          {RANGOS_DE_PRECIO.map(({ valor, etiqueta }) => (
+            <Chip
+              key={valor}
+              etiqueta={etiqueta}
+              activo={rangoDePrecio === valor}
+              onPress={() => setRangoDePrecio(valor)}
+            />
+          ))}
+        </ScrollView>
         <View style={estilos.ordenes}>
           <Text style={tipografia.etiqueta}>Ordenar por</Text>
           {ORDENES.map(({ valor, etiqueta }) => (
@@ -156,7 +169,7 @@ const estilos = StyleSheet.create({
     color: colores.texto,
   },
   chips: { gap: espacio.s, paddingRight: espacio.l },
-  ordenes: { flexDirection: "row", alignItems: "center", gap: espacio.s },
+  ordenes: { flexDirection: "row", alignItems: "center", gap: espacio.s, paddingRight: espacio.l },
   lista: { padding: espacio.l, gap: espacio.m, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl, color: colores.textoSuave },
   errorAviso: { color: colores.error, marginBottom: espacio.m },

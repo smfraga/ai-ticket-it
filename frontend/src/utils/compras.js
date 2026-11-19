@@ -27,6 +27,12 @@ export const textoDeConfirmacionDeCancelacion = (compra, totalFormateado) =>
     ? `Se cancelan las entradas y se te reembolsa ${totalFormateado}.`
     : "Se cancela la compra y las entradas vuelven al cupo.";
 
+// Pagar: una compra PENDIENTE de un evento que todavía no se realizó (el backend lo vuelve a validar con 409).
+export const puedePagar = (compra) => compra.estado === "PENDIENTE" && !compra.evento.yaPaso;
+
+export const textoDeConfirmacionDePago = (totalFormateado) =>
+  `Pago simulado: se confirma la compra por ${totalFormateado}. Después vas a poder cancelarla con reembolso hasta el día del evento.`;
+
 // Marcar como utilizada: lo hace el organizador del evento, solo desde CONFIRMADA y sin límite de fecha
 // (el backend lo vuelve a validar con 403 y 409).
 export const puedeMarcarUtilizada = (compra) => compra.estado === "CONFIRMADA";

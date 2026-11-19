@@ -2,8 +2,11 @@ import { beforeAll, describe, expect, it } from "@jest/globals";
 import request from "supertest";
 import { app } from "../../app.js";
 import { Categoria } from "../../domain/Categoria.js";
+import { Compra } from "../../domain/Compra.js";
 import { categoriaRepository } from "../../repositories/CategoriaRepository.js";
+import { compraRepository } from "../../repositories/CompraRepository.js";
 import { eventoRepository } from "../../repositories/EventoRepository.js";
+import { usuarioRepository } from "../../repositories/UsuarioRepository.js";
 import { SECRETO_DE_PRUEBA } from "../helpers/sesion.js";
 
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
@@ -27,6 +30,14 @@ describe("Cancelar y utilizar compras (API completa)", () => {
   const post = (ruta, token) => request(app).post(ruta).set(bearer(token));
   const cancelar = (id, token) => post(`/compras/${id}/cancelar`, token);
   const utilizar = (id, token) => post(`/compras/${id}/utilizar`, token);
+  const pagar = (id, token) => post(`/compras/${id}/pagar`, token);
+
+  // Por la API una compra nace CONFIRMADA (pago simulado); una PENDIENTE se arma con el dominio, como en el seed.
+  const comprarSinPagar = async (email = "carla@example.com") => {
+    const comprador = await usuarioRepository.findByEmail(email);
+    const delRepositorio = await eventoRepository.findById(evento.id);
+    return compraRepository.save(new Compra(comprador, delRepositorio, delRepositorio.tiposEntrada[0], 1));
+  };
 
   // Compra confirmada de 1 entrada General.
   const comprar = async (token = tokenCarla) => {
@@ -204,6 +215,42 @@ describe("Cancelar y utilizar compras (API completa)", () => {
       const compra = await comprar();
 
       expect((await request(app).post(`/compras/${compra.id}/utilizar`)).status).toBe(401);
+    });
+  });
+
+  describe("POST /compras/:id/pagar", () => {
+    it("el comprador paga una PENDIENTE: queda CONFIRMADA, con días restantes, y el cupo sigue ocupado", async () => {
+      const compra = await comprarSinPagar();
+      const antes = await disponibles();
+
+      const respuesta = await pagar(compra.id, tokenCarla);
+
+      expect(respuesta.status).toBe(200);
+      expect(respuesta.body).toMatchObject({ id: compra.id, estado: "CONFIRMADA", diasRestantes: expect.any(Number) });
+      expect(respuesta.body.historial.map((c) => c.estado)).toEqual(["PENDIENTE", "CONFIRMADA"]);
+      expect(await disponibles()).toBe(antes);
+    });
+
+    it("409 si la compra ya estaba confirmada", async () => {
+      const compra = await comprar();
+
+      const respuesta = await pagar(compra.id, tokenCarla);
+
+      expect(respuesta.status).toBe(409);
+    });
+
+    it("403 si paga otro comprador o el organizador, y sigue PENDIENTE", async () => {
+      const compra = await comprarSinPagar();
+
+      expect((await pagar(compra.id, tokenCamilo)).status).toBe(403);
+      expect((await pagar(compra.id, tokenOlivia)).status).toBe(403);
+      expect((await request(app).get(`/compras/${compra.id}`).set(bearer(tokenCarla))).body.estado).toBe("PENDIENTE");
+    });
+
+    it("404 si la compra no existe, 400 si el id no es UUID y 401 sin token", async () => {
+      expect((await pagar(ID_INEXISTENTE, tokenCarla)).status).toBe(404);
+      expect((await pagar("abc", tokenCarla)).status).toBe(400);
+      expect((await request(app).post(`/compras/${ID_INEXISTENTE}/pagar`)).status).toBe(401);
     });
   });
 });

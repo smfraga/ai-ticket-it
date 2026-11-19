@@ -40,6 +40,17 @@ export class CompraController extends BaseController {
     }
   }
 
+  async pagar(req, res, next) {
+    try {
+      const compraId = this.parsearId(req.params.id);
+      const compra = await this.compraService.pagar(req.usuario.id, compraId);
+
+      return res.status(200).json(compra);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async utilizar(req, res, next) {
     try {
       const compraId = this.parsearId(req.params.id);

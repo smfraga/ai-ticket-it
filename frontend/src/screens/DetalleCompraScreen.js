@@ -8,15 +8,17 @@ import EstadoCompra from "../components/EstadoCompra";
 import SeguimientoCompra from "../components/SeguimientoCompra";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
-import { cancelarCompra, obtenerCompra, utilizarCompra } from "../services/comprasService";
+import { cancelarCompra, obtenerCompra, pagarCompra, utilizarCompra } from "../services/comprasService";
 import { colores, espacio, radio, tipografia } from "../theme";
 import {
   motivoSinCancelacion,
   motivoSinUtilizar,
   puedeCancelar,
   puedeMarcarUtilizada,
+  puedePagar,
   puedeReseniar,
   textoDeConfirmacionDeCancelacion,
+  textoDeConfirmacionDePago,
   textoDeConfirmacionDeUso,
   textoDiasRestantes,
   textoEntradas,
@@ -26,6 +28,7 @@ import { formatearEstrellas, formatearFecha, formatearFechaCorta, formatearPreci
 const AVISO_REEMBOLSADA = "Compra cancelada. Se reembolsó el total y las entradas volvieron al cupo.";
 const AVISO_CANCELADA = "Compra cancelada. Las entradas volvieron al cupo.";
 const AVISO_UTILIZADA = "Entrada marcada como utilizada. El comprador ya puede dejar su reseña.";
+const AVISO_PAGADA = "¡Pago confirmado! Tu compra ya está confirmada.";
 
 export default function DetalleCompraScreen({ route, navigation }) {
   const { compraId } = route.params;
@@ -35,6 +38,8 @@ export default function DetalleCompraScreen({ route, navigation }) {
   const [error, setError] = useState(null);
   const [cancelando, setCancelando] = useState(false);
   const [errorDeCancelar, setErrorDeCancelar] = useState(null);
+  const [pagando, setPagando] = useState(false);
+  const [errorDePagar, setErrorDePagar] = useState(null);
   const [marcando, setMarcando] = useState(false);
   const [errorDeMarcar, setErrorDeMarcar] = useState(null);
   const [aviso, setAviso] = useState(null);
@@ -79,6 +84,26 @@ export default function DetalleCompraScreen({ route, navigation }) {
     Alert.alert("Cancelar compra", textoDeConfirmacionDeCancelacion(compra, formatearPrecio(compra.total)), [
       { text: "Volver", style: "cancel" },
       { text: "Cancelar compra", style: "destructive", onPress: cancelar },
+    ]);
+
+  const pagar = async () => {
+    setErrorDePagar(null);
+    setPagando(true);
+    try {
+      await pagarCompra(compraId);
+      setAviso(AVISO_PAGADA);
+    } catch (e) {
+      setErrorDePagar(mensajeDeError(e));
+    } finally {
+      setPagando(false);
+      cargar(); // como al cancelar: muestra el estado real y los días que faltan, también tras un 409
+    }
+  };
+
+  const pedirConfirmacionDePago = () =>
+    Alert.alert("Pagar compra", textoDeConfirmacionDePago(formatearPrecio(compra.total)), [
+      { text: "Volver", style: "cancel" },
+      { text: "Pagar", onPress: pagar },
     ]);
 
   const marcarUtilizada = async () => {
@@ -148,6 +173,14 @@ export default function DetalleCompraScreen({ route, navigation }) {
           {contraparte.persona.nombre} {contraparte.persona.apellido}
         </Text>
       </View>
+
+      {esElComprador && puedePagar(compra) ? (
+        <View style={estilos.acciones}>
+          <Text style={tipografia.cuerpo}>Esta compra está pendiente de pago: las entradas quedan reservadas hasta que la pagues.</Text>
+          {errorDePagar ? <Text style={estilos.error}>{errorDePagar}</Text> : null}
+          <Boton titulo={`Pagar ${formatearPrecio(compra.total)}`} onPress={pedirConfirmacionDePago} cargando={pagando} />
+        </View>
+      ) : null}
 
       <View style={estilos.separado}>
         <Boton

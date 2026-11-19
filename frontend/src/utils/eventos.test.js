@@ -5,6 +5,8 @@ import {
   fechaInicialDeEvento,
   leerCupo,
   leerPrecio,
+  parametrosDePrecio,
+  RANGOS_DE_PRECIO,
   separarPorPeriodo,
   textoCupo,
 } from "./eventos";
@@ -20,6 +22,20 @@ const formulario = (cambios = {}) => ({
     { nombre: "VIP", precio: "40000,50", cupo: "20" },
   ],
   ...cambios,
+});
+
+describe("parametrosDePrecio", () => {
+  it("traduce cada chip al rango que se manda al backend", () => {
+    expect(parametrosDePrecio("cualquiera")).toEqual({ precioMin: undefined, precioMax: undefined });
+    expect(parametrosDePrecio("hasta5000")).toEqual({ precioMin: undefined, precioMax: 5000 });
+    expect(parametrosDePrecio("5000a10000")).toEqual({ precioMin: 5000, precioMax: 10000 });
+    expect(parametrosDePrecio("masDe10000")).toEqual({ precioMin: 10000, precioMax: undefined });
+  });
+
+  it("un valor desconocido no filtra, y el primer rango es 'Cualquiera'", () => {
+    expect(parametrosDePrecio("otro")).toEqual({ precioMin: undefined, precioMax: undefined });
+    expect(RANGOS_DE_PRECIO[0].valor).toBe("cualquiera");
+  });
 });
 
 describe("conFavorito", () => {
@@ -79,6 +95,14 @@ describe("errorDeEvento", () => {
     );
   });
 
+  it("la imagen es opcional, pero si se escribe tiene que ser una URL http(s)", () => {
+    expect(errorDeEvento(formulario({ imagen: "" }), AHORA)).toBeNull();
+    expect(errorDeEvento(formulario({ imagen: " https://example.com/foto.jpg " }), AHORA)).toBeNull();
+    for (const imagen of ["foto.jpg", "ftp://example.com/a.jpg", "https://", "https://ejemplo .com/a.jpg"]) {
+      expect(errorDeEvento(formulario({ imagen }), AHORA)).toMatch(/imagen/);
+    }
+  });
+
   it("no acepta dos tipos con el mismo nombre", () => {
     const tipos = [
       { nombre: "General", precio: "1", cupo: "1" },
@@ -102,6 +126,9 @@ describe("armarEventoParaEnviar y fechaInicialDeEvento", () => {
       ],
     });
     expect(armarEventoParaEnviar(formulario({ descripcion: " Bandas " })).descripcion).toBe("Bandas");
+    expect(armarEventoParaEnviar(formulario({ imagen: " https://example.com/a.jpg " })).multimedia).toEqual([
+      "https://example.com/a.jpg",
+    ]);
   });
 
   it("propone una semana después, a las 21:00", () => {
