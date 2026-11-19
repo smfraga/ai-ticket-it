@@ -13,9 +13,10 @@ export const PERIODOS = Object.freeze([
 ]);
 
 // Público: no necesita sesión. Los parámetros vacíos no se mandan (ver api.js).
-// Con `organizadorId` trae solo los eventos de ese organizador ("Mis eventos").
-export const listarEventos = ({ texto, categoriaId, organizadorId, orden, periodo } = {}) =>
-  api.get("/eventos", { texto, categoriaId, organizadorId, orden, periodo });
+// Con `organizadorId` trae solo los eventos de ese organizador ("Mis eventos"); `precioMin` y `precioMax` filtran
+// por precio (ver RANGOS_DE_PRECIO en utils/eventos.js).
+export const listarEventos = ({ texto, categoriaId, organizadorId, precioMin, precioMax, orden, periodo } = {}) =>
+  api.get("/eventos", { texto, categoriaId, organizadorId, precioMin, precioMax, orden, periodo });
 
 export const obtenerEvento = (id) => api.get(`/eventos/${id}`);
 

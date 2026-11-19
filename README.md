@@ -8,7 +8,7 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 
 **Comprador** (pestañas Eventos, Mis compras, Favoritos y Perfil):
 
-- Explorar el catálogo: búsqueda por texto, categorías, eventos próximos o ya realizados y orden por fecha, precio o puntaje del organizador.
+- Explorar el catálogo: búsqueda por texto, categorías, rango de precio, eventos próximos o ya realizados y orden por fecha, precio o puntaje del organizador.
 - Ver el detalle de un evento, con los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
 - Comprar eligiendo tipo de entrada y cantidad, sin superar el cupo (el pago está simulado: la compra se confirma en el momento).
 - Seguir sus compras: estado, días que faltan para el evento y el historial de cada cambio de estado.

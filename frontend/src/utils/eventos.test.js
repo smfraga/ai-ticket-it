@@ -5,6 +5,8 @@ import {
   fechaInicialDeEvento,
   leerCupo,
   leerPrecio,
+  parametrosDePrecio,
+  RANGOS_DE_PRECIO,
   separarPorPeriodo,
   textoCupo,
 } from "./eventos";
@@ -20,6 +22,20 @@ const formulario = (cambios = {}) => ({
     { nombre: "VIP", precio: "40000,50", cupo: "20" },
   ],
   ...cambios,
+});
+
+describe("parametrosDePrecio", () => {
+  it("traduce cada chip al rango que se manda al backend", () => {
+    expect(parametrosDePrecio("cualquiera")).toEqual({ precioMin: undefined, precioMax: undefined });
+    expect(parametrosDePrecio("hasta5000")).toEqual({ precioMin: undefined, precioMax: 5000 });
+    expect(parametrosDePrecio("5000a10000")).toEqual({ precioMin: 5000, precioMax: 10000 });
+    expect(parametrosDePrecio("masDe10000")).toEqual({ precioMin: 10000, precioMax: undefined });
+  });
+
+  it("un valor desconocido no filtra, y el primer rango es 'Cualquiera'", () => {
+    expect(parametrosDePrecio("otro")).toEqual({ precioMin: undefined, precioMax: undefined });
+    expect(RANGOS_DE_PRECIO[0].valor).toBe("cualquiera");
+  });
 });
 
 describe("conFavorito", () => {
