@@ -243,8 +243,5 @@ function compararEventos(orden, sentido, puntajes) {
   }[orden];
 
   // Desempate fijo (no depende del sentido): fecha y después nombre.
-  return (a, b) =>
-    porOrden(a, b) ||
-    a.fecha.getTime() - b.fecha.getTime() ||
-    a.nombre.localeCompare(b.nombre, "es");
+  return (a, b) => porOrden(a, b) || a.fecha.getTime() - b.fecha.getTime() || a.nombre.localeCompare(b.nombre, "es");
 }

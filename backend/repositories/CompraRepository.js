@@ -21,9 +21,7 @@ export class CompraRepository {
   }
 
   async findByCompradorId(compradorId) {
-    return [...this.compras.values()]
-      .filter((compra) => compra.comprador.id === compradorId)
-      .sort(masRecientesPrimero);
+    return [...this.compras.values()].filter((compra) => compra.comprador.id === compradorId).sort(masRecientesPrimero);
   }
 
   async findByEstado(estado) {
@@ -31,9 +29,7 @@ export class CompraRepository {
   }
 
   async findByEventoId(eventoId) {
-    return [...this.compras.values()]
-      .filter((compra) => compra.evento.id === eventoId)
-      .sort(masRecientesPrimero);
+    return [...this.compras.values()].filter((compra) => compra.evento.id === eventoId).sort(masRecientesPrimero);
   }
 }
 

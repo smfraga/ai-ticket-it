@@ -15,7 +15,9 @@ describe("textoDeConfirmacionDeCancelacionDeEvento", () => {
   const compras = (...estados) => estados.map((estado) => compra(estado));
 
   it("cuenta las confirmadas que se reembolsan y las pendientes que se cancelan", () => {
-    expect(textoDeConfirmacionDeCancelacionDeEvento(compras("CONFIRMADA", "CONFIRMADA", "PENDIENTE", "CANCELADA"))).toBe(
+    expect(
+      textoDeConfirmacionDeCancelacionDeEvento(compras("CONFIRMADA", "CONFIRMADA", "PENDIENTE", "CANCELADA")),
+    ).toBe(
       "El evento sale del catálogo: se reembolsan 2 compras confirmadas, se cancela 1 compra pendiente " +
         "y cada comprador recibe un aviso en el chat. No se puede deshacer.",
     );

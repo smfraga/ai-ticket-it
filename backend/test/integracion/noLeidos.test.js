@@ -46,8 +46,11 @@ describe("Mensajes no leídos (API completa)", () => {
           tiposEntrada: [{ nombre: "General", precio: 1000, cupo: 10 }],
         })
     ).body;
-    compra = (await como(carla).post(`/eventos/${evento.id}/compras`).send({ tipoEntradaId: evento.tiposEntrada[0].id, cantidad: 1 }))
-      .body;
+    compra = (
+      await como(carla)
+        .post(`/eventos/${evento.id}/compras`)
+        .send({ tipoEntradaId: evento.tiposEntrada[0].id, cantidad: 1 })
+    ).body;
   });
 
   it("una compra nueva no tiene mensajes nuevos para nadie", async () => {

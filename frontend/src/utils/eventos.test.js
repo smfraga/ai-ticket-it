@@ -165,7 +165,10 @@ describe("separarPorPeriodo", () => {
   });
 
   it("no modifica la lista recibida", () => {
-    const eventos = [{ id: "a", yaPaso: true }, { id: "b", yaPaso: true }];
+    const eventos = [
+      { id: "a", yaPaso: true },
+      { id: "b", yaPaso: true },
+    ];
     separarPorPeriodo(eventos);
     expect(eventos.map((e) => e.id)).toEqual(["a", "b"]);
   });

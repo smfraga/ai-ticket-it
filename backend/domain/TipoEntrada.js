@@ -19,12 +19,12 @@ function validarDatos(nombre, precio, cupo) {
 }
 
 export class TipoEntrada {
-  id
-  nombre
-  descripcion
-  precio
-  cupo
-  vendidas
+  id;
+  nombre;
+  descripcion;
+  precio;
+  cupo;
+  vendidas;
 
   constructor(nombre, descripcion, precio, cupo) {
     validarDatos(nombre, precio, cupo);
@@ -49,9 +49,7 @@ export class TipoEntrada {
       throw new ConflictError(`No se puede cambiar el precio de ${this.nombre}: ya tiene entradas vendidas`);
     }
     if (cupo < this.vendidas) {
-      throw new ConflictError(
-        `El cupo de ${this.nombre} no puede ser menor a las ${this.vendidas} entradas vendidas`,
-      );
+      throw new ConflictError(`El cupo de ${this.nombre} no puede ser menor a las ${this.vendidas} entradas vendidas`);
     }
   }
 
@@ -75,9 +73,7 @@ export class TipoEntrada {
   reservar(cantidad) {
     validarCantidad(cantidad);
     if (!this.hayCupoPara(cantidad)) {
-      throw new ConflictError(
-        `No hay cupo suficiente para ${this.nombre}: quedan ${this.disponibles()} entradas`,
-      );
+      throw new ConflictError(`No hay cupo suficiente para ${this.nombre}: quedan ${this.disponibles()} entradas`);
     }
     this.vendidas += cantidad;
   }

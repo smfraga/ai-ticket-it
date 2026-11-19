@@ -17,25 +17,19 @@ const router = express.Router();
 router
   .route("/")
   .get((req, res, next) => eventoController.getAll(req, res, next))
-  .post(autenticar, validate(crearEventoValidation), (req, res, next) =>
-    eventoController.create(req, res, next),
-  );
+  .post(autenticar, validate(crearEventoValidation), (req, res, next) => eventoController.create(req, res, next));
 
 router
   .route("/:id")
   .get((req, res, next) => eventoController.getById(req, res, next))
-  .patch(autenticar, validate(editarEventoValidation), (req, res, next) =>
-    eventoController.update(req, res, next),
-  );
+  .patch(autenticar, validate(editarEventoValidation), (req, res, next) => eventoController.update(req, res, next));
 
 router.post("/:id/cancelar", autenticar, (req, res, next) => eventoController.cancelar(req, res, next));
 
 router
   .route("/:id/compras")
   .get(autenticar, (req, res, next) => compraController.getDeEvento(req, res, next))
-  .post(autenticar, validate(comprarValidation), (req, res, next) =>
-    compraController.comprar(req, res, next),
-  );
+  .post(autenticar, validate(comprarValidation), (req, res, next) => compraController.comprar(req, res, next));
 
 router
   .route("/:id/favorito")

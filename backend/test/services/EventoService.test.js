@@ -1,11 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { rolUsuario } from "../../domain/RolUsuario.js";
-import {
-  ForbiddenError,
-  NotFoundError,
-  UnauthorizedError,
-  ValidationError,
-} from "../../errors/AppError.js";
+import { ForbiddenError, NotFoundError, UnauthorizedError, ValidationError } from "../../errors/AppError.js";
 import { EventoService } from "../../services/EventoService.js";
 import {
   AHORA,
@@ -149,9 +144,7 @@ describe("EventoService", () => {
     it("lanza NotFoundError si la categoría no existe, sin guardar nada", async () => {
       categoriaRepository.findById.mockResolvedValue(null);
 
-      await expect(service.crear("olivia", datos({ categoriaId: "c-inexistente" }))).rejects.toThrow(
-        NotFoundError,
-      );
+      await expect(service.crear("olivia", datos({ categoriaId: "c-inexistente" }))).rejects.toThrow(NotFoundError);
       expect(categoriaRepository.findById).toHaveBeenCalledWith("c-inexistente");
       expect(eventoRepository.save).not.toHaveBeenCalled();
     });
@@ -167,9 +160,7 @@ describe("EventoService", () => {
     });
 
     it("acepta una fecha apenas posterior a ahora", async () => {
-      await expect(
-        service.crear("olivia", datos({ fecha: new Date(AHORA.getTime() + 1) })),
-      ).resolves.toBeDefined();
+      await expect(service.crear("olivia", datos({ fecha: new Date(AHORA.getTime() + 1) }))).resolves.toBeDefined();
     });
 
     it("propaga el error del dominio si los datos no son válidos, sin guardar nada", async () => {
@@ -211,7 +202,10 @@ describe("EventoService", () => {
       categoria: rock,
       dias: 10,
       organizador: olivia,
-      tipos: [["General", 10000], ["VIP", 30000]],
+      tipos: [
+        ["General", 10000],
+        ["VIP", 30000],
+      ],
     });
     const e2 = evento("e2", {
       nombre: "Obra de teatro Ñoño",
@@ -389,8 +383,22 @@ describe("EventoService", () => {
       });
 
       it("con el mismo precio y la misma fecha desempata por nombre", async () => {
-        const a = evento("a", { nombre: "Árbol", descripcion: "", categoria: rock, dias: 7, organizador: olivia, tipos: [["G", 100]] });
-        const b = evento("b", { nombre: "Bosque", descripcion: "", categoria: rock, dias: 7, organizador: olivia, tipos: [["G", 100]] });
+        const a = evento("a", {
+          nombre: "Árbol",
+          descripcion: "",
+          categoria: rock,
+          dias: 7,
+          organizador: olivia,
+          tipos: [["G", 100]],
+        });
+        const b = evento("b", {
+          nombre: "Bosque",
+          descripcion: "",
+          categoria: rock,
+          dias: 7,
+          organizador: olivia,
+          tipos: [["G", 100]],
+        });
         eventoRepository.findAll.mockResolvedValue([b, a]);
 
         expect(ids(await service.buscar({ orden: "precio" }))).toEqual(["a", "b"]);
@@ -443,8 +451,22 @@ describe("EventoService", () => {
         yaPaso: false,
         cancelado: false,
         tiposEntrada: [
-          { id: "e1-tipo-0", nombre: "General", descripcion: "Entrada de prueba", precio: 10000, cupo: 100, disponibles: 96 },
-          { id: "e1-tipo-1", nombre: "VIP", descripcion: "Entrada de prueba", precio: 30000, cupo: 100, disponibles: 100 },
+          {
+            id: "e1-tipo-0",
+            nombre: "General",
+            descripcion: "Entrada de prueba",
+            precio: 10000,
+            cupo: 100,
+            disponibles: 96,
+          },
+          {
+            id: "e1-tipo-1",
+            nombre: "VIP",
+            descripcion: "Entrada de prueba",
+            precio: 30000,
+            cupo: 100,
+            disponibles: 100,
+          },
         ],
       });
       e1.tiposEntrada[0].liberar(4);

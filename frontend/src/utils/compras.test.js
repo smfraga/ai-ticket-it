@@ -127,6 +127,12 @@ describe("textoEntradas y estados", () => {
   });
 
   it("tiene una etiqueta para cada estado del backend", () => {
-    expect(Object.keys(ETIQUETAS_DE_ESTADO)).toEqual(["PENDIENTE", "CONFIRMADA", "UTILIZADA", "CANCELADA", "REEMBOLSADA"]);
+    expect(Object.keys(ETIQUETAS_DE_ESTADO)).toEqual([
+      "PENDIENTE",
+      "CONFIRMADA",
+      "UTILIZADA",
+      "CANCELADA",
+      "REEMBOLSADA",
+    ]);
   });
 });

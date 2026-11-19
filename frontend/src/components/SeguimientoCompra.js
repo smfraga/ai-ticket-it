@@ -35,7 +35,13 @@ const TAMANIO_PUNTO = 12;
 const estilos = StyleSheet.create({
   fila: { flexDirection: "row", gap: espacio.m },
   guia: { alignItems: "center", width: TAMANIO_PUNTO },
-  punto: { width: TAMANIO_PUNTO, height: TAMANIO_PUNTO, borderRadius: TAMANIO_PUNTO / 2, backgroundColor: colores.borde, marginTop: 5 },
+  punto: {
+    width: TAMANIO_PUNTO,
+    height: TAMANIO_PUNTO,
+    borderRadius: TAMANIO_PUNTO / 2,
+    backgroundColor: colores.borde,
+    marginTop: 5,
+  },
   puntoActual: { backgroundColor: colores.primario },
   linea: { flex: 1, width: 2, backgroundColor: colores.borde, marginVertical: 2 },
   texto: { flex: 1, paddingBottom: espacio.m },

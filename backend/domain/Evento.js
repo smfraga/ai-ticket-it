@@ -3,15 +3,15 @@ import { rolUsuario } from "./RolUsuario.js";
 import { TipoEntrada } from "./TipoEntrada.js";
 
 export class Evento {
-  id
-  nombre
-  descripcion
-  categoria
-  fecha
-  organizador
-  tiposEntrada
-  multimedia
-  cancelado
+  id;
+  nombre;
+  descripcion;
+  categoria;
+  fecha;
+  organizador;
+  tiposEntrada;
+  multimedia;
+  cancelado;
 
   constructor(nombre, descripcion, categoria, fecha, organizador, tiposEntrada, multimedia = []) {
     validarNombre(nombre);

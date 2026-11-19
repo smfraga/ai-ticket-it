@@ -70,9 +70,9 @@ describe("autenticar", () => {
       "le cambiaron el payload",
       () => {
         const [header, , firma] = firmar().split(".");
-        const payloadFalso = Buffer.from(
-          JSON.stringify({ roles: ["ORGANIZADOR"], sub: "otro-usuario" }),
-        ).toString("base64url");
+        const payloadFalso = Buffer.from(JSON.stringify({ roles: ["ORGANIZADOR"], sub: "otro-usuario" })).toString(
+          "base64url",
+        );
         return `${header}.${payloadFalso}.${firma}`;
       },
     ],

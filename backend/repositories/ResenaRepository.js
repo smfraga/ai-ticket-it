@@ -28,9 +28,7 @@ export class ResenaRepository {
   }
 
   async findByEventoId(eventoId) {
-    return [...this.resenias.values()]
-      .filter((resenia) => resenia.evento.id === eventoId)
-      .sort(masRecientesPrimero);
+    return [...this.resenias.values()].filter((resenia) => resenia.evento.id === eventoId).sort(masRecientesPrimero);
   }
 
   // Una compra tiene a lo sumo una reseña: devuelve esa reseña o null.

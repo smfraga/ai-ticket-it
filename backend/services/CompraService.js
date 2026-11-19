@@ -95,9 +95,7 @@ export class CompraService {
 
   // El organizador del evento la marca como utilizada, por ejemplo al dejar entrar al comprador.
   async utilizar(usuarioId, compraId) {
-    return this.cambiarEstado(usuarioId, compraId, (compra, usuario, ahora) =>
-      compra.marcarUtilizada(usuario, ahora),
-    );
+    return this.cambiarEstado(usuarioId, compraId, (compra, usuario, ahora) => compra.marcarUtilizada(usuario, ahora));
   }
 
   // Las reglas (quién puede, desde qué estado, cupo) las decide el dominio; acá solo se busca y se guarda.

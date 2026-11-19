@@ -60,8 +60,16 @@ describe("Compra", () => {
 
     it.each([
       ["el comprador", (e) => new Compra(null, e, e.tiposEntrada[0], 1, AHORA), "La compra debe tener un comprador"],
-      ["el evento", (e) => new Compra(crearComprador(), null, e.tiposEntrada[0], 1, AHORA), "La compra debe ser de un evento"],
-      ["el tipo de entrada", (e) => new Compra(crearComprador(), e, null, 1, AHORA), "La compra debe tener un tipo de entrada"],
+      [
+        "el evento",
+        (e) => new Compra(crearComprador(), null, e.tiposEntrada[0], 1, AHORA),
+        "La compra debe ser de un evento",
+      ],
+      [
+        "el tipo de entrada",
+        (e) => new Compra(crearComprador(), e, null, 1, AHORA),
+        "La compra debe tener un tipo de entrada",
+      ],
     ])("lanza ValidationError si falta %s", (_, construir, mensaje) => {
       const evento = crearEvento();
 
@@ -77,9 +85,7 @@ describe("Compra", () => {
     ])("lanza ValidationError con cantidad %s, y no reserva", (_, cantidad) => {
       const evento = crearEvento();
 
-      expect(() => crearCompra({ evento, cantidad })).toThrow(
-        "La cantidad debe ser un número entero positivo",
-      );
+      expect(() => crearCompra({ evento, cantidad })).toThrow("La cantidad debe ser un número entero positivo");
       expect(evento.tiposEntrada[0].vendidas).toBe(0);
     });
 
@@ -128,9 +134,7 @@ describe("Compra", () => {
       const evento = crearEvento({ fecha: enDias(-1) });
 
       expect(() => crearCompra({ evento })).toThrow(ConflictError);
-      expect(() => crearCompra({ evento })).toThrow(
-        "No se pueden comprar entradas de un evento que ya se realizó",
-      );
+      expect(() => crearCompra({ evento })).toThrow("No se pueden comprar entradas de un evento que ya se realizó");
       expect(evento.tiposEntrada[0].vendidas).toBe(0);
     });
   });
@@ -160,25 +164,20 @@ describe("Compra", () => {
       [REEMBOLSADA]: [],
     };
     const estados = Object.values(estadoCompra);
-    const pares = estados.flatMap((desde) =>
-      estados.map((hacia) => [desde, hacia, permitidas[desde].includes(hacia)]),
-    );
+    const pares = estados.flatMap((desde) => estados.map((hacia) => [desde, hacia, permitidas[desde].includes(hacia)]));
 
-    it.each(pares.filter(([, , valida]) => valida))(
-      "permite pasar de %s a %s y registra el cambio",
-      (desde, hacia) => {
-        const compra = crearCompraEn(desde);
-        const quien = compra.evento.organizador;
-        const cuando = enDias(1);
+    it.each(pares.filter(([, , valida]) => valida))("permite pasar de %s a %s y registra el cambio", (desde, hacia) => {
+      const compra = crearCompraEn(desde);
+      const quien = compra.evento.organizador;
+      const cuando = enDias(1);
 
-        expect(compra.puedePasarA(hacia)).toBe(true);
+      expect(compra.puedePasarA(hacia)).toBe(true);
 
-        compra.actualizarEstado(hacia, quien, cuando);
+      compra.actualizarEstado(hacia, quien, cuando);
 
-        expect(compra.estado).toBe(hacia);
-        expect(compra.historial.at(-1)).toMatchObject({ estado: hacia, quien, fechaHora: cuando });
-      },
-    );
+      expect(compra.estado).toBe(hacia);
+      expect(compra.historial.at(-1)).toMatchObject({ estado: hacia, quien, fechaHora: cuando });
+    });
 
     it.each(pares.filter(([, , valida]) => !valida))(
       "no permite pasar de %s a %s (ConflictError, sin cambios)",
@@ -250,21 +249,14 @@ describe("Compra", () => {
       compra.cancelar(compra.comprador, AHORA);
 
       expect(compra.estado).toBe(REEMBOLSADA);
-      expect(compra.historial.map((cambio) => cambio.estado)).toEqual([
-        PENDIENTE,
-        CONFIRMADA,
-        CANCELADA,
-        REEMBOLSADA,
-      ]);
+      expect(compra.historial.map((cambio) => cambio.estado)).toEqual([PENDIENTE, CONFIRMADA, CANCELADA, REEMBOLSADA]);
       expect(compra.tipoEntrada.vendidas).toBe(0);
     });
 
     it("lanza ConflictError si la compra está UTILIZADA", () => {
       const compra = crearCompraEn(UTILIZADA);
 
-      expect(() => compra.cancelar(compra.comprador, AHORA)).toThrow(
-        "No se puede cancelar una compra utilizada",
-      );
+      expect(() => compra.cancelar(compra.comprador, AHORA)).toThrow("No se puede cancelar una compra utilizada");
       expect(compra.estado).toBe(UTILIZADA);
     });
 
@@ -290,9 +282,7 @@ describe("Compra", () => {
       const compra = crearCompraEn(CONFIRMADA);
 
       expect(() => compra.cancelar(compra.evento.organizador, AHORA)).toThrow(ForbiddenError);
-      expect(() => compra.cancelar(crearComprador(), AHORA)).toThrow(
-        "Solo el comprador puede cancelar la compra",
-      );
+      expect(() => compra.cancelar(crearComprador(), AHORA)).toThrow("Solo el comprador puede cancelar la compra");
       expect(compra.estado).toBe(CONFIRMADA);
     });
   });
@@ -463,9 +453,7 @@ describe("Compra", () => {
       const compra = crearCompra();
 
       expect(() => compra.agregarMensaje(compra.comprador, "   ")).toThrow(ValidationError);
-      expect(() => compra.agregarMensaje(compra.comprador, "   ")).toThrow(
-        "El mensaje no puede estar vacío",
-      );
+      expect(() => compra.agregarMensaje(compra.comprador, "   ")).toThrow("El mensaje no puede estar vacío");
       expect(compra.mensajes).toHaveLength(0);
     });
   });

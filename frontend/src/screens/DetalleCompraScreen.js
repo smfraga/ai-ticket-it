@@ -186,10 +186,16 @@ export default function DetalleCompraScreen({ route, navigation }) {
 
       {esElComprador && puedePagar(compra) ? (
         <View style={estilos.acciones}>
-          <Text style={tipografia.cuerpo}>Esta compra está pendiente de pago: las entradas quedan reservadas hasta que la pagues.</Text>
+          <Text style={tipografia.cuerpo}>
+            Esta compra está pendiente de pago: las entradas quedan reservadas hasta que la pagues.
+          </Text>
           {plazoDePago ? <Text style={estilos.plazo}>{plazoDePago}</Text> : null}
           {errorDePagar ? <Text style={estilos.error}>{errorDePagar}</Text> : null}
-          <Boton titulo={`Pagar ${formatearPrecio(compra.total)}`} onPress={pedirConfirmacionDePago} cargando={pagando} />
+          <Boton
+            titulo={`Pagar ${formatearPrecio(compra.total)}`}
+            onPress={pedirConfirmacionDePago}
+            cargando={pagando}
+          />
         </View>
       ) : null}
 

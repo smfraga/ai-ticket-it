@@ -150,9 +150,7 @@ describe("Usuario", () => {
       const evento = eventoCon("e1");
 
       expect(() => organizador.agregarFavorito(evento)).toThrow(ForbiddenError);
-      expect(() => organizador.agregarFavorito(evento)).toThrow(
-        "Solo un comprador puede guardar eventos favoritos",
-      );
+      expect(() => organizador.agregarFavorito(evento)).toThrow("Solo un comprador puede guardar eventos favoritos");
       expect(() => organizador.quitarFavorito(evento)).toThrow(ForbiddenError);
       expect(() => organizador.listarFavoritos()).toThrow(ForbiddenError);
       expect(organizador.favoritos).toEqual([]);
@@ -168,9 +166,7 @@ describe("Usuario", () => {
       const comprador = usuarioCon();
 
       expect(() => comprador.agregarFavorito(null)).toThrow(ValidationError);
-      expect(() => comprador.agregarFavorito(undefined)).toThrow(
-        "Hay que indicar el evento a guardar como favorito",
-      );
+      expect(() => comprador.agregarFavorito(undefined)).toThrow("Hay que indicar el evento a guardar como favorito");
       expect(comprador.favoritos).toEqual([]);
     });
   });

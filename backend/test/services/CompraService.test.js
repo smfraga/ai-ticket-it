@@ -75,10 +75,7 @@ describe("CompraService", () => {
         evento: { id: "evento-1" },
         tipoEntrada: { id: "t-general", cupoRestante: 3 },
       });
-      expect(respuesta.historial.map((c) => c.estado)).toEqual([
-        estadoCompra.PENDIENTE,
-        estadoCompra.CONFIRMADA,
-      ]);
+      expect(respuesta.historial.map((c) => c.estado)).toEqual([estadoCompra.PENDIENTE, estadoCompra.CONFIRMADA]);
       expect(general.disponibles()).toBe(3);
       expect(compraRepository.save).toHaveBeenCalledTimes(1);
     });
@@ -358,9 +355,7 @@ describe("CompraService", () => {
       });
 
       it("401 si el usuario del token ya no existe", async () => {
-        await expect(service.enviarMensaje("fantasma", "c1", "Hola")).rejects.toBeInstanceOf(
-          UnauthorizedError,
-        );
+        await expect(service.enviarMensaje("fantasma", "c1", "Hola")).rejects.toBeInstanceOf(UnauthorizedError);
       });
     });
 

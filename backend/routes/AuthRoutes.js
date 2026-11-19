@@ -20,8 +20,6 @@ router
 
 router
   .route("/login")
-  .post(limitarLoginsFallidos, validate(loginValidation), (req, res, next) =>
-    authController.login(req, res, next),
-  );
+  .post(limitarLoginsFallidos, validate(loginValidation), (req, res, next) => authController.login(req, res, next));
 
 export default router;

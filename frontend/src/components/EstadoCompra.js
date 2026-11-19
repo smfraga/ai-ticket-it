@@ -22,6 +22,11 @@ export default function EstadoCompra({ estado }) {
 }
 
 const estilos = StyleSheet.create({
-  etiqueta: { alignSelf: "flex-start", paddingHorizontal: espacio.m, paddingVertical: espacio.xs, borderRadius: radio.pastilla },
+  etiqueta: {
+    alignSelf: "flex-start",
+    paddingHorizontal: espacio.m,
+    paddingVertical: espacio.xs,
+    borderRadius: radio.pastilla,
+  },
   texto: { fontSize: 13, fontWeight: "700" },
 });

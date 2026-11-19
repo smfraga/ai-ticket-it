@@ -1,9 +1,9 @@
 import { ValidationError } from "../errors/AppError.js";
 
 export class Mensaje {
-  usuario
-  mensaje
-  enviado
+  usuario;
+  mensaje;
+  enviado;
 
   constructor(usuario, mensaje, enviado = new Date()) {
     if (!usuario) {

@@ -99,7 +99,8 @@ export default {
       get: conToken({
         tags: ["Chat"],
         summary: "Leer el chat",
-        description: "Solo el comprador y el organizador. Del más viejo al más nuevo. Marca el chat como leído para quien lo pide.",
+        description:
+          "Solo el comprador y el organizador. Del más viejo al más nuevo. Marca el chat como leído para quien lo pide.",
         parameters: [compraId],
         responses: {
           200: ok("Los mensajes", lista("Mensaje")),
@@ -151,13 +152,20 @@ export default {
         estado: ref("EstadoCompra"),
         cantidad: { type: "integer" },
         total: { type: "number" },
-        diasRestantes: { type: "integer", nullable: true, description: "Solo CONFIRMADA de un evento próximo (0 = hoy)" },
+        diasRestantes: {
+          type: "integer",
+          nullable: true,
+          description: "Solo CONFIRMADA de un evento próximo (0 = hoy)",
+        },
         fechaLimiteDePago: {
           ...fecha,
           nullable: true,
           description: "Solo PENDIENTE: 7 días desde la compra o el inicio del evento, lo que llegue primero",
         },
-        mensajesNoLeidos: { type: "integer", description: "Mensajes de la otra parte después de la última lectura de quien pide" },
+        mensajesNoLeidos: {
+          type: "integer",
+          description: "Mensajes de la otra parte después de la última lectura de quien pide",
+        },
         fecha: { ...fecha, description: "Cuándo se hizo la compra" },
         evento: {
           type: "object",
@@ -236,7 +244,9 @@ export default {
       type: "object",
       required: ["mensaje"],
       additionalProperties: false,
-      properties: { mensaje: { type: "string", minLength: 1, maxLength: 500, example: "¿A qué hora abren las puertas?" } },
+      properties: {
+        mensaje: { type: "string", minLength: 1, maxLength: 500, example: "¿A qué hora abren las puertas?" },
+      },
     },
     Mensaje: {
       type: "object",

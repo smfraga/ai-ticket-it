@@ -53,7 +53,9 @@ export const textoPlazoDePagoCorto = (compra) =>
 // Quién hizo un cambio de estado. "sistema" es la plataforma: hoy solo cancela compras por el plazo de pago vencido.
 export const ID_USUARIO_SISTEMA = "sistema";
 export const textoQuien = (quien) =>
-  quien.id === ID_USUARIO_SISTEMA ? "AI Ticket It (venció el plazo de pago)" : `${quien.nombre} ${quien.apellido}`.trim();
+  quien.id === ID_USUARIO_SISTEMA
+    ? "AI Ticket It (venció el plazo de pago)"
+    : `${quien.nombre} ${quien.apellido}`.trim();
 
 export const textoDeConfirmacionDePago = (totalFormateado) =>
   `Pago simulado: se confirma la compra por ${totalFormateado}. Después vas a poder cancelarla con reembolso hasta el día del evento.`;
@@ -76,7 +78,13 @@ export const puedeReseniar = (compra) => compra.estado === "UTILIZADA" && !compr
 
 export const PUNTUACION_MINIMA = 1;
 export const PUNTUACION_MAXIMA = 5;
-export const ETIQUETAS_DE_PUNTUACION = Object.freeze({ 1: "Mala", 2: "Regular", 3: "Buena", 4: "Muy buena", 5: "Excelente" });
+export const ETIQUETAS_DE_PUNTUACION = Object.freeze({
+  1: "Mala",
+  2: "Regular",
+  3: "Buena",
+  4: "Muy buena",
+  5: "Excelente",
+});
 
 // Qué falta completar en el formulario de reseña, o null si se puede enviar.
 export const errorDeResenia = ({ puntuacion, detalle }) => {
@@ -119,7 +127,9 @@ export const textoDeConfirmacionDeCancelacionDeEvento = (compras) => {
   const pendientes = compras.filter((compra) => compra.estado === "PENDIENTE").length;
   const partes = [];
   if (confirmadas > 0) {
-    partes.push(confirmadas === 1 ? "se reembolsa 1 compra confirmada" : `se reembolsan ${confirmadas} compras confirmadas`);
+    partes.push(
+      confirmadas === 1 ? "se reembolsa 1 compra confirmada" : `se reembolsan ${confirmadas} compras confirmadas`,
+    );
   }
   if (pendientes > 0) {
     partes.push(pendientes === 1 ? "se cancela 1 compra pendiente" : `se cancelan ${pendientes} compras pendientes`);

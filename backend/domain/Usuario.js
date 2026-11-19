@@ -11,13 +11,13 @@ function mismoEvento(uno, otro) {
 }
 
 export class Usuario {
-  id
-  nombre
-  apellido
-  email
-  passwordHash
-  roles
-  favoritos
+  id;
+  nombre;
+  apellido;
+  email;
+  passwordHash;
+  roles;
+  favoritos;
 
   constructor(nombre, apellido, email, passwordHash, roles) {
     if (typeof nombre !== "string" || !nombre.trim()) {
@@ -40,9 +40,7 @@ export class Usuario {
       throw new ValidationError("El usuario debe tener al menos un rol");
     }
     if (roles.some((rol) => !Object.values(rolUsuario).includes(rol))) {
-      throw new ValidationError(
-        `El rol del usuario debe ser ${Object.values(rolUsuario).join(" u ")}`,
-      );
+      throw new ValidationError(`El rol del usuario debe ser ${Object.values(rolUsuario).join(" u ")}`);
     }
     if (new Set(roles).size !== roles.length) {
       throw new ValidationError("El usuario no puede tener roles repetidos");

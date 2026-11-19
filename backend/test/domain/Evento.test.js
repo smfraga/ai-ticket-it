@@ -80,9 +80,7 @@ describe("Evento", () => {
     const organizador = crearUsuario({ roles: [rolUsuario.COMPRADOR] });
 
     expect(() => eventoCon({ organizador })).toThrow(ForbiddenError);
-    expect(() => eventoCon({ organizador })).toThrow(
-      "Solo un usuario organizador puede crear eventos",
-    );
+    expect(() => eventoCon({ organizador })).toThrow("Solo un usuario organizador puede crear eventos");
   });
 
   describe("tuPrecioEstaEntre (General $10000, VIP $25000)", () => {
@@ -103,9 +101,7 @@ describe("Evento", () => {
       ["el mínimo no es número", "0", 10000],
       ["el máximo no es número", 0, undefined],
     ])("lanza ValidationError si %s", (_, min, max) => {
-      expect(() => crearEvento().tuPrecioEstaEntre(min, max)).toThrow(
-        "El rango de precios no es válido",
-      );
+      expect(() => crearEvento().tuPrecioEstaEntre(min, max)).toThrow("El rango de precios no es válido");
     });
   });
 

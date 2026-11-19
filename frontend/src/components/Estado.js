@@ -7,8 +7,12 @@ export default function Estado({ tipo, mensaje, onReintentar }) {
   return (
     <View style={estilos.contenedor}>
       {tipo === "cargando" ? <ActivityIndicator size="large" color={colores.primario} /> : null}
-      {mensaje ? <Text style={[tipografia.cuerpo, estilos.mensaje, tipo === "error" && estilos.mensajeError]}>{mensaje}</Text> : null}
-      {tipo === "error" && onReintentar ? <Boton titulo="Reintentar" variante="secundario" onPress={onReintentar} /> : null}
+      {mensaje ? (
+        <Text style={[tipografia.cuerpo, estilos.mensaje, tipo === "error" && estilos.mensajeError]}>{mensaje}</Text>
+      ) : null}
+      {tipo === "error" && onReintentar ? (
+        <Boton titulo="Reintentar" variante="secundario" onPress={onReintentar} />
+      ) : null}
     </View>
   );
 }

@@ -65,7 +65,10 @@ describe("PATCH /eventos/:id (API completa)", () => {
     const respuesta = await editar({
       nombre: "Rock acústico",
       categoriaId: teatro.id,
-      tiposEntrada: [{ ...vip, cupo: 30 }, { nombre: "Platea", precio: 25000, cupo: 50 }],
+      tiposEntrada: [
+        { ...vip, cupo: 30 },
+        { nombre: "Platea", precio: 25000, cupo: 50 },
+      ],
     });
 
     expect(respuesta.status).toBe(200);
@@ -91,9 +94,8 @@ describe("PATCH /eventos/:id (API completa)", () => {
       (c) => c.evento.id === evento.id,
     );
     expect(compra.evento.fecha).toBe(nuevaFecha.toISOString());
-    const mensajes = (
-      await request(app).get(`/compras/${compra.id}/mensajes`).set("Authorization", `Bearer ${carla}`)
-    ).body;
+    const mensajes = (await request(app).get(`/compras/${compra.id}/mensajes`).set("Authorization", `Bearer ${carla}`))
+      .body;
     expect(mensajes).toHaveLength(1);
     expect(mensajes[0]).toMatchObject({ autor: { rol: "ORGANIZADOR" } });
     expect(mensajes[0].mensaje).toMatch(/^Cambiamos la fecha del evento: era el .+ y ahora es el .+\.$/);

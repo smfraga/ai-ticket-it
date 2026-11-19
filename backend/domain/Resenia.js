@@ -5,13 +5,13 @@ export const PUNTUACION_MAXIMA = 5;
 
 // "Una reseña por compra" se controla en el service, porque necesita el repositorio.
 export class Resenia {
-  id
-  compra
-  comprador
-  evento
-  puntuacion
-  detalle
-  fecha
+  id;
+  compra;
+  comprador;
+  evento;
+  puntuacion;
+  detalle;
+  fecha;
 
   constructor(compra, autor, puntuacion, detalle, fecha = new Date()) {
     if (!compra) {
@@ -23,11 +23,7 @@ export class Resenia {
     if (!compra.estaUtilizada()) {
       throw new ConflictError("Solo se puede reseñar una compra utilizada");
     }
-    if (
-      !Number.isInteger(puntuacion) ||
-      puntuacion < PUNTUACION_MINIMA ||
-      puntuacion > PUNTUACION_MAXIMA
-    ) {
+    if (!Number.isInteger(puntuacion) || puntuacion < PUNTUACION_MINIMA || puntuacion > PUNTUACION_MAXIMA) {
       throw new ValidationError(
         `La puntuación debe ser un número entero entre ${PUNTUACION_MINIMA} y ${PUNTUACION_MAXIMA}`,
       );

@@ -3,7 +3,9 @@ import { conToken, error, idPath, lista, ok, ref, sinCuerpo } from "./comun.js";
 const eventoId = idPath("Id del evento");
 
 export default {
-  tags: [{ name: "Favoritos", description: "Eventos guardados por un comprador (las tres rutas exigen rol COMPRADOR)" }],
+  tags: [
+    { name: "Favoritos", description: "Eventos guardados por un comprador (las tres rutas exigen rol COMPRADOR)" },
+  ],
   paths: {
     "/eventos/{id}/favorito": {
       post: conToken({
@@ -36,7 +38,8 @@ export default {
       get: conToken({
         tags: ["Favoritos"],
         summary: "Mis favoritos",
-        description: "El último guardado primero, con el formato del catálogo (incluye eventos ya realizados o cancelados).",
+        description:
+          "El último guardado primero, con el formato del catálogo (incluye eventos ya realizados o cancelados).",
         responses: { 200: ok("Los eventos guardados", lista("Evento")), 403: error("Forbidden") },
       }),
     },

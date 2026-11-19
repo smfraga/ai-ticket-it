@@ -187,9 +187,9 @@ describe("Evento.editar", () => {
       evento.editar({ tiposEntrada: [{ ...tipos[0], nombre: "Campo", cupo: 150 }, tipos[1]] }, olivia, AHORA);
       expect(general).toMatchObject({ nombre: "Campo", cupo: 150, vendidas: 5 });
 
-      expect(() =>
-        evento.editar({ tiposEntrada: [{ ...tipos[0], precio: 1 }, tipos[1]] }, olivia, AHORA),
-      ).toThrow(new ConflictError("No se puede cambiar el precio de Campo: ya tiene entradas vendidas"));
+      expect(() => evento.editar({ tiposEntrada: [{ ...tipos[0], precio: 1 }, tipos[1]] }, olivia, AHORA)).toThrow(
+        new ConflictError("No se puede cambiar el precio de Campo: ya tiene entradas vendidas"),
+      );
     });
 
     it("no baja el cupo de un tipo por debajo de lo vendido (409)", () => {
@@ -197,9 +197,9 @@ describe("Evento.editar", () => {
       crearCompra({ evento, tipoEntrada: vip, cantidad: 3 });
       const tipos = tiposActuales(evento);
 
-      expect(() =>
-        evento.editar({ tiposEntrada: [tipos[0], { ...tipos[1], cupo: 2 }] }, olivia, AHORA),
-      ).toThrow(new ConflictError("El cupo de VIP no puede ser menor a las 3 entradas vendidas"));
+      expect(() => evento.editar({ tiposEntrada: [tipos[0], { ...tipos[1], cupo: 2 }] }, olivia, AHORA)).toThrow(
+        new ConflictError("El cupo de VIP no puede ser menor a las 3 entradas vendidas"),
+      );
     });
 
     it("no quita un tipo con ventas (409)", () => {
@@ -231,18 +231,18 @@ describe("Evento.editar", () => {
       expect(() => evento.editar({ tiposEntrada: [{ ...general, id: "otro" }] }, olivia, AHORA)).toThrow(
         new ValidationError("El tipo de entrada no pertenece al evento"),
       );
-      expect(() =>
-        evento.editar({ tiposEntrada: [general, { ...general, nombre: "Otro" }] }, olivia, AHORA),
-      ).toThrow(new ValidationError("El tipo de entrada no pertenece al evento"));
+      expect(() => evento.editar({ tiposEntrada: [general, { ...general, nombre: "Otro" }] }, olivia, AHORA)).toThrow(
+        new ValidationError("El tipo de entrada no pertenece al evento"),
+      );
     });
 
     it("rechaza nombres repetidos, también entre un tipo editado y uno nuevo (400)", () => {
       const { evento, olivia } = eventoDeOlivia();
       const [general, vip] = tiposActuales(evento);
 
-      expect(() =>
-        evento.editar({ tiposEntrada: [general, { ...vip, nombre: "general" }] }, olivia, AHORA),
-      ).toThrow(new ValidationError("El evento no puede tener dos tipos de entrada con el mismo nombre"));
+      expect(() => evento.editar({ tiposEntrada: [general, { ...vip, nombre: "general" }] }, olivia, AHORA)).toThrow(
+        new ValidationError("El evento no puede tener dos tipos de entrada con el mismo nombre"),
+      );
       expect(() =>
         evento.editar({ tiposEntrada: [general, vip, { nombre: "VIP", precio: 1, cupo: 1 }] }, olivia, AHORA),
       ).toThrow(new ValidationError("El evento no puede tener dos tipos de entrada con el mismo nombre"));
@@ -255,7 +255,13 @@ describe("Evento.editar", () => {
 
       expect(() =>
         evento.editar(
-          { nombre: "Otro", tiposEntrada: [{ ...g, nombre: "Campo", cupo: 500 }, { ...v, cupo: 1 }] },
+          {
+            nombre: "Otro",
+            tiposEntrada: [
+              { ...g, nombre: "Campo", cupo: 500 },
+              { ...v, cupo: 1 },
+            ],
+          },
           olivia,
           AHORA,
         ),

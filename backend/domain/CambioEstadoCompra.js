@@ -2,9 +2,9 @@ import { ValidationError } from "../errors/AppError.js";
 import { estadoCompra } from "./EstadoCompra.js";
 
 export class CambioEstadoCompra {
-  estado
-  quien
-  fechaHora
+  estado;
+  quien;
+  fechaHora;
 
   constructor(estado, quien, fechaHora = new Date()) {
     if (!Object.values(estadoCompra).includes(estado)) {

@@ -1,11 +1,6 @@
 import { beforeEach, describe, expect, it } from "@jest/globals";
 import { ResenaRepository } from "../../repositories/ResenaRepository.js";
-import {
-  crearEvento,
-  crearOrganizador,
-  crearResenia,
-  enDias,
-} from "../helpers/domainFactories.js";
+import { crearEvento, crearOrganizador, crearResenia, enDias } from "../helpers/domainFactories.js";
 
 function reseniaDeOrganizador(organizador, puntuacion = 4) {
   const evento = crearEvento({ organizador });

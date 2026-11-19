@@ -25,7 +25,14 @@ const Tabs = createBottomTabNavigator();
 
 const tema = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, primary: colores.primario, background: colores.fondo, card: colores.superficie, text: colores.texto, border: colores.borde },
+  colors: {
+    ...DefaultTheme.colors,
+    primary: colores.primario,
+    background: colores.fondo,
+    card: colores.superficie,
+    text: colores.texto,
+    border: colores.borde,
+  },
 };
 
 const EventosStackNav = createNativeStackNavigator();
@@ -56,7 +63,11 @@ function ComprasStack() {
         component={DetalleCompraScreen}
         options={{ title: "Compra", headerBackTitle: "Mis compras" }}
       />
-      <ComprasStackNav.Screen name="Chat" component={ChatScreen} options={{ title: "Chat", headerBackTitle: "Compra" }} />
+      <ComprasStackNav.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={{ title: "Chat", headerBackTitle: "Compra" }}
+      />
       <ComprasStackNav.Screen
         name="Resenia"
         component={ReseniaScreen}
@@ -110,7 +121,11 @@ function OrganizadorStack() {
         component={DetalleCompraScreen}
         options={{ title: "Compra", headerBackTitle: "Compras" }}
       />
-      <OrganizadorStackNav.Screen name="Chat" component={ChatScreen} options={{ title: "Chat", headerBackTitle: "Compra" }} />
+      <OrganizadorStackNav.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={{ title: "Chat", headerBackTitle: "Compra" }}
+      />
     </OrganizadorStackNav.Navigator>
   );
 }
@@ -128,7 +143,11 @@ const opcionesDePestania = ({ route }) => ({
   headerShown: false,
   tabBarActiveTintColor: colores.primario,
   tabBarIcon: ({ focused, color, size }) => (
-    <Ionicons name={focused ? ICONOS_DE_PESTANIA[route.name] : `${ICONOS_DE_PESTANIA[route.name]}-outline`} size={size} color={color} />
+    <Ionicons
+      name={focused ? ICONOS_DE_PESTANIA[route.name] : `${ICONOS_DE_PESTANIA[route.name]}-outline`}
+      size={size}
+      color={color}
+    />
   ),
 });
 
@@ -138,8 +157,12 @@ function TabsPrincipales() {
   return (
     <Tabs.Navigator screenOptions={opcionesDePestania}>
       <Tabs.Screen name="Eventos" component={EventosStack} />
-      {esComprador ? <Tabs.Screen name="MisCompras" component={ComprasStack} options={{ title: "Mis compras" }} /> : null}
-      {esComprador ? <Tabs.Screen name="Favoritos" component={FavoritosStack} options={{ title: "Favoritos" }} /> : null}
+      {esComprador ? (
+        <Tabs.Screen name="MisCompras" component={ComprasStack} options={{ title: "Mis compras" }} />
+      ) : null}
+      {esComprador ? (
+        <Tabs.Screen name="Favoritos" component={FavoritosStack} options={{ title: "Favoritos" }} />
+      ) : null}
       {esOrganizador ? (
         <Tabs.Screen name="MisEventosTab" component={OrganizadorStack} options={{ title: "Mis eventos" }} />
       ) : null}

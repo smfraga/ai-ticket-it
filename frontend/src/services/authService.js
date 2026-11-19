@@ -4,4 +4,10 @@ import { api } from "./api";
 export const login = (email, password) => api.post("/auth/login", { email: email.trim(), password });
 
 export const registro = ({ nombre, apellido, email, password, roles }) =>
-  api.post("/auth/registro", { nombre: nombre.trim(), apellido: apellido.trim(), email: email.trim(), password, roles });
+  api.post("/auth/registro", {
+    nombre: nombre.trim(),
+    apellido: apellido.trim(),
+    email: email.trim(),
+    password,
+    roles,
+  });
