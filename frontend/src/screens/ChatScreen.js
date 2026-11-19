@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import { useMensajes } from "../auth/MensajesContext";
 import Estado from "../components/Estado";
+import FondoDelChat from "../components/FondoDelChat";
 import GloboMensaje from "../components/GloboMensaje";
 import SeparadorDeDia from "../components/SeparadorDeDia";
 import useFondoChat from "../hooks/useFondoChat";
@@ -16,7 +17,6 @@ import { enviarMensaje, listarMensajes } from "../services/comprasService";
 import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { claveDeMensaje, esMensajePropio, LARGO_MAXIMO_DE_MENSAJE, textoEnviable } from "../utils/chat";
 import { conSeparadores } from "../utils/fechasChat";
-import { colorDelFondo } from "../utils/fondosChat";
 
 const INTERVALO_DE_ACTUALIZACION_MS = 5000;
 const DISTANCIA_PARA_SEGUIR_AL_FINAL = 80;
@@ -127,27 +127,28 @@ export default function ChatScreen({ route, navigation }) {
         {errorDeCarga ? (
           <Text style={estilos.avisoDeConexion}>Sin conexión: {errorDeCarga}. Se reintenta solo.</Text>
         ) : null}
-        <FlatList
-          ref={lista}
-          data={elementos}
-          keyExtractor={(item) => (item.tipo === "dia" ? item.clave : claveDeMensaje(item.mensaje, item.indice))}
-          renderItem={({ item }) =>
-            item.tipo === "dia" ? (
-              <SeparadorDeDia etiqueta={item.etiqueta} />
-            ) : (
-              <GloboMensaje mensaje={item.mensaje} propio={esMensajePropio(item.mensaje, usuario.id)} />
-            )
-          }
-          style={{ backgroundColor: colorDelFondo(fondo) }}
-          contentContainerStyle={estilos.lista}
-          onScroll={alDesplazar}
-          scrollEventThrottle={100}
-          onContentSizeChange={bajarSiCorresponde}
-          keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            <Text style={[tipografia.suave, estilos.vacio]}>Todavía no hay mensajes. Escribí el primero.</Text>
-          }
-        />
+        <FondoDelChat fondo={fondo} style={estilos.fondo}>
+          <FlatList
+            ref={lista}
+            data={elementos}
+            keyExtractor={(item) => (item.tipo === "dia" ? item.clave : claveDeMensaje(item.mensaje, item.indice))}
+            renderItem={({ item }) =>
+              item.tipo === "dia" ? (
+                <SeparadorDeDia etiqueta={item.etiqueta} />
+              ) : (
+                <GloboMensaje mensaje={item.mensaje} propio={esMensajePropio(item.mensaje, usuario.id)} />
+              )
+            }
+            contentContainerStyle={estilos.lista}
+            onScroll={alDesplazar}
+            scrollEventThrottle={100}
+            onContentSizeChange={bajarSiCorresponde}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              <Text style={[tipografia.suave, estilos.vacio]}>Todavía no hay mensajes. Escribí el primero.</Text>
+            }
+          />
+        </FondoDelChat>
         <View style={estilos.redaccion}>
           {errorDeEnvio ? <Text style={estilos.error}>No se envió: {errorDeEnvio}</Text> : null}
           {texto.length >= AVISO_DE_LARGO ? (
@@ -185,6 +186,7 @@ export default function ChatScreen({ route, navigation }) {
 
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
+  fondo: { flex: 1 },
   lista: { padding: espacio.l, gap: espacio.s, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl },
   avisoDeConexion: {

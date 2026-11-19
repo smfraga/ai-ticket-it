@@ -1,10 +1,13 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import Boton from "../components/Boton";
+import FondoDelChat from "../components/FondoDelChat";
 import GloboMensaje from "../components/GloboMensaje";
 import SeparadorDeDia from "../components/SeparadorDeDia";
 import useFondoChat from "../hooks/useFondoChat";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
-import { colorDelFondo, PALETA_DE_FONDOS } from "../utils/fondosChat";
+import { FONDO_POR_DEFECTO, PALETA_DE_FONDOS } from "../utils/fondosChat";
 
 const LADO_MUESTRA = 64;
 
@@ -19,15 +22,40 @@ const PROPIO = { autor: { id: "ejemplo-yo" }, mensaje: "¡Gracias! Nos vemos ah�
 
 // Elegir el fondo de los chats: se guarda en este celular y vale para todos los chats.
 export default function FondoChatScreen() {
-  const { fondo, elegir } = useFondoChat();
+  const { fondo, elegir, elegirImagenDeGaleria } = useFondoChat();
+  const [abriendo, setAbriendo] = useState(false);
+
+  const elegirImagen = async () => {
+    setAbriendo(true);
+    try {
+      await elegirImagenDeGaleria();
+    } catch {
+      Alert.alert("No se pudo usar la imagen", "Probá con otra foto de la galería.");
+    } finally {
+      setAbriendo(false);
+    }
+  };
 
   return (
     <ScrollView style={estilos.pantalla} contentContainerStyle={estilos.contenido}>
-      <View style={[estilos.vistaPrevia, { backgroundColor: colorDelFondo(fondo) }]}>
-        <SeparadorDeDia etiqueta="Hoy" />
-        <GloboMensaje mensaje={DE_LA_OTRA_PARTE} propio={false} />
-        <GloboMensaje mensaje={PROPIO} propio />
-      </View>
+      <FondoDelChat fondo={fondo} style={estilos.vistaPrevia}>
+        <View style={estilos.mensajesDeEjemplo}>
+          <SeparadorDeDia etiqueta="Hoy" />
+          <GloboMensaje mensaje={DE_LA_OTRA_PARTE} propio={false} />
+          <GloboMensaje mensaje={PROPIO} propio />
+        </View>
+      </FondoDelChat>
+
+      <Text style={tipografia.etiqueta}>Imagen</Text>
+      <Boton
+        titulo={fondo.tipo === "imagen" ? "Elegir otra imagen" : "Elegir de la galería"}
+        variante="secundario"
+        cargando={abriendo}
+        onPress={elegirImagen}
+      />
+      {fondo.tipo === "imagen" ? (
+        <Boton titulo="Quitar la imagen" variante="peligro" onPress={() => elegir(FONDO_POR_DEFECTO)} />
+      ) : null}
 
       <Text style={tipografia.etiqueta}>Colores</Text>
       <View style={estilos.grilla}>
@@ -58,13 +86,8 @@ export default function FondoChatScreen() {
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   contenido: { padding: espacio.l, gap: espacio.l },
-  vistaPrevia: {
-    borderRadius: radio.tarjeta,
-    borderWidth: 1,
-    borderColor: colores.borde,
-    padding: espacio.l,
-    gap: espacio.s,
-  },
+  vistaPrevia: { borderRadius: radio.tarjeta, borderWidth: 1, borderColor: colores.borde, overflow: "hidden" },
+  mensajesDeEjemplo: { padding: espacio.l, gap: espacio.s },
   grilla: { flexDirection: "row", flexWrap: "wrap", gap: espacio.l },
   opcion: { alignItems: "center", gap: espacio.xs, width: LADO_MUESTRA + espacio.l },
   muestra: {
