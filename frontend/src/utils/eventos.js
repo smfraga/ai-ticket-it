@@ -61,8 +61,14 @@ export const leerCupo = (texto) => {
 };
 
 // El primer problema del formulario, o null si se puede enviar. Los tipos se numeran desde 1, como en pantalla.
-export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada }, ahora = new Date()) => {
+// Imagen opcional: vacía, o una URL http(s) sin espacios (el backend la vuelve a validar).
+const URL_DE_IMAGEN = /^https?:\/\/[^\s/$.?#][^\s]*$/i;
+
+export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada, imagen = "" }, ahora = new Date()) => {
   if (!nombre.trim()) return "Escribí el nombre del evento.";
+  if (imagen.trim() && !URL_DE_IMAGEN.test(imagen.trim())) {
+    return "La imagen tiene que ser una dirección web que empiece con https:// (o dejala vacía).";
+  }
   if (!categoriaId) return "Elegí una categoría.";
   if (!(fecha instanceof Date) || fecha.getTime() <= ahora.getTime()) return "La fecha del evento tiene que ser futura.";
   if (tiposEntrada.length === 0) return "Agregá al menos un tipo de entrada.";
@@ -80,9 +86,10 @@ export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada }, ahor
 };
 
 // El cuerpo de POST /eventos. Llamar solo si errorDeEvento devolvió null.
-export const armarEventoParaEnviar = ({ nombre, descripcion, categoriaId, fecha, tiposEntrada }) => ({
+export const armarEventoParaEnviar = ({ nombre, descripcion, categoriaId, fecha, tiposEntrada, imagen = "" }) => ({
   nombre: nombre.trim(),
   ...(descripcion.trim() ? { descripcion: descripcion.trim() } : {}),
+  ...(imagen.trim() ? { multimedia: [imagen.trim()] } : {}),
   categoriaId,
   fecha: fecha.toISOString(),
   tiposEntrada: tiposEntrada.map((tipo) => ({

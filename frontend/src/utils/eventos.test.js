@@ -95,6 +95,14 @@ describe("errorDeEvento", () => {
     );
   });
 
+  it("la imagen es opcional, pero si se escribe tiene que ser una URL http(s)", () => {
+    expect(errorDeEvento(formulario({ imagen: "" }), AHORA)).toBeNull();
+    expect(errorDeEvento(formulario({ imagen: " https://example.com/foto.jpg " }), AHORA)).toBeNull();
+    for (const imagen of ["foto.jpg", "ftp://example.com/a.jpg", "https://", "https://ejemplo .com/a.jpg"]) {
+      expect(errorDeEvento(formulario({ imagen }), AHORA)).toMatch(/imagen/);
+    }
+  });
+
   it("no acepta dos tipos con el mismo nombre", () => {
     const tipos = [
       { nombre: "General", precio: "1", cupo: "1" },
@@ -118,6 +126,9 @@ describe("armarEventoParaEnviar y fechaInicialDeEvento", () => {
       ],
     });
     expect(armarEventoParaEnviar(formulario({ descripcion: " Bandas " })).descripcion).toBe("Bandas");
+    expect(armarEventoParaEnviar(formulario({ imagen: " https://example.com/a.jpg " })).multimedia).toEqual([
+      "https://example.com/a.jpg",
+    ]);
   });
 
   it("propone una semana después, a las 21:00", () => {

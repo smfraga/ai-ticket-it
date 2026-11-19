@@ -128,6 +128,13 @@ describe("cargarSeed", () => {
       expect(standUp.fecha).toEqual(enDiasALas(5, 21, 30));
     });
 
+    it("cada evento tiene al menos una imagen, con URL https", () => {
+      eventos.forEach((evento) => {
+        expect(evento.multimedia.length).toBeGreaterThan(0);
+        evento.multimedia.forEach((url) => expect(url).toMatch(/^https:\/\//));
+      });
+    });
+
     it("ningún evento queda a la hora en que arrancó el servidor: todos empiezan en punto o y media", () => {
       eventos.forEach((evento) => {
         expect([0, 30]).toContain(evento.fecha.getMinutes());

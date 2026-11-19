@@ -16,6 +16,7 @@ export default function CrearEventoScreen({ navigation }) {
   const [ahora] = useState(() => new Date());
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [imagen, setImagen] = useState("");
   const [categoriaId, setCategoriaId] = useState(null);
   const [fecha, setFecha] = useState(() => fechaInicialDeEvento(ahora));
   const proximaClave = useRef(1);
@@ -47,7 +48,7 @@ export default function CrearEventoScreen({ navigation }) {
   const quitarTipo = (clave) => setTiposEntrada((tipos) => tipos.filter((tipo) => tipo.clave !== clave));
 
   const enviar = async () => {
-    const formulario = { nombre, descripcion, categoriaId, fecha, tiposEntrada };
+    const formulario = { nombre, descripcion, imagen, categoriaId, fecha, tiposEntrada };
     const problema = errorDeEvento(formulario, new Date());
     setError(problema);
     if (problema) return;
@@ -78,6 +79,15 @@ export default function CrearEventoScreen({ navigation }) {
           placeholder="Qué va a pasar, quiénes tocan, cómo llegar…"
           multiline
           style={estilos.multilinea}
+        />
+        <CampoTexto
+          etiqueta="Imagen (URL, opcional)"
+          value={imagen}
+          onChangeText={setImagen}
+          placeholder="https://…"
+          keyboardType="url"
+          autoCapitalize="none"
+          autoCorrect={false}
         />
 
         <View style={estilos.bloque}>

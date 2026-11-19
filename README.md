@@ -9,7 +9,7 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 **Comprador** (pestañas Eventos, Mis compras, Favoritos y Perfil):
 
 - Explorar el catálogo: búsqueda por texto, categorías, rango de precio, eventos próximos o ya realizados y orden por fecha, precio o puntaje del organizador.
-- Ver el detalle de un evento, con los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
+- Ver el detalle de un evento, con sus fotos, los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
 - Comprar eligiendo tipo de entrada y cantidad, sin superar el cupo (el pago está simulado: la compra se confirma en el momento).
 - Seguir sus compras: estado, días que faltan para el evento y el historial de cada cambio de estado.
 - Pagar una compra que quedó pendiente de pago (pago simulado).
@@ -20,7 +20,7 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 
 **Organizador** (pestañas Eventos, Mis eventos y Perfil):
 
-- Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo.
+- Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo, y una imagen opcional (URL).
 - Ver sus eventos y, de cada uno, las entradas que quedan por tipo y las compras con su estado.
 - Marcar una compra como utilizada (cuando el comprador entra al evento).
 - Responder el chat de cada compra.

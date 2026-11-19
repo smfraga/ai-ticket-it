@@ -5,6 +5,7 @@ import { useFavoritos } from "../auth/FavoritosContext";
 import Boton from "../components/Boton";
 import BotonFavorito from "../components/BotonFavorito";
 import Estado from "../components/Estado";
+import GaleriaImagenes from "../components/GaleriaImagenes";
 import PanelCompra from "../components/PanelCompra";
 import ReseniaItem from "../components/ReseniaItem";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -62,6 +63,7 @@ export default function DetalleEventoScreen({ route }) {
 
   return (
     <ScrollView style={estilos.pantalla} contentContainerStyle={estilos.contenido}>
+      <GaleriaImagenes urls={evento.multimedia} />
       <Text style={estilos.categoria}>{evento.categoria.nombre}</Text>
       <View style={estilos.encabezado}>
         <Text style={[tipografia.titulo, estilos.titulo]}>{evento.nombre}</Text>
