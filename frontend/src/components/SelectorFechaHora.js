@@ -7,22 +7,19 @@ import Boton from "./Boton";
 // Fecha y hora del evento con el selector nativo. En iOS, el compacto con fecha y hora juntas;
 // en Android no existe ese modo, así que se abre primero la fecha y después la hora.
 export default function SelectorFechaHora({ etiqueta, valor, minimo, onCambiar }) {
+  // onValueChange solo se llama al elegir (no al cerrar sin elegir): reemplaza a onChange, que está deprecado.
   const abrirEnAndroid = () =>
     DateTimePickerAndroid.open({
       value: valor,
       mode: "date",
       minimumDate: minimo,
-      onChange: (evento, fecha) => {
-        if (evento.type !== "set") return;
+      onValueChange: (_, fecha) =>
         DateTimePickerAndroid.open({
           value: fecha,
           mode: "time",
           is24Hour: true,
-          onChange: (eventoHora, conHora) => {
-            if (eventoHora.type === "set") onCambiar(conHora);
-          },
-        });
-      },
+          onValueChange: (__, conHora) => onCambiar(conHora),
+        }),
     });
 
   return (
@@ -38,7 +35,7 @@ export default function SelectorFechaHora({ etiqueta, valor, minimo, onCambiar }
             minuteInterval={5}
             locale="es-AR"
             accentColor={colores.primario}
-            onChange={(_, fecha) => fecha && onCambiar(fecha)}
+            onValueChange={(_, fecha) => onCambiar(fecha)}
           />
         </View>
       ) : (
