@@ -3,9 +3,11 @@ import { calcularPuntaje } from "../domain/Puntaje.js";
 import { TipoEntrada } from "../domain/TipoEntrada.js";
 import { NotFoundError, UnauthorizedError, ValidationError } from "../errors/AppError.js";
 import { categoriaRepository } from "../repositories/CategoriaRepository.js";
+import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
 import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
+import { formatearFecha } from "./formato.js";
 
 const PRECIO_MAXIMO = Number.MAX_SAFE_INTEGER;
 
@@ -17,25 +19,20 @@ export class EventoService {
     repositorioDeUsuarios = usuarioRepository,
     repositorioDeResenias = resenaRepository,
     ahora = () => new Date(),
+    // Al final, para no romper a quien ya construye el service con los parámetros anteriores.
+    repositorioDeCompras = compraRepository,
   ) {
     this.eventoRepository = repositorioDeEventos;
     this.categoriaRepository = repositorioDeCategorias;
     this.usuarioRepository = repositorioDeUsuarios;
     this.resenaRepository = repositorioDeResenias;
     this.ahora = ahora;
+    this.compraRepository = repositorioDeCompras;
   }
 
   async crear(usuarioId, datos) {
-    // Los datos viven en memoria: si el servidor se reinició, el token puede ser de un usuario que ya no existe.
-    const organizador = await this.usuarioRepository.findById(usuarioId);
-    if (!organizador) {
-      throw new UnauthorizedError("La sesión ya no es válida, iniciá sesión de nuevo");
-    }
-
-    const categoria = await this.categoriaRepository.findById(datos.categoriaId);
-    if (!categoria) {
-      throw new NotFoundError("La categoría no existe");
-    }
+    const organizador = await this.buscarUsuario(usuarioId);
+    const categoria = await this.buscarCategoria(datos.categoriaId);
 
     const ahora = this.ahora();
     if (datos.fecha.getTime() <= ahora.getTime()) {
@@ -60,6 +57,62 @@ export class EventoService {
     const puntaje = await this.puntajeDelOrganizador(organizador.id);
 
     return this.toEventoResponse(guardado, puntaje, ahora);
+  }
+
+  // Las reglas (quién, cuándo, cupos y precios con ventas) las decide el dominio. Si cambió la fecha, cada compra
+  // activa recibe un aviso en su chat, a nombre del organizador.
+  async editar(usuarioId, eventoId, datos) {
+    const organizador = await this.buscarUsuario(usuarioId);
+    const evento = await this.buscarEvento(eventoId);
+    const categoria = datos.categoriaId === undefined ? undefined : await this.buscarCategoria(datos.categoriaId);
+
+    const ahora = this.ahora();
+    const fechaAnterior = evento.fecha;
+    evento.editar({ ...datos, categoria }, organizador, ahora);
+    const guardado = await this.eventoRepository.save(evento);
+
+    if (guardado.fecha.getTime() !== fechaAnterior.getTime()) {
+      const aviso =
+        `Cambiamos la fecha del evento: era el ${formatearFecha(fechaAnterior)} ` +
+        `y ahora es el ${formatearFecha(guardado.fecha)}.`;
+      await this.avisarALasComprasActivas(guardado, organizador, () => aviso, ahora);
+    }
+
+    const puntaje = await this.puntajeDelOrganizador(organizador.id);
+    return this.toEventoResponse(guardado, puntaje, ahora);
+  }
+
+  async avisarALasComprasActivas(evento, organizador, textoPara, ahora) {
+    const compras = await this.compraRepository.findByEventoId(evento.id);
+    for (const compra of compras.filter((c) => c.estaActiva())) {
+      compra.agregarMensaje(organizador, textoPara(compra), ahora);
+      await this.compraRepository.save(compra);
+    }
+  }
+
+  // Los datos viven en memoria: si el servidor se reinició, el token puede ser de un usuario que ya no existe.
+  async buscarUsuario(usuarioId) {
+    const usuario = await this.usuarioRepository.findById(usuarioId);
+    if (!usuario) {
+      throw new UnauthorizedError("La sesión ya no es válida, iniciá sesión de nuevo");
+    }
+    return usuario;
+  }
+
+  async buscarEvento(eventoId) {
+    const evento = await this.eventoRepository.findById(eventoId);
+    if (!evento) {
+      throw new NotFoundError("El evento no existe");
+    }
+    return evento;
+  }
+
+  async buscarCategoria(categoriaId) {
+    const categoria = await this.categoriaRepository.findById(categoriaId);
+    if (!categoria) {
+      throw new NotFoundError("La categoría no existe");
+    }
+    return categoria;
   }
 
   async buscar({
@@ -94,10 +147,7 @@ export class EventoService {
   }
 
   async getById(id) {
-    const evento = await this.eventoRepository.findById(id);
-    if (!evento) {
-      throw new NotFoundError("El evento no existe");
-    }
+    const evento = await this.buscarEvento(id);
     const puntaje = await this.puntajeDelOrganizador(evento.organizador.id);
 
     return this.toEventoResponse(evento, puntaje, this.ahora());

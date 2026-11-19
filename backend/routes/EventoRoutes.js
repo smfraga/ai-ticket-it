@@ -6,7 +6,7 @@ import { ResenaController } from "../controllers/ResenaController.js";
 import { autenticar } from "../middlewares/autenticar.js";
 import { validate } from "../middlewares/validate.js";
 import { comprarValidation } from "../validations/compraValidation.js";
-import { crearEventoValidation } from "../validations/eventoValidation.js";
+import { crearEventoValidation, editarEventoValidation } from "../validations/eventoValidation.js";
 
 const eventoController = new EventoController();
 const compraController = new CompraController();
@@ -21,7 +21,12 @@ router
     eventoController.create(req, res, next),
   );
 
-router.route("/:id").get((req, res, next) => eventoController.getById(req, res, next));
+router
+  .route("/:id")
+  .get((req, res, next) => eventoController.getById(req, res, next))
+  .patch(autenticar, validate(editarEventoValidation), (req, res, next) =>
+    eventoController.update(req, res, next),
+  );
 
 router
   .route("/:id/compras")

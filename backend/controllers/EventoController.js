@@ -39,4 +39,15 @@ export class EventoController extends BaseController {
       return next(error);
     }
   }
+
+  async update(req, res, next) {
+    try {
+      const id = this.parsearId(req.params.id);
+      const evento = await this.eventoService.editar(req.usuario.id, id, req.body);
+
+      return res.status(200).json(evento);
+    } catch (error) {
+      return next(error);
+    }
+  }
 }

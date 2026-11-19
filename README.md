@@ -187,6 +187,7 @@ Ver el catálogo es público (no pide token). Crear un evento exige estar loguea
 | `GET /eventos`      | Busca eventos con los filtros de abajo. Por defecto, solo los próximos                                        |
 | `GET /eventos/:id`  | Detalle de un evento (también de los ya realizados), con sus tipos de entrada y lugares disponibles           |
 | `POST /eventos`     | Crea un evento con sus tipos de entrada (`201`). Sin token: `401`. Sin rol de organizador: `403`              |
+| `PATCH /eventos/:id` | Edita un evento próximo (solo su organizador, si no `403`). Cambia solo lo que viene: `nombre`, `descripcion`, `categoriaId`, `fecha` (futura), `multimedia` y `tiposEntrada` (lista completa: con `id` los existentes, sin `id` los nuevos; los que faltan se quitan). Un tipo con entradas vendidas no se quita ni cambia de precio, y su cupo no baja de lo vendido (`409`). Evento ya realizado: `409`. Si cambia la fecha, cada compra pendiente o confirmada recibe un aviso en su chat |
 | `GET /categorias`   | Lista las categorías, ordenadas por nombre                                                                    |
 
 Parámetros de `GET /eventos` (todos opcionales):

@@ -83,6 +83,11 @@ export class Compra {
     return this.estado === estadoCompra.UTILIZADA;
   }
 
+  // Pendiente de pago o confirmada: la compra sigue en pie para el evento (se le avisan los cambios).
+  estaActiva() {
+    return this.estado === estadoCompra.PENDIENTE || this.estaConfirmada();
+  }
+
   puedePasarA(nuevoEstado) {
     return transicionesCompra[this.estado].includes(nuevoEstado);
   }
