@@ -24,6 +24,7 @@ export const colores = {
   exitoSuave: "#10301F",
   aviso: "#FFC266",
   capaSobreFoto: "rgba(0, 0, 0, 0.6)",
+  capaSobreChat: "rgba(0, 0, 0, 0.45)", // sobre la imagen de fondo del chat
   textoSobreCapa: "#FFFFFF",
 };
 

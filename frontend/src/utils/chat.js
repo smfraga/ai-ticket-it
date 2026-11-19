@@ -15,3 +15,17 @@ export const esMensajePropio = (mensaje, usuarioId) => mensaje.autor.id === usua
 
 // Los mensajes no tienen id en la API: se identifican por autor, fecha y posición.
 export const claveDeMensaje = (mensaje, indice) => `${mensaje.autor.id}-${mensaje.enviado}-${indice}`;
+
+// El número de la pestaña Mensajes: nada si no hay mensajes nuevos y "99+" si son muchos (no entra en el círculo).
+export const insigniaDeNoLeidos = (total) => {
+  if (!total || total <= 0) return undefined;
+  return total > 99 ? "99+" : total;
+};
+
+// Debajo del evento, en la lista de chats: con quién se habla y qué compró ("Olivia Rossi · General ×2").
+export const lineaDeLaConversacion = ({ contraparte, tipoEntrada, cantidad }) =>
+  `${contraparte.nombre} ${contraparte.apellido} · ${tipoEntrada.nombre} ×${cantidad}`;
+
+// El último mensaje como vista previa, con "Vos: " si lo escribió quien mira.
+export const vistaPreviaDelMensaje = ({ ultimoMensaje }) =>
+  ultimoMensaje.propio ? `Vos: ${ultimoMensaje.texto}` : ultimoMensaje.texto;

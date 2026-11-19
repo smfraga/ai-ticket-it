@@ -6,7 +6,7 @@ Plataforma de venta de entradas para eventos. Trabajo práctico individual de la
 
 Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, **organizador** o las dos cosas. La app muestra las pestañas según sus roles.
 
-**Comprador** (pestañas Eventos, Mis compras, Favoritos y Perfil):
+**Comprador** (pestañas Eventos, Mis compras, Favoritos, Mensajes y Perfil):
 
 - Explorar el catálogo: búsqueda por texto, categorías, rango de precio, eventos próximos o ya realizados y orden por fecha, precio o puntaje del organizador.
 - Ver el detalle de un evento, con sus fotos, los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
@@ -18,12 +18,14 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 - Reseñar con puntaje y comentario una compra ya utilizada.
 - Guardar eventos favoritos (♡) y verlos en su pestaña.
 
-**Organizador** (pestañas Eventos, Mis eventos y Perfil):
+**Organizador** (pestañas Eventos, Mis eventos, Mensajes y Perfil):
 
 - Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo, y una imagen opcional (URL).
 - Ver sus eventos y, de cada uno, las entradas que quedan por tipo y las compras con su estado.
 - Marcar una compra como utilizada (cuando el comprador entra al evento).
 - Responder el chat de cada compra.
+
+**Los dos** tienen la pestaña **Mensajes**: todos sus chats (uno por compra, cada uno sobre un evento) con el último mensaje y su hora, ordenados como en WhatsApp, y la cantidad de mensajes nuevos sobre el ícono de la pestaña. Dentro del chat, los mensajes se separan por día ("Hoy", "Ayer", el día de la semana o la fecha) y el fondo se puede cambiar (se guarda en el celular).
 
 ## 📋 Casos de uso de la consigna
 
@@ -33,8 +35,8 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 | Organizador: ver las compras de un evento con su estado y las entradas que quedan por tipo | Mis eventos → evento | `GET /eventos?organizadorId=`, `GET /eventos/:id/compras` |
 | Comprador: buscar eventos por texto o explorarlos por categoría | Eventos | `GET /eventos?texto=&categoriaId=`, `GET /categorias` |
 | Organizador: crear un evento con tipos de entrada, cada uno con precio y cupo | Mis eventos → Crear evento | `POST /eventos` |
-| Comprador: enviar mensajes sobre una compra en cualquier momento | Detalle de la compra → Chat | `GET` y `POST /compras/:id/mensajes` |
-| Organizador: responder mensajes de una compra en cualquier momento | Compras del evento → compra → Chat | `GET` y `POST /compras/:id/mensajes` |
+| Comprador: enviar mensajes sobre una compra en cualquier momento | Detalle de la compra → Chat, o pestaña Mensajes | `GET` y `POST /compras/:id/mensajes`, `GET /conversaciones` |
+| Organizador: responder mensajes de una compra en cualquier momento | Compras del evento → compra → Chat, o pestaña Mensajes | `GET` y `POST /compras/:id/mensajes`, `GET /conversaciones` |
 | Comprador: cancelar una compra para obtener el reembolso | Detalle de la compra | `POST /compras/:id/cancelar` |
 | Cancelar solo si la compra no está utilizada y el evento no se realizó | Detalle de la compra (sin botón, con el motivo) | Regla en `Compra.cancelar` (`409`) |
 | Una vez utilizada la entrada, puntuar el evento y dejar un comentario | Detalle de la compra → Dejar reseña | `POST /compras/:id/utilizar` (organizador), `POST /compras/:id/resenia` |
@@ -66,14 +68,14 @@ El repositorio tiene dos paquetes independientes, cada uno con su propio `packag
 │   ├── .env.example    # Ejemplo de variables de entorno
 │   └── package.json
 ├── frontend/           # App móvil con React Native + Expo
-│   ├── App.js          # Componente raíz: sesión, favoritos y navegación
+│   ├── App.js          # Componente raíz: fuentes, sesión, favoritos, mensajes y navegación
 │   ├── index.js        # Registro de la app en Expo
 │   ├── src/
 │   │   ├── screens/    # Una pantalla por archivo (catálogo, detalle, compras, chat, organizador…)
 │   │   ├── components/ # Piezas reutilizables (tarjetas, botones, estado de la compra, selectores)
 │   │   ├── navigation/ # Pestañas y pilas de React Navigation según el rol
 │   │   ├── services/   # Cliente de la API (fetch con token) y un servicio por recurso
-│   │   ├── auth/       # Contextos de sesión (JWT en SecureStore) y de favoritos
+│   │   ├── auth/       # Contextos de sesión (JWT en SecureStore), favoritos y mensajes nuevos
 │   │   ├── hooks/      # useUltimoPedido: descarta respuestas viejas
 │   │   ├── utils/      # Reglas puras de pantalla (formatos, cupos, validaciones), con tests
 │   │   ├── theme/      # Colores, espacios y tipografía
@@ -107,8 +109,11 @@ App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo G
 
 - **`@react-navigation/*`**: pestañas y pilas de pantallas.
 - **`expo-secure-store`**: guarda la sesión (el token JWT) cifrada en el celular.
+- **`@react-native-async-storage/async-storage`**: guarda preferencias del celular que no son secretas (el fondo de los chats).
+- **`expo-image-picker`** y **`expo-file-system`**: elegir una foto de la galería como fondo del chat y guardar una copia en la carpeta de la app.
 - **`@react-native-community/datetimepicker`**: selector nativo de fecha y hora para crear eventos.
 - **`@expo/vector-icons`**: íconos de las pestañas.
+- **`expo-font`**, **`@expo-google-fonts/bebas-neue`** y **`@expo-google-fonts/dm-sans`**: tipografía de la app (títulos con letra de cartel y cuerpo en DM Sans).
 
 Las llamadas a la API usan `fetch` propio (`src/services/api.js`), con el token en `Authorization: Bearer`, timeout de 10 s y cierre de sesión automático si el backend responde `401`. Para tests se usa **`jest-expo`**.
 
@@ -237,8 +242,9 @@ Todas piden token. Comprar exige el rol de comprador; ver las compras de un even
 | `POST /compras/:id/utilizar` | El organizador del evento marca la compra como `UTILIZADA` (`200`), por ejemplo al dejar entrar al comprador. Solo desde `CONFIRMADA`: `409` en cualquier otro estado. `403` si no es el organizador de ese evento, `404` compra inexistente |
 | `GET /compras/:id/mensajes`  | El chat de la compra, del más viejo al más nuevo. Cada mensaje trae `autor` (`id`, `nombre`, `apellido` y su `rol` en esa compra: `COMPRADOR` u `ORGANIZADOR`), `mensaje` y `enviado`. Solo el comprador y el organizador del evento: otro usuario recibe `403` |
 | `POST /compras/:id/mensajes` | Escribe en el chat. Body: `{ "mensaje": "texto" }`, de 1 a 500 caracteres (se recortan los espacios de los bordes). `201` con el mensaje. `400` texto vacío o demasiado largo, `403` si no participa, `404` compra inexistente. Se puede escribir en cualquier estado de la compra |
+| `GET /conversaciones`        | Los chats del usuario, como comprador o como organizador: uno por compra con al menos un mensaje, el del último mensaje más reciente primero. Cada uno trae `compraId`, el `evento` (con su primera `imagen` o `null`), `tipoEntrada`, `cantidad`, la `contraparte` (nombre, apellido y rol en esa compra), el `ultimoMensaje` (`texto`, `enviado` y si es `propio`) y sus `noLeidos`; además, `totalNoLeidos` (el número de la pestaña Mensajes de la app). Ver la lista no marca nada como leído |
 
-**Mensajes no leídos.** Cada compra guarda cuándo leyó el chat cada participante: leerlo (`GET /compras/:id/mensajes`) o escribir en él cuenta como leído. Las respuestas de compras (`GET /compras`, `GET /compras/:id`, `GET /eventos/:id/compras` y las acciones) traen `mensajesNoLeidos`: los mensajes de la otra parte posteriores a la última lectura de quien pide. En el seed, Carla tiene 1 sin leer (la última respuesta de Olivia en el recital de rock) y Octavio 1 (la consulta de Camilo en el stand up).
+**Mensajes no leídos.** Cada compra guarda cuándo leyó el chat cada participante: leerlo (`GET /compras/:id/mensajes`) o escribir en él cuenta como leído. Las respuestas de compras (`GET /compras`, `GET /compras/:id`, `GET /eventos/:id/compras` y las acciones) traen `mensajesNoLeidos`: los mensajes de la otra parte posteriores a la última lectura de quien pide. En el seed, Carla tiene 1 sin leer (la respuesta de hoy de Olivia en el recital de rock) y Octavio 2 (las consultas de Camilo en el stand up y de Carla en el congreso). Los mensajes del recital van de hace 6 días a hoy y la consulta del congreso es de hace 10, para ver en la app todos los separadores de fecha del chat.
 
 **Vencimiento de compras pendientes.** Una compra `PENDIENTE` se puede pagar durante 7 días desde que se hizo, o hasta que empieza el evento si es antes. Las respuestas de compras traen `fechaLimiteDePago` (`null` si no está pendiente). Al arrancar y después cada minuto, el servidor cancela las vencidas: quedan `CANCELADA`, liberan el cupo y en el seguimiento figura "AI Ticket It" como responsable.
 

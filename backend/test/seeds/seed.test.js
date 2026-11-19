@@ -225,10 +225,10 @@ describe("cargarSeed", () => {
       expect(vencida.historial[1].fechaHora.getTime()).toBeLessThan(AHORA.getTime());
     });
 
-    it("dos compras tienen un chat entre el comprador y el organizador, en orden y ya enviado", () => {
+    it("tres compras tienen un chat entre el comprador y el organizador, en orden y ya enviado", () => {
       const conChat = proximas().filter((c) => c.mensajes.length > 0);
 
-      expect(conChat.map((c) => c.mensajes.length).sort()).toEqual([1, 4]);
+      expect(conChat.map((c) => c.mensajes.length).sort()).toEqual([1, 1, 6]);
       conChat.forEach((compra) => {
         const fechas = compra.mensajes.map((m) => m.enviado.getTime());
         expect(fechas).toEqual([...fechas].sort((a, b) => a - b));
@@ -238,9 +238,11 @@ describe("cargarSeed", () => {
     });
 
     it("la conversación larga alterna entre la compradora y la organizadora del evento", () => {
-      const larga = proximas().find((c) => c.mensajes.length === 4);
+      const larga = proximas().find((c) => c.mensajes.length === 6);
 
       expect(larga.mensajes.map((m) => m.usuario.email)).toEqual([
+        "carla@example.com",
+        "olivia@example.com",
         "carla@example.com",
         "olivia@example.com",
         "carla@example.com",
@@ -248,20 +250,35 @@ describe("cargarSeed", () => {
       ]);
     });
 
-    // Para la demo: cada uno leyó hasta su último mensaje, así que a Carla le queda la última respuesta de Olivia
-    // y a Octavio la consulta de Camilo, que nunca leyó.
-    it("hay un mensaje nuevo para Carla y uno para Octavio", () => {
-      const conChat = proximas().filter((c) => c.mensajes.length > 0);
-      const noLeidos = conChat.flatMap((compra) =>
-        [compra.comprador, compra.evento.organizador].map((u) => [u.email, compra.mensajesNoLeidosPara(u)]),
-      );
+    // Para que el chat de la app muestre los cuatro tipos de separador: un mensaje de hoy, uno de ayer, otros de
+    // esta semana (día de la semana) y uno de hace más de una semana (fecha completa).
+    it("hay mensajes de hoy, de ayer, de esta semana y de hace más de una semana", () => {
+      const inicioDelDia = (fecha) => new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()).getTime();
+      const diasAtras = (fecha) => Math.round((inicioDelDia(AHORA) - inicioDelDia(fecha)) / (24 * 60 * 60 * 1000));
+      const dias = new Set(proximas().flatMap((c) => c.mensajes.map((m) => diasAtras(m.enviado))));
 
-      expect(new Map(noLeidos)).toEqual(
+      expect(dias.has(0)).toBe(true);
+      expect(dias.has(1)).toBe(true);
+      expect([...dias].some((d) => d >= 2 && d <= 6)).toBe(true);
+      expect([...dias].some((d) => d >= 7)).toBe(true);
+    });
+
+    // Para la demo: cada uno leyó hasta su último mensaje (escribir cuenta como leer), así que a Carla le queda la
+    // última respuesta de Olivia y a Octavio las consultas de Camilo y de Carla, que nunca leyó.
+    it("hay un mensaje nuevo para Carla y dos para Octavio", () => {
+      const noLeidos = new Map();
+      for (const compra of proximas()) {
+        for (const usuario of [compra.comprador, compra.evento.organizador]) {
+          noLeidos.set(usuario.email, (noLeidos.get(usuario.email) ?? 0) + compra.mensajesNoLeidosPara(usuario));
+        }
+      }
+
+      expect(noLeidos).toEqual(
         new Map([
           ["carla@example.com", 1],
           ["olivia@example.com", 0],
           ["camilo@example.com", 0],
-          ["octavio@example.com", 1],
+          ["octavio@example.com", 2],
         ]),
       );
     });

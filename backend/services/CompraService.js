@@ -148,6 +148,23 @@ export class CompraService {
     return this.toMensajeResponse(compra, mensaje);
   }
 
+  // Los chats del usuario, como comprador o como organizador: una conversación por compra con al menos un mensaje,
+  // la más reciente primero, y el total de mensajes nuevos (para el número de la pestaña Mensajes).
+  async listarConversaciones(usuarioId) {
+    const usuario = await this.buscarUsuario(usuarioId);
+    const compras = await this.compraRepository.findByParticipanteId(usuario.id);
+
+    const conversaciones = compras
+      .filter((compra) => compra.ultimoMensaje() !== null)
+      .map((compra) => this.toConversacionResponse(compra, usuario))
+      .sort((a, b) => new Date(b.ultimoMensaje.enviado) - new Date(a.ultimoMensaje.enviado));
+
+    return {
+      totalNoLeidos: conversaciones.reduce((total, conversacion) => total + conversacion.noLeidos, 0),
+      conversaciones,
+    };
+  }
+
   async listarDelComprador(usuarioId) {
     const comprador = await this.buscarUsuario(usuarioId);
     const ahora = this.ahora();
@@ -226,6 +243,36 @@ export class CompraService {
       },
       mensaje: mensaje.mensaje,
       enviado: mensaje.enviado.toISOString(),
+    };
+  }
+
+  // Una fila de la lista de chats, vista desde `usuario`. De la contraparte, solo nombre y apellido.
+  toConversacionResponse(compra, usuario) {
+    const contraparte = compra.contraparteDe(usuario);
+    const ultimo = compra.ultimoMensaje();
+    return {
+      compraId: compra.id,
+      evento: {
+        id: compra.evento.id,
+        nombre: compra.evento.nombre,
+        imagen: compra.evento.multimedia?.[0] ?? null,
+        fecha: compra.evento.fecha.toISOString(),
+        cancelado: compra.evento.cancelado,
+      },
+      tipoEntrada: { nombre: compra.tipoEntrada.nombre },
+      cantidad: compra.cantidad,
+      contraparte: {
+        id: contraparte.id,
+        nombre: contraparte.nombre,
+        apellido: contraparte.apellido,
+        rol: compra.comprador.esElMismo(contraparte) ? rolUsuario.COMPRADOR : rolUsuario.ORGANIZADOR,
+      },
+      ultimoMensaje: {
+        texto: ultimo.mensaje,
+        enviado: ultimo.enviado.toISOString(),
+        propio: ultimo.usuario.esElMismo(usuario),
+      },
+      noLeidos: compra.mensajesNoLeidosPara(usuario),
     };
   }
 

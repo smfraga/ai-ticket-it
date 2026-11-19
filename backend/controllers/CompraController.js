@@ -84,6 +84,16 @@ export class CompraController extends BaseController {
     }
   }
 
+  async getConversaciones(req, res, next) {
+    try {
+      const respuesta = await this.compraService.listarConversaciones(req.usuario.id);
+
+      return res.status(200).json(respuesta);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async getMisCompras(req, res, next) {
     try {
       const compras = await this.compraService.listarDelComprador(req.usuario.id);

@@ -240,6 +240,10 @@ const COMPRAS_PROXIMAS = [
       ["organizador", 5, "¡Hola, Carla! Abrimos a las 20 y la banda sale a las 22."],
       ["comprador", 6, "Perfecto, gracias. ¿Se puede entrar con mochila chica?"],
       ["organizador", 20, "Sí, hasta 30 cm de largo y pasa por el control de seguridad."],
+      // Ayer (24 h antes de cargar el seed) y hoy (1 minuto antes), para que el chat muestre "Ayer" y "Hoy"
+      // a cualquier hora en que arranque el backend.
+      ["comprador", 6 * 24 - 24, "¿Puedo mostrar la entrada en el celular o hay que imprimirla?"],
+      ["organizador", 6 * 24 - 1 / 60, "Con el celular alcanza: en la puerta te buscamos por nombre."],
     ],
   },
   { evento: 0, tipo: 2, comprador: 3, cantidad: 1, diasAtras: 3, estado: estadoCompra.CONFIRMADA },
@@ -256,8 +260,18 @@ const COMPRAS_PROXIMAS = [
   { evento: 2, tipo: 0, comprador: 2, cantidad: 2, diasAtras: 8, estado: estadoCompra.CANCELADA },
   { evento: 3, tipo: 1, comprador: 3, cantidad: 1, diasAtras: 5, estado: estadoCompra.REEMBOLSADA },
   { evento: 4, tipo: 0, comprador: 2, cantidad: 3, diasAtras: 2, estado: estadoCompra.CONFIRMADA },
-  // Carla reservó el congreso hace 10 días y no pagó: venció hace 3 días.
-  { evento: 3, tipo: 0, comprador: 2, cantidad: 1, diasAtras: 10, estado: estadoCompra.CANCELADA, vencida: true },
+  // Carla reservó el congreso hace 10 días y no pagó: venció hace 3 días. Su consulta, sin respuesta, es la más
+  // vieja de los chats (en la app se ve con la fecha completa).
+  {
+    evento: 3,
+    tipo: 0,
+    comprador: 2,
+    cantidad: 1,
+    diasAtras: 10,
+    estado: estadoCompra.CANCELADA,
+    vencida: true,
+    mensajes: [["comprador", 2, "Hola, ¿el congreso entrega certificado de asistencia?"]],
+  },
 ];
 
 export async function cargarSeed(repositorios = {}, ahora = new Date()) {

@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
+import { useMensajes } from "../auth/MensajesContext";
 import Estado from "../components/Estado";
+import FondoDelChat from "../components/FondoDelChat";
 import GloboMensaje from "../components/GloboMensaje";
+import SeparadorDeDia from "../components/SeparadorDeDia";
+import useFondoChat from "../hooks/useFondoChat";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { enviarMensaje, listarMensajes } from "../services/comprasService";
 import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { claveDeMensaje, esMensajePropio, LARGO_MAXIMO_DE_MENSAJE, textoEnviable } from "../utils/chat";
+import { conSeparadores } from "../utils/fechasChat";
 
 const INTERVALO_DE_ACTUALIZACION_MS = 5000;
 const DISTANCIA_PARA_SEGUIR_AL_FINAL = 80;
@@ -20,6 +26,7 @@ const AVISO_DE_LARGO = LARGO_MAXIMO_DE_MENSAJE - 100;
 export default function ChatScreen({ route, navigation }) {
   const { compraId, titulo } = route.params;
   const { usuario } = useAuth();
+  const { recargar: recargarConversaciones } = useMensajes();
   const alturaDelEncabezado = useHeaderHeight();
   const [mensajes, setMensajes] = useState(null); // null = todavía no llegó la primera respuesta
   const [errorDeCarga, setErrorDeCarga] = useState(null);
@@ -30,8 +37,23 @@ export default function ChatScreen({ route, navigation }) {
   const estaAlFinal = useRef(true); // si quien lee subió a ver mensajes viejos, no se lo baja de golpe
   const nuevoPedido = useUltimoPedido();
 
+  const { fondo } = useFondoChat();
+
+  // Título con la otra parte y, a la derecha, el acceso para cambiar el fondo de los chats.
   useEffect(() => {
-    if (titulo) navigation.setOptions({ title: titulo });
+    navigation.setOptions({
+      ...(titulo ? { title: titulo } : {}),
+      headerRight: () => (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Cambiar el fondo del chat"
+          hitSlop={12}
+          onPress={() => navigation.navigate("FondoChat")}
+        >
+          <Ionicons name="color-palette-outline" size={24} color={colores.primario} />
+        </Pressable>
+      ),
+    });
   }, [navigation, titulo]);
 
   const cargar = useCallback(async () => {
@@ -47,12 +69,17 @@ export default function ChatScreen({ route, navigation }) {
   }, [compraId, nuevoPedido]);
 
   // Pide los mensajes al entrar y cada 5 s mientras la pantalla está a la vista; al salir, se corta.
+  // Leer el chat lo marca como leído en el backend: después de la primera lectura y al salir se actualiza el
+  // número de la pestaña Mensajes.
   useFocusEffect(
     useCallback(() => {
-      cargar();
+      cargar().then(recargarConversaciones);
       const intervalo = setInterval(cargar, INTERVALO_DE_ACTUALIZACION_MS);
-      return () => clearInterval(intervalo);
-    }, [cargar]),
+      return () => {
+        clearInterval(intervalo);
+        recargarConversaciones();
+      };
+    }, [cargar, recargarConversaciones]),
   );
 
   const enviar = async () => {
@@ -87,6 +114,8 @@ export default function ChatScreen({ route, navigation }) {
   if (mensajes === null) return <Estado tipo="cargando" />;
 
   const sePuedeEnviar = textoEnviable(texto) !== null && !enviando;
+  // Separadores "Hoy", "Ayer", día de la semana o fecha entre los mensajes de cada día, como en WhatsApp.
+  const elementos = conSeparadores(mensajes, new Date());
 
   return (
     <SafeAreaView style={estilos.pantalla} edges={["bottom"]}>
@@ -98,20 +127,28 @@ export default function ChatScreen({ route, navigation }) {
         {errorDeCarga ? (
           <Text style={estilos.avisoDeConexion}>Sin conexión: {errorDeCarga}. Se reintenta solo.</Text>
         ) : null}
-        <FlatList
-          ref={lista}
-          data={mensajes}
-          keyExtractor={claveDeMensaje}
-          renderItem={({ item }) => <GloboMensaje mensaje={item} propio={esMensajePropio(item, usuario.id)} />}
-          contentContainerStyle={estilos.lista}
-          onScroll={alDesplazar}
-          scrollEventThrottle={100}
-          onContentSizeChange={bajarSiCorresponde}
-          keyboardShouldPersistTaps="handled"
-          ListEmptyComponent={
-            <Text style={[tipografia.suave, estilos.vacio]}>Todavía no hay mensajes. Escribí el primero.</Text>
-          }
-        />
+        <FondoDelChat fondo={fondo} style={estilos.fondo}>
+          <FlatList
+            ref={lista}
+            data={elementos}
+            keyExtractor={(item) => (item.tipo === "dia" ? item.clave : claveDeMensaje(item.mensaje, item.indice))}
+            renderItem={({ item }) =>
+              item.tipo === "dia" ? (
+                <SeparadorDeDia etiqueta={item.etiqueta} />
+              ) : (
+                <GloboMensaje mensaje={item.mensaje} propio={esMensajePropio(item.mensaje, usuario.id)} />
+              )
+            }
+            contentContainerStyle={estilos.lista}
+            onScroll={alDesplazar}
+            scrollEventThrottle={100}
+            onContentSizeChange={bajarSiCorresponde}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              <Text style={[tipografia.suave, estilos.vacio]}>Todavía no hay mensajes. Escribí el primero.</Text>
+            }
+          />
+        </FondoDelChat>
         <View style={estilos.redaccion}>
           {errorDeEnvio ? <Text style={estilos.error}>No se envió: {errorDeEnvio}</Text> : null}
           {texto.length >= AVISO_DE_LARGO ? (
@@ -149,6 +186,7 @@ export default function ChatScreen({ route, navigation }) {
 
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
+  fondo: { flex: 1 },
   lista: { padding: espacio.l, gap: espacio.s, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl },
   avisoDeConexion: {
