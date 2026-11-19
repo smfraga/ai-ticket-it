@@ -336,14 +336,35 @@ describe("Compra", () => {
       expect(crearCompraEn(CONFIRMADA).diasRestantes(AHORA)).toBe(30);
     });
 
-    it("redondea hacia arriba los días incompletos", () => {
-      const evento = crearEvento({ fecha: enDias(1.5) });
+    // Fechas en hora local: los días se cuentan por fecha de calendario, no por horas.
+    describe("cuenta días de calendario", () => {
+      const hoyALas = (horas, minutos = 0, dias = 0) => {
+        const fecha = new Date(2026, 10, 19, horas, minutos);
+        fecha.setDate(fecha.getDate() + dias);
+        return fecha;
+      };
+      const diasHasta = (fechaDelEvento, ahora) =>
+        crearCompraEn(CONFIRMADA, { evento: crearEvento({ fecha: fechaDelEvento }) }).diasRestantes(ahora);
 
-      expect(crearCompraEn(CONFIRMADA, { evento }).diasRestantes(AHORA)).toBe(2);
+      it("un evento de hoy a la noche, visto a la mañana, es hoy (0)", () => {
+        expect(diasHasta(hoyALas(21), hoyALas(9))).toBe(0);
+      });
+
+      it("un evento de mañana a la madrugada está a 1 día aunque falten pocas horas", () => {
+        expect(diasHasta(hoyALas(0, 30, 1), hoyALas(22))).toBe(1);
+      });
+
+      it("un evento de mañana a la noche, visto a la mañana, está a 1 día (no a 2)", () => {
+        expect(diasHasta(hoyALas(21, 0, 1), hoyALas(9))).toBe(1);
+      });
+
+      it("un evento dentro de 30 días, a cualquier hora, está a 30", () => {
+        expect(diasHasta(hoyALas(8, 0, 30), hoyALas(23, 59))).toBe(30);
+      });
     });
 
-    it("devuelve 0 si el evento ya pasó", () => {
-      expect(crearCompraEn(CONFIRMADA).diasRestantes(enDias(40))).toBe(0);
+    it("devuelve null si el evento ya pasó, aunque la compra siga CONFIRMADA", () => {
+      expect(crearCompraEn(CONFIRMADA).diasRestantes(enDias(40))).toBeNull();
     });
 
     it.each([PENDIENTE, UTILIZADA, CANCELADA, REEMBOLSADA])("devuelve null si está %s", (estado) => {

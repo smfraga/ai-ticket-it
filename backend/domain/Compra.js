@@ -17,6 +17,13 @@ function ocupaCupo(estado) {
   return ESTADOS_QUE_OCUPAN_CUPO.includes(estado);
 }
 
+// Medianoche del mismo día, en la hora local del servidor.
+function inicioDelDia(fecha) {
+  const inicio = new Date(fecha);
+  inicio.setHours(0, 0, 0, 0);
+  return inicio.getTime();
+}
+
 export class Compra {
   id
   comprador
@@ -113,11 +120,12 @@ export class Compra {
     this.actualizarEstado(estadoCompra.UTILIZADA, quien, ahora);
   }
 
-  // Días que faltan para el evento, solo para compras confirmadas.
+  // Días de calendario que faltan para el evento (0 = es hoy), solo para compras confirmadas de eventos que
+  // todavía no se realizaron; si no, null. Se cuentan fechas y no horas: un evento de mañana a las 00:30 está
+  // a 1 día aunque falten 3 horas, y uno de hoy a la noche, a 0. Math.round absorbe un posible cambio de horario.
   diasRestantes(ahora = new Date()) {
-    if (!this.estaConfirmada()) return null;
-    const msRestantes = this.evento.fecha.getTime() - ahora.getTime();
-    return Math.max(0, Math.ceil(msRestantes / MS_POR_DIA));
+    if (!this.estaConfirmada() || this.evento.yaPaso(ahora)) return null;
+    return Math.round((inicioDelDia(this.evento.fecha) - inicioDelDia(ahora)) / MS_POR_DIA);
   }
 
   esParticipante(usuario) {
