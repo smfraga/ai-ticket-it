@@ -21,5 +21,9 @@ export const obtenerEvento = (id) => api.get(`/eventos/${id}`);
 
 export const listarCategorias = () => api.get("/categorias");
 
+// Requiere sesión con rol ORGANIZADOR (403 si no). Cuerpo: { nombre, descripcion?, categoriaId, fecha (ISO, futura),
+// tiposEntrada: [{ nombre, precio, cupo }] }. Devuelve el evento creado, con el formato del catálogo.
+export const crearEvento = (datos) => api.post("/eventos", datos);
+
 // { organizador: { id, nombre, apellido, puntaje, cantidadResenias }, resenias: [...] }, las más recientes primero.
 export const listarReseniasDelOrganizador = (organizadorId) => api.get(`/organizadores/${organizadorId}/resenias`);

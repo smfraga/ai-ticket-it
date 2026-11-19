@@ -13,7 +13,7 @@ import { formatearFecha } from "../utils/formato";
 
 // Vista del organizador: entradas que quedan de cada tipo y las compras del evento con su estado.
 export default function ComprasDelEventoScreen({ route, navigation }) {
-  const { eventoId, nombreEvento } = route.params;
+  const { eventoId, nombreEvento, recienCreado = false } = route.params;
   const [datos, setDatos] = useState(null); // { evento, tiposEntrada, compras }
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -52,6 +52,7 @@ export default function ComprasDelEventoScreen({ route, navigation }) {
   const cabecera = (
     <View style={estilos.cabecera}>
       {error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
+      {recienCreado ? <Text style={estilos.aviso}>¡Evento creado! Ya está a la venta en el catálogo.</Text> : null}
       <Text style={tipografia.cuerpo}>{formatearFecha(datos.evento.fecha)}</Text>
 
       <View style={estilos.tarjeta}>
@@ -108,4 +109,5 @@ const estilos = StyleSheet.create({
   seccion: { ...tipografia.subtitulo, marginTop: espacio.l },
   vacio: { textAlign: "center", marginTop: espacio.xl, color: colores.textoSuave },
   errorAviso: { color: colores.error },
+  aviso: { color: colores.exito, fontSize: 15, fontWeight: "700" },
 });

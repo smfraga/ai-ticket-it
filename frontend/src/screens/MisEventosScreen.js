@@ -3,6 +3,7 @@ import { RefreshControl, SectionList, StyleSheet, Text, View } from "react-nativ
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
+import Boton from "../components/Boton";
 import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -75,6 +76,9 @@ export default function MisEventosScreen({ navigation }) {
       <View style={estilos.cabecera}>
         <Text style={tipografia.titulo}>Mis eventos</Text>
         <Text style={tipografia.suave}>Tocá un evento para ver sus compras y las entradas que quedan.</Text>
+        <View style={estilos.crear}>
+          <Boton titulo="+ Crear evento" onPress={() => navigation.navigate("CrearEvento")} />
+        </View>
       </View>
       {contenido()}
     </SafeAreaView>
@@ -84,6 +88,7 @@ export default function MisEventosScreen({ navigation }) {
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   cabecera: { paddingHorizontal: espacio.l, paddingTop: espacio.m, gap: espacio.xs },
+  crear: { marginTop: espacio.s },
   lista: { padding: espacio.l, gap: espacio.m, flexGrow: 1 },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.s },
   vacio: { textAlign: "center", marginTop: espacio.xxl, color: colores.textoSuave },

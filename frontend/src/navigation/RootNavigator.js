@@ -6,6 +6,7 @@ import Estado from "../components/Estado";
 import CatalogoScreen from "../screens/CatalogoScreen";
 import ChatScreen from "../screens/ChatScreen";
 import ComprasDelEventoScreen from "../screens/ComprasDelEventoScreen";
+import CrearEventoScreen from "../screens/CrearEventoScreen";
 import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -70,6 +71,11 @@ function OrganizadorStack() {
   return (
     <OrganizadorStackNav.Navigator screenOptions={{ headerTintColor: colores.primario }}>
       <OrganizadorStackNav.Screen name="MisEventos" component={MisEventosScreen} options={{ headerShown: false }} />
+      <OrganizadorStackNav.Screen
+        name="CrearEvento"
+        component={CrearEventoScreen}
+        options={{ title: "Crear evento", headerBackTitle: "Mis eventos" }}
+      />
       <OrganizadorStackNav.Screen
         name="ComprasDelEvento"
         component={ComprasDelEventoScreen}

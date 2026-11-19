@@ -1,4 +1,94 @@
-import { separarPorPeriodo, textoCupo } from "./eventos";
+import {
+  armarEventoParaEnviar,
+  errorDeEvento,
+  fechaInicialDeEvento,
+  leerCupo,
+  leerPrecio,
+  separarPorPeriodo,
+  textoCupo,
+} from "./eventos";
+
+const AHORA = new Date(2026, 10, 19, 12, 0);
+const formulario = (cambios = {}) => ({
+  nombre: "Recital de rock",
+  descripcion: "",
+  categoriaId: "cat-1",
+  fecha: new Date(2026, 11, 20, 21, 0),
+  tiposEntrada: [
+    { nombre: "General", precio: "15000", cupo: "100" },
+    { nombre: "VIP", precio: "40000,50", cupo: "20" },
+  ],
+  ...cambios,
+});
+
+describe("leerPrecio y leerCupo", () => {
+  it("leen precios con coma o punto decimal y cupos enteros positivos", () => {
+    expect(leerPrecio("15000")).toBe(15000);
+    expect(leerPrecio(" 1500,5 ")).toBe(1500.5);
+    expect(leerPrecio("0")).toBe(0);
+    expect(leerCupo("120")).toBe(120);
+  });
+
+  it("rechazan lo que no es un número válido", () => {
+    for (const texto of ["", "abc", "-5", "1,2,3", "10,999"]) expect(leerPrecio(texto)).toBeNull();
+    for (const texto of ["", "0", "1.5", "-3", "diez"]) expect(leerCupo(texto)).toBeNull();
+  });
+});
+
+describe("errorDeEvento", () => {
+  it("un formulario completo se puede enviar", () => {
+    expect(errorDeEvento(formulario(), AHORA)).toBeNull();
+  });
+
+  it.each([
+    ["sin nombre", { nombre: "  " }, /nombre del evento/],
+    ["sin categoría", { categoriaId: null }, /categoría/],
+    ["con fecha pasada", { fecha: new Date(2026, 10, 18) }, /futura/],
+    ["sin tipos de entrada", { tiposEntrada: [] }, /al menos un tipo/],
+  ])("avisa %s", (_, cambios, mensaje) => {
+    expect(errorDeEvento(formulario(cambios), AHORA)).toMatch(mensaje);
+  });
+
+  it("dice qué tipo de entrada tiene el problema", () => {
+    const tipos = [
+      { nombre: "General", precio: "15000", cupo: "100" },
+      { nombre: "VIP", precio: "40000", cupo: "0" },
+    ];
+    expect(errorDeEvento(formulario({ tiposEntrada: tipos }), AHORA)).toBe(
+      "Tipo de entrada 2: el cupo tiene que ser un número entero mayor a 0.",
+    );
+  });
+
+  it("no acepta dos tipos con el mismo nombre", () => {
+    const tipos = [
+      { nombre: "General", precio: "1", cupo: "1" },
+      { nombre: " general ", precio: "2", cupo: "2" },
+    ];
+    expect(errorDeEvento(formulario({ tiposEntrada: tipos }), AHORA)).toMatch(/mismo nombre/);
+  });
+});
+
+describe("armarEventoParaEnviar y fechaInicialDeEvento", () => {
+  it("arma el cuerpo de POST /eventos con números, fecha ISO y sin descripción vacía", () => {
+    const cuerpo = armarEventoParaEnviar(formulario({ nombre: "  Recital de rock " }));
+
+    expect(cuerpo).toEqual({
+      nombre: "Recital de rock",
+      categoriaId: "cat-1",
+      fecha: new Date(2026, 11, 20, 21, 0).toISOString(),
+      tiposEntrada: [
+        { nombre: "General", precio: 15000, cupo: 100 },
+        { nombre: "VIP", precio: 40000.5, cupo: 20 },
+      ],
+    });
+    expect(armarEventoParaEnviar(formulario({ descripcion: " Bandas " })).descripcion).toBe("Bandas");
+  });
+
+  it("propone una semana después, a las 21:00", () => {
+    const fecha = fechaInicialDeEvento(AHORA);
+    expect([fecha.getDate(), fecha.getHours(), fecha.getMinutes()]).toEqual([26, 21, 0]);
+  });
+});
 
 describe("textoCupo", () => {
   it("dice cuántas quedan del total, en singular y plural", () => {
