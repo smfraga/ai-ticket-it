@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "../auth/AuthContext";
 import Boton from "../components/Boton";
 import Estado from "../components/Estado";
 import EstadoCompra from "../components/EstadoCompra";
@@ -11,17 +13,19 @@ import { colores, espacio, radio, tipografia } from "../theme";
 import {
   motivoSinCancelacion,
   puedeCancelar,
+  puedeReseniar,
   textoDeConfirmacionDeCancelacion,
   textoDiasRestantes,
   textoEntradas,
 } from "../utils/compras";
-import { formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
+import { formatearEstrellas, formatearFecha, formatearFechaCorta, formatearPrecio } from "../utils/formato";
 
 const AVISO_REEMBOLSADA = "Compra cancelada. Se reembolsó el total y las entradas volvieron al cupo.";
 const AVISO_CANCELADA = "Compra cancelada. Las entradas volvieron al cupo.";
 
 export default function DetalleCompraScreen({ route, navigation }) {
   const { compraId } = route.params;
+  const { usuario } = useAuth();
   const [compra, setCompra] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
@@ -44,9 +48,12 @@ export default function DetalleCompraScreen({ route, navigation }) {
     }
   }, [compraId, nuevoPedido]);
 
-  useEffect(() => {
-    cargar();
-  }, [cargar]);
+  // Se vuelve a pedir cada vez que la pantalla recibe el foco: al volver del chat o de publicar una reseña.
+  useFocusEffect(
+    useCallback(() => {
+      cargar();
+    }, [cargar]),
+  );
 
   const cancelar = async () => {
     setErrorDeCancelar(null);
@@ -74,6 +81,8 @@ export default function DetalleCompraScreen({ route, navigation }) {
   const dias = textoDiasRestantes(compra.diasRestantes);
   const motivo = motivoSinCancelacion(compra);
   const { organizador } = compra.evento;
+  // Cancelar y reseñar son del comprador; el organizador va a reutilizar esta pantalla más adelante.
+  const esElComprador = compra.comprador.id === usuario.id;
 
   return (
     <ScrollView
@@ -119,7 +128,30 @@ export default function DetalleCompraScreen({ route, navigation }) {
       <Text style={estilos.seccion}>Seguimiento</Text>
       <SeguimientoCompra historial={compra.historial} />
 
-      {puedeCancelar(compra) ? (
+      {compra.resenia ? (
+        <>
+          <Text style={estilos.seccion}>{esElComprador ? "Tu reseña" : "Reseña del comprador"}</Text>
+          <View style={estilos.tarjeta}>
+            <Text style={estilos.estrellas} accessibilityLabel={`${compra.resenia.puntuacion} de 5`}>
+              {formatearEstrellas(compra.resenia.puntuacion)}
+            </Text>
+            <Text style={tipografia.cuerpo}>{compra.resenia.detalle}</Text>
+            <Text style={tipografia.suave}>Publicada el {formatearFechaCorta(compra.resenia.fecha)}</Text>
+          </View>
+        </>
+      ) : null}
+
+      {esElComprador && puedeReseniar(compra) ? (
+        <View style={estilos.acciones}>
+          <Text style={tipografia.cuerpo}>Ya usaste esta entrada. ¿Cómo estuvo el evento?</Text>
+          <Boton
+            titulo="Dejar reseña"
+            onPress={() => navigation.navigate("Resenia", { compraId: compra.id, nombreEvento: compra.evento.nombre })}
+          />
+        </View>
+      ) : null}
+
+      {!esElComprador ? null : puedeCancelar(compra) ? (
         <View style={estilos.acciones}>
           {errorDeCancelar ? <Text style={estilos.error}>{errorDeCancelar}</Text> : null}
           <Boton titulo="Cancelar compra" variante="peligro" onPress={pedirConfirmacion} cargando={cancelando} />
@@ -151,4 +183,5 @@ const estilos = StyleSheet.create({
   acciones: { marginTop: espacio.xl, gap: espacio.m },
   error: { color: colores.error, fontSize: 14, fontWeight: "600" },
   aviso: { color: colores.exito, fontSize: 15, fontWeight: "700" },
+  estrellas: { color: colores.aviso, fontSize: 20, letterSpacing: 1 },
 });

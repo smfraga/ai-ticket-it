@@ -11,6 +11,7 @@ import LoginScreen from "../screens/LoginScreen";
 import MisComprasScreen from "../screens/MisComprasScreen";
 import PerfilScreen from "../screens/PerfilScreen";
 import RegistroScreen from "../screens/RegistroScreen";
+import ReseniaScreen from "../screens/ReseniaScreen";
 import { colores } from "../theme";
 
 const Stack = createNativeStackNavigator();
@@ -50,6 +51,11 @@ function ComprasStack() {
         options={{ title: "Compra", headerBackTitle: "Mis compras" }}
       />
       <ComprasStackNav.Screen name="Chat" component={ChatScreen} options={{ title: "Chat", headerBackTitle: "Compra" }} />
+      <ComprasStackNav.Screen
+        name="Resenia"
+        component={ReseniaScreen}
+        options={{ title: "Dejar reseña", headerBackTitle: "Compra" }}
+      />
     </ComprasStackNav.Navigator>
   );
 }

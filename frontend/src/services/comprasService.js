@@ -16,6 +16,10 @@ export const listarMensajes = (compraId) => api.get(`/compras/${compraId}/mensaj
 
 export const enviarMensaje = (compraId, mensaje) => api.post(`/compras/${compraId}/mensajes`, { mensaje });
 
+// Solo el comprador, una vez por compra y con la compra UTILIZADA. Puntuación entera de 1 a 5 y comentario obligatorio.
+export const reseniarCompra = (compraId, { puntuacion, detalle }) =>
+  api.post(`/compras/${compraId}/resenia`, { puntuacion, detalle });
+
 // Requiere sesión de comprador. El pago está simulado: la compra vuelve CONFIRMADA en el mismo pedido.
 // Devuelve { id, estado, cantidad, total, diasRestantes, fecha, evento, tipoEntrada, historial }.
 export const comprar = (eventoId, { tipoEntradaId, cantidad }) =>

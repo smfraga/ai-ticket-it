@@ -27,6 +27,22 @@ export const textoDeConfirmacionDeCancelacion = (compra, totalFormateado) =>
     ? `Se cancelan las entradas y se te reembolsa ${totalFormateado}.`
     : "Se cancela la compra y las entradas vuelven al cupo.";
 
+// Reseñar: solo una compra UTILIZADA que todavía no tiene reseña (el backend lo vuelve a validar con 409).
+export const puedeReseniar = (compra) => compra.estado === "UTILIZADA" && !compra.resenia;
+
+export const PUNTUACION_MINIMA = 1;
+export const PUNTUACION_MAXIMA = 5;
+export const ETIQUETAS_DE_PUNTUACION = Object.freeze({ 1: "Mala", 2: "Regular", 3: "Buena", 4: "Muy buena", 5: "Excelente" });
+
+// Qué falta completar en el formulario de reseña, o null si se puede enviar.
+export const errorDeResenia = ({ puntuacion, detalle }) => {
+  if (!Number.isInteger(puntuacion) || puntuacion < PUNTUACION_MINIMA || puntuacion > PUNTUACION_MAXIMA) {
+    return "Elegí una puntuación de 1 a 5 estrellas.";
+  }
+  if (!detalle.trim()) return "Escribí un comentario sobre tu experiencia.";
+  return null;
+};
+
 // Solo las compras CONFIRMADAS traen los días que faltan; en las demás el backend manda null.
 export const textoDiasRestantes = (dias) => {
   if (dias === null || dias === undefined) return null;

@@ -1,6 +1,8 @@
 import {
+  errorDeResenia,
   ETIQUETAS_DE_ESTADO,
   motivoSinCancelacion,
+  puedeReseniar,
   puedeCancelar,
   textoDeConfirmacionDeCancelacion,
   textoDiasRestantes,
@@ -8,6 +10,25 @@ import {
 } from "./compras";
 
 const compra = (estado, yaPaso = false) => ({ estado, evento: { yaPaso } });
+
+describe("puedeReseniar y errorDeResenia", () => {
+  it("se reseña solo una compra UTILIZADA sin reseña", () => {
+    expect(puedeReseniar({ estado: "UTILIZADA", resenia: null })).toBe(true);
+    expect(puedeReseniar({ estado: "UTILIZADA", resenia: { id: "r1" } })).toBe(false);
+    expect(puedeReseniar({ estado: "CONFIRMADA", resenia: null })).toBe(false);
+  });
+
+  it("exige una puntuación entera de 1 a 5", () => {
+    expect(errorDeResenia({ puntuacion: 0, detalle: "Bien" })).toMatch(/puntuación/);
+    expect(errorDeResenia({ puntuacion: 6, detalle: "Bien" })).toMatch(/puntuación/);
+    expect(errorDeResenia({ puntuacion: null, detalle: "Bien" })).toMatch(/puntuación/);
+  });
+
+  it("exige un comentario que no sea solo espacios", () => {
+    expect(errorDeResenia({ puntuacion: 4, detalle: "   " })).toMatch(/comentario/);
+    expect(errorDeResenia({ puntuacion: 4, detalle: "Muy buen show" })).toBeNull();
+  });
+});
 
 describe("puedeCancelar y motivoSinCancelacion", () => {
   it("se puede cancelar una PENDIENTE o CONFIRMADA de un evento que no pasó", () => {
