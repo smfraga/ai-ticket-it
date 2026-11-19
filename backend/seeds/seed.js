@@ -176,6 +176,7 @@ const COMPRAS_CON_RESENIA = [
 // después del evento). `diasAtras` es cuándo se hizo la compra, relativo a hoy, y `estado` el estado final:
 // PENDIENTE (sin pagar), CONFIRMADA, CANCELADA (se canceló sin pagar) o REEMBOLSADA (se pagó y se canceló).
 // `mensajes` (opcional) es el chat de la compra: [quién escribe, horas después de la compra, texto].
+// `vencida: true` (con estado CANCELADA): no se pagó a tiempo y la canceló la plataforma al vencer el plazo de pago.
 const COMPRAS_PROXIMAS = [
   {
     evento: 0,
@@ -205,6 +206,8 @@ const COMPRAS_PROXIMAS = [
   { evento: 2, tipo: 0, comprador: 2, cantidad: 2, diasAtras: 8, estado: estadoCompra.CANCELADA },
   { evento: 3, tipo: 1, comprador: 3, cantidad: 1, diasAtras: 5, estado: estadoCompra.REEMBOLSADA },
   { evento: 4, tipo: 0, comprador: 2, cantidad: 3, diasAtras: 2, estado: estadoCompra.CONFIRMADA },
+  // Carla reservó el congreso hace 10 días y no pagó: venció hace 3 días.
+  { evento: 3, tipo: 0, comprador: 2, cantidad: 1, diasAtras: 10, estado: estadoCompra.CANCELADA, vencida: true },
 ];
 
 export async function cargarSeed(
@@ -285,7 +288,10 @@ export async function cargarSeed(
     if (datos.estado !== estadoCompra.PENDIENTE && datos.estado !== estadoCompra.CANCELADA) {
       compra.actualizarEstado(estadoCompra.CONFIRMADA, comprador, fechaDeCompra);
     }
-    if (datos.estado === estadoCompra.CANCELADA || datos.estado === estadoCompra.REEMBOLSADA) {
+    if (datos.vencida) {
+      // La canceló el vencimiento automático en el momento en que venció el plazo.
+      compra.vencer(compra.fechaLimiteDePago());
+    } else if (datos.estado === estadoCompra.CANCELADA || datos.estado === estadoCompra.REEMBOLSADA) {
       // Cancelar una compra confirmada la reembolsa enseguida; una pendiente solo queda cancelada.
       compra.cancelar(comprador, sumarDias(fechaDeCompra, 1));
     }

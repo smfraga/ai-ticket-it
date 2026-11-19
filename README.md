@@ -262,7 +262,7 @@ Usuarios (todos con la contraseña **`Demo1234!`**):
 | `carla@example.com`   | Comprador   |
 | `camilo@example.com`  | Comprador   |
 
-Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 7 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA`, y dos de ellas tienen chat: la compra de Carla en el recital de rock (4 mensajes con Olivia) y la `PENDIENTE` de Camilo en el stand up (1 mensaje).
+Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 8 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA` (una de las canceladas, la de Carla en el congreso, la canceló la plataforma porque venció su plazo de pago), y dos de ellas tienen chat: la compra de Carla en el recital de rock (4 mensajes con Olivia) y la `PENDIENTE` de Camilo en el stand up (1 mensaje).
 
 Para correr los tests:
 

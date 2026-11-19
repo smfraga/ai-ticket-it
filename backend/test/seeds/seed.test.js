@@ -165,8 +165,8 @@ describe("cargarSeed", () => {
   describe("compras de los eventos próximos", () => {
     const proximas = () => [...repos.compras.compras.values()].filter((c) => !c.evento.yaPaso(AHORA));
 
-    it("carga 7 compras que cubren todos los estados salvo UTILIZADA", () => {
-      expect(proximas()).toHaveLength(7);
+    it("carga 8 compras que cubren todos los estados salvo UTILIZADA", () => {
+      expect(proximas()).toHaveLength(8);
       expect(new Set(proximas().map((c) => c.estado))).toEqual(
         new Set([
           estadoCompra.PENDIENTE,
@@ -213,8 +213,22 @@ describe("cargarSeed", () => {
         [estadoCompra.CANCELADA, estadoCompra.REEMBOLSADA].includes(c.estado),
       );
 
-      expect(canceladas).toHaveLength(2);
+      expect(canceladas).toHaveLength(3);
       canceladas.forEach((compra) => expect(vendidas(compra)).toBe(0));
+    });
+
+    // Para mostrar en la app una compra que canceló la plataforma.
+    it("una compra de Carla venció sin pagar: la canceló el sistema en el momento en que venció", () => {
+      const vencidas = proximas().filter((c) => c.historial.at(-1).quien.id === "sistema");
+
+      expect(vencidas).toHaveLength(1);
+      const [vencida] = vencidas;
+      expect(vencida.comprador.email).toBe("carla@example.com");
+      expect(vencida.evento.nombre).toBe("Congreso de Desarrollo de Software");
+      expect(vencida.historial.map((c) => c.estado)).toEqual([estadoCompra.PENDIENTE, estadoCompra.CANCELADA]);
+      const compradaEl = vencida.historial[0].fechaHora.getTime();
+      expect(vencida.historial[1].fechaHora.getTime()).toBe(compradaEl + 7 * 24 * 60 * 60 * 1000);
+      expect(vencida.historial[1].fechaHora.getTime()).toBeLessThan(AHORA.getTime());
     });
 
     it("dos compras tienen un chat entre el comprador y el organizador, en orden y ya enviado", () => {
