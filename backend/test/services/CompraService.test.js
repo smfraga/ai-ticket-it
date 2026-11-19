@@ -22,6 +22,7 @@ describe("CompraService", () => {
   let compraRepository;
   let eventoRepository;
   let usuarioRepository;
+  let resenaRepository;
   let service;
   let carla;
   let camilo;
@@ -57,7 +58,8 @@ describe("CompraService", () => {
       findById: jest.fn(async (id) => (id === "evento-1" ? evento : null)),
     };
     usuarioRepository = { findById: jest.fn(async (id) => usuarios[id] ?? null) };
-    service = new CompraService(compraRepository, eventoRepository, usuarioRepository, () => AHORA);
+    resenaRepository = { findByCompraId: jest.fn().mockResolvedValue(null) };
+    service = new CompraService(compraRepository, eventoRepository, usuarioRepository, () => AHORA, resenaRepository);
   });
 
   describe("comprar", () => {
@@ -369,6 +371,81 @@ describe("CompraService", () => {
       it("401 si el usuario del token ya no existe", async () => {
         await expect(service.leerMensajes("fantasma", "c1")).rejects.toBeInstanceOf(UnauthorizedError);
       });
+    });
+  });
+
+  describe("obtenerPorId", () => {
+    let compra;
+
+    beforeEach(() => {
+      compra = Object.assign(crearCompraEn(estadoCompra.CONFIRMADA, { comprador: carla, evento }), { id: "c1" });
+      compraRepository.findById.mockImplementation(async (id) => (id === "c1" ? compra : null));
+    });
+
+    it("el comprador y el organizador ven la compra con comprador, organizador y evento", async () => {
+      for (const lector of ["carla", "olivia"]) {
+        const respuesta = await service.obtenerPorId(lector, "c1");
+
+        expect(respuesta).toMatchObject({
+          id: "c1",
+          estado: estadoCompra.CONFIRMADA,
+          diasRestantes: 10,
+          comprador: { id: "carla", nombre: "Carla", apellido: "Gómez" },
+          evento: { id: "evento-1", yaPaso: false, organizador: { id: "olivia" } },
+        });
+        expect(respuesta.historial.length).toBeGreaterThan(0);
+      }
+    });
+
+    it("sin reseña devuelve resenia en null", async () => {
+      expect((await service.obtenerPorId("carla", "c1")).resenia).toBeNull();
+      expect(resenaRepository.findByCompraId).toHaveBeenCalledWith("c1");
+    });
+
+    it("con reseña la devuelve con puntuación, comentario y fecha", async () => {
+      resenaRepository.findByCompraId.mockResolvedValue({
+        id: "r1",
+        puntuacion: 5,
+        detalle: "Genial",
+        fecha: AHORA,
+        compra,
+      });
+
+      expect((await service.obtenerPorId("carla", "c1")).resenia).toEqual({
+        id: "r1",
+        puntuacion: 5,
+        detalle: "Genial",
+        fecha: AHORA.toISOString(),
+      });
+    });
+
+    it("no expone el email ni el hash del comprador ni del organizador", async () => {
+      const texto = JSON.stringify(await service.obtenerPorId("olivia", "c1"));
+
+      expect(texto).not.toContain("passwordHash");
+      expect(texto).not.toContain("email");
+    });
+
+    it("yaPaso es true si el evento ya se realizó", async () => {
+      expect((await service.obtenerPorId("carla", "c1")).evento.yaPaso).toBe(false);
+
+      evento.fecha = enDias(-3); // el dominio no deja comprar un evento pasado: se mueve la fecha después
+
+      expect((await service.obtenerPorId("carla", "c1")).evento.yaPaso).toBe(true);
+    });
+
+    it("403 si la ve otro comprador u otro organizador", async () => {
+      await expect(service.obtenerPorId("camilo", "c1")).rejects.toThrow(ForbiddenError);
+      await expect(service.obtenerPorId("octavio", "c1")).rejects.toThrow(ForbiddenError);
+      expect(resenaRepository.findByCompraId).not.toHaveBeenCalled();
+    });
+
+    it("404 si la compra no existe", async () => {
+      await expect(service.obtenerPorId("carla", "inexistente")).rejects.toThrow(NotFoundError);
+    });
+
+    it("401 si el usuario del token ya no existe", async () => {
+      await expect(service.obtenerPorId("fantasma", "c1")).rejects.toThrow(UnauthorizedError);
     });
   });
 
