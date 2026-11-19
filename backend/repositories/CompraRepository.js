@@ -26,6 +26,10 @@ export class CompraRepository {
       .sort(masRecientesPrimero);
   }
 
+  async findByEstado(estado) {
+    return [...this.compras.values()].filter((compra) => compra.estado === estado);
+  }
+
   async findByEventoId(eventoId) {
     return [...this.compras.values()]
       .filter((compra) => compra.evento.id === eventoId)

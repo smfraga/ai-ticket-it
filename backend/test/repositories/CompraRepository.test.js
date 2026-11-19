@@ -77,5 +77,15 @@ describe("CompraRepository", () => {
     it("findByEventoId devuelve una lista vacía si el evento no tiene compras", async () => {
       expect(await repositorio.findByEventoId("sin-ventas")).toEqual([]);
     });
+
+    it("findByEstado devuelve solo las compras en ese estado", async () => {
+      const pendiente = await repositorio.save(crearCompra({ comprador: carla, evento }));
+      const confirmada = await repositorio.save(crearCompra({ comprador: camilo, evento }));
+      confirmada.actualizarEstado("CONFIRMADA", camilo, enDias(0));
+
+      expect(await repositorio.findByEstado("PENDIENTE")).toEqual([pendiente]);
+      expect(await repositorio.findByEstado("CONFIRMADA")).toEqual([confirmada]);
+      expect(await repositorio.findByEstado("UTILIZADA")).toEqual([]);
+    });
   });
 });

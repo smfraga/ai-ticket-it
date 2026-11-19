@@ -3,8 +3,12 @@ import { CambioEstadoCompra } from "./CambioEstadoCompra.js";
 import { estadoCompra, transicionesCompra } from "./EstadoCompra.js";
 import { Mensaje } from "./Mensaje.js";
 import { rolUsuario } from "./RolUsuario.js";
+import { USUARIO_SISTEMA } from "./UsuarioSistema.js";
 
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
+
+// Una compra PENDIENTE tiene este plazo para pagarse (o hasta que empiece el evento, si es antes).
+export const PLAZO_DE_PAGO_DIAS = 7;
 
 // Las compras en estos estados ocupan lugar en el cupo del tipo de entrada.
 const ESTADOS_QUE_OCUPAN_CUPO = [
@@ -153,7 +157,32 @@ export class Compra {
     if (this.evento.yaPaso(ahora)) {
       throw new ConflictError("No se puede pagar una compra de un evento que ya se realizó");
     }
+    // El vencimiento corre cada tanto: entre que vence y que se procesa, la compra sigue PENDIENTE pero ya no se paga.
+    if (this.estaVencida(ahora)) {
+      throw new ConflictError("Venció el plazo para pagar esta compra");
+    }
     this.actualizarEstado(estadoCompra.CONFIRMADA, quien, ahora);
+  }
+
+  // Hasta cuándo se puede pagar una compra PENDIENTE: 7 días desde que se hizo o el inicio del evento, lo que
+  // llegue primero (después del evento ya no se puede pagar). null si la compra no está pendiente.
+  fechaLimiteDePago() {
+    if (this.estado !== estadoCompra.PENDIENTE) return null;
+    const porPlazo = this.historial[0].fechaHora.getTime() + PLAZO_DE_PAGO_DIAS * MS_POR_DIA;
+    return new Date(Math.min(porPlazo, this.evento.fecha.getTime()));
+  }
+
+  estaVencida(ahora = new Date()) {
+    const limite = this.fechaLimiteDePago();
+    return limite !== null && ahora.getTime() >= limite.getTime();
+  }
+
+  // Si venció el plazo de pago, la plataforma la cancela sola (libera el cupo) y queda registrada como
+  // responsable. Devuelve si la compra cambió.
+  vencer(ahora = new Date()) {
+    if (!this.estaVencida(ahora)) return false;
+    this.actualizarEstado(estadoCompra.CANCELADA, USUARIO_SISTEMA, ahora);
+    return true;
   }
 
   // El organizador la marca al dejar entrar al comprador; solo se usa una compra confirmada.

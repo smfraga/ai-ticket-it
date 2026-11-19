@@ -194,6 +194,15 @@ describe("cargarSeed", () => {
       ]);
     });
 
+    // Si el seed dejara una pendiente vencida, el vencimiento automático la cancelaría al arrancar el servidor.
+    it("la PENDIENTE sigue vigente: vence al empezar su evento, que es antes de los 7 días", () => {
+      const pendiente = proximas().find((c) => c.estado === estadoCompra.PENDIENTE);
+
+      expect(pendiente.fechaLimiteDePago()).toEqual(pendiente.evento.fecha);
+      expect(pendiente.fechaLimiteDePago().getTime()).toBeGreaterThan(AHORA.getTime());
+      expect(pendiente.vencer(AHORA)).toBe(false);
+    });
+
     it("las compras se hicieron antes de hoy", () => {
       proximas().forEach((compra) => expect(compra.historial[0].fechaHora.getTime()).toBeLessThan(AHORA.getTime()));
     });
