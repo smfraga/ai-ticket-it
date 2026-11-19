@@ -20,7 +20,12 @@ export const alRecibirNoAutorizado = (callback) => {
   manejarNoAutorizado = callback ?? (() => {});
 };
 
-export const mensajeDeError = (error) => (error instanceof ApiError ? error.message : MENSAJE_INESPERADO);
+// En los 400 de validación, el detalle (por ejemplo "La contraseña debe tener al menos 8 caracteres") dice más que el mensaje general.
+export const mensajeDeError = (error) => {
+  if (!(error instanceof ApiError)) return MENSAJE_INESPERADO;
+  const detalle = Array.isArray(error.details) ? error.details[0]?.message : null;
+  return detalle ?? error.message;
+};
 
 const armarQuery = (params = {}) => {
   const query = new URLSearchParams();

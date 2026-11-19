@@ -55,6 +55,16 @@ describe("api", () => {
     expect(avisar).toHaveBeenCalledTimes(1);
   });
 
+  it("en un 400 de validación muestra el primer detalle", async () => {
+    fetch.mockResolvedValue(
+      respuesta(400, { message: "El cuerpo de la request es inválido", details: [{ message: "La contraseña debe tener al menos 8 caracteres" }] }),
+    );
+
+    const error = await api.post("/auth/registro", {}).catch((e) => e);
+
+    expect(mensajeDeError(error)).toBe("La contraseña debe tener al menos 8 caracteres");
+  });
+
   it("si no hay red devuelve status 0 y un mensaje claro", async () => {
     fetch.mockRejectedValue(new TypeError("Network request failed"));
 
