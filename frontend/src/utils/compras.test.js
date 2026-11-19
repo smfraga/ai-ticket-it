@@ -4,6 +4,7 @@ import {
   motivoSinCancelacion,
   puedeReseniar,
   puedeCancelar,
+  resumenDeEstados,
   textoDeConfirmacionDeCancelacion,
   textoDiasRestantes,
   textoEntradas,
@@ -69,6 +70,18 @@ describe("textoDiasRestantes", () => {
 
   it("no muestra nada si la compra no está confirmada (null)", () => {
     expect(textoDiasRestantes(null)).toBeNull();
+  });
+});
+
+describe("resumenDeEstados", () => {
+  it("cuenta por estado, en el orden del ciclo de vida y concordando en número", () => {
+    const compras = ["REEMBOLSADA", "CONFIRMADA", "UTILIZADA", "CONFIRMADA", "PENDIENTE"].map((estado) => ({ estado }));
+
+    expect(resumenDeEstados(compras)).toBe("1 pendiente de pago · 2 confirmadas · 1 utilizada · 1 reembolsada");
+  });
+
+  it("sin compras devuelve null", () => {
+    expect(resumenDeEstados([])).toBeNull();
   });
 });
 

@@ -13,8 +13,9 @@ export const PERIODOS = Object.freeze([
 ]);
 
 // Público: no necesita sesión. Los parámetros vacíos no se mandan (ver api.js).
-export const listarEventos = ({ texto, categoriaId, orden, periodo } = {}) =>
-  api.get("/eventos", { texto, categoriaId, orden, periodo });
+// Con `organizadorId` trae solo los eventos de ese organizador ("Mis eventos").
+export const listarEventos = ({ texto, categoriaId, organizadorId, orden, periodo } = {}) =>
+  api.get("/eventos", { texto, categoriaId, organizadorId, orden, periodo });
 
 export const obtenerEvento = (id) => api.get(`/eventos/${id}`);
 

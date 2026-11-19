@@ -20,6 +20,10 @@ export const enviarMensaje = (compraId, mensaje) => api.post(`/compras/${compraI
 export const reseniarCompra = (compraId, { puntuacion, detalle }) =>
   api.post(`/compras/${compraId}/resenia`, { puntuacion, detalle });
 
+// Solo el organizador del evento (403 si no). Devuelve { evento, tiposEntrada: [{ id, nombre, cupo, cupoRestante }],
+// compras: [...] }, cada compra con `comprador` (id, nombre y apellido), las más recientes primero.
+export const listarComprasDelEvento = (eventoId) => api.get(`/eventos/${eventoId}/compras`);
+
 // Requiere sesión de comprador. El pago está simulado: la compra vuelve CONFIRMADA en el mismo pedido.
 // Devuelve { id, estado, cantidad, total, diasRestantes, fecha, evento, tipoEntrada, historial }.
 export const comprar = (eventoId, { tipoEntradaId, cantidad }) =>

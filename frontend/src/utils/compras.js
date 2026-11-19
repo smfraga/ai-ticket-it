@@ -51,4 +51,22 @@ export const textoDiasRestantes = (dias) => {
   return `Faltan ${dias} días`;
 };
 
+const PLURALES_DE_ESTADO = Object.freeze({
+  PENDIENTE: ["pendiente de pago", "pendientes de pago"],
+  CONFIRMADA: ["confirmada", "confirmadas"],
+  UTILIZADA: ["utilizada", "utilizadas"],
+  CANCELADA: ["cancelada", "canceladas"],
+  REEMBOLSADA: ["reembolsada", "reembolsadas"],
+});
+
+// Para el organizador: "3 confirmadas · 1 utilizada · 1 reembolsada", en el orden del ciclo de vida de la compra.
+// Los estados sin compras no aparecen; sin compras, null.
+export const resumenDeEstados = (compras) => {
+  const partes = Object.keys(PLURALES_DE_ESTADO)
+    .map((estado) => [estado, compras.filter((compra) => compra.estado === estado).length])
+    .filter(([, cantidad]) => cantidad > 0)
+    .map(([estado, cantidad]) => `${cantidad} ${PLURALES_DE_ESTADO[estado][cantidad === 1 ? 0 : 1]}`);
+  return partes.length ? partes.join(" · ") : null;
+};
+
 export const textoEntradas = (cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;
