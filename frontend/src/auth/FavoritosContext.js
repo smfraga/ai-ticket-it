@@ -18,16 +18,35 @@ export function FavoritosProvider({ children }) {
   const enCurso = useRef(new Set()); // eventos con un guardar/quitar pendiente: se ignora el doble toque
   const nuevoPedido = useUltimoPedido();
 
+  // Reemplaza los ids por los de una lista del backend, salvo los eventos con un guardar/quitar en curso:
+  // esa lista pudo armarse antes de que el backend procesara el toque, y deshacerlo confundiría.
+  const reemplazarCon = useCallback((favoritos) => {
+    setIds((actuales) => {
+      let nuevos = new Set(favoritos.map((evento) => evento.id));
+      for (const eventoId of enCurso.current) nuevos = conFavorito(nuevos, eventoId, actuales.has(eventoId));
+      return nuevos;
+    });
+  }, []);
+
   const recargar = useCallback(async () => {
     if (!esComprador) return;
     const esVigente = nuevoPedido();
     try {
       const favoritos = await listarFavoritos();
-      if (esVigente()) setIds(new Set(favoritos.map((evento) => evento.id)));
+      if (esVigente()) reemplazarCon(favoritos);
     } catch {
       // Sin la lista, los corazones quedan como estaban; la pestaña Favoritos muestra su propio error.
     }
-  }, [esComprador, nuevoPedido]);
+  }, [esComprador, nuevoPedido, reemplazarCon]);
+
+  // La pestaña Favoritos ya pide la lista completa: con ella actualiza los ids sin un segundo pedido.
+  const sincronizar = useCallback(
+    (favoritos) => {
+      nuevoPedido(); // una recarga anterior traería datos más viejos que esta lista
+      reemplazarCon(favoritos);
+    },
+    [nuevoPedido, reemplazarCon],
+  );
 
   // Al iniciar o cerrar sesión (o cambiar de usuario) se arranca de cero.
   useEffect(() => {
@@ -58,8 +77,8 @@ export function FavoritosProvider({ children }) {
   );
 
   const valor = useMemo(
-    () => ({ ids, esFavorito: (eventoId) => ids.has(eventoId), alternar, recargar }),
-    [ids, alternar, recargar],
+    () => ({ ids, esFavorito: (eventoId) => ids.has(eventoId), alternar, recargar, sincronizar }),
+    [ids, alternar, recargar, sincronizar],
   );
 
   return <FavoritosContext.Provider value={valor}>{children}</FavoritosContext.Provider>;
