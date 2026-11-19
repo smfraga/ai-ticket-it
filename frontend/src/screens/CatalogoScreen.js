@@ -6,16 +6,17 @@ import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
-import { listarCategorias, listarEventos, ORDENES } from "../services/eventosService";
+import { listarCategorias, listarEventos, ORDENES, PERIODOS } from "../services/eventosService";
 import { ALTO_TOQUE, colores, espacio, radio, tipografia } from "../theme";
 
 const ESPERA_DE_BUSQUEDA_MS = 400;
 
-export default function CatalogoScreen() {
+export default function CatalogoScreen({ navigation }) {
   const [busqueda, setBusqueda] = useState("");
   const [texto, setTexto] = useState(""); // la búsqueda ya "asentada", para no pedir por cada letra
   const [categoriaId, setCategoriaId] = useState(null);
   const [orden, setOrden] = useState("fecha");
+  const [periodo, setPeriodo] = useState("proximos");
   const [categorias, setCategorias] = useState([]);
   const [eventos, setEventos] = useState(null); // null = todavía no llegó la primera respuesta
   const [cargando, setCargando] = useState(true);
@@ -32,14 +33,14 @@ export default function CatalogoScreen() {
     setCargando(true);
     setError(null);
     try {
-      const lista = await listarEventos({ texto, categoriaId, orden });
+      const lista = await listarEventos({ texto, categoriaId, orden, periodo });
       if (esVigente()) setEventos(lista);
     } catch (e) {
       if (esVigente()) setError(mensajeDeError(e));
     } finally {
       if (esVigente()) setCargando(false);
     }
-  }, [texto, categoriaId, orden, nuevoPedido]);
+  }, [texto, categoriaId, orden, periodo, nuevoPedido]);
 
   useEffect(() => {
     cargar();
@@ -53,6 +54,11 @@ export default function CatalogoScreen() {
   }, []);
 
   const hayFiltros = texto !== "" || categoriaId !== null;
+  const textoVacio = hayFiltros
+    ? "No encontramos eventos con esos filtros."
+    : periodo === "pasados"
+      ? "Todavía no hay eventos pasados."
+      : "Todavía no hay eventos próximos.";
 
   const contenido = () => {
     if (error && eventos === null) return <Estado tipo="error" mensaje={error} onReintentar={cargar} />;
@@ -61,16 +67,16 @@ export default function CatalogoScreen() {
       <FlatList
         data={eventos}
         keyExtractor={(evento) => evento.id}
-        renderItem={({ item }) => <EventoCard evento={item} />}
+        renderItem={({ item }) => (
+          <EventoCard evento={item} onPress={() => navigation.navigate("DetalleEvento", { eventoId: item.id })} />
+        )}
         contentContainerStyle={estilos.lista}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
         ListHeaderComponent={error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
         ListEmptyComponent={
-          <Text style={[tipografia.cuerpo, estilos.vacio]}>
-            {hayFiltros ? "No encontramos eventos con esos filtros." : "Todavía no hay eventos próximos."}
-          </Text>
+          <Text style={[tipografia.cuerpo, estilos.vacio]}>{textoVacio}</Text>
         }
       />
     );
@@ -101,6 +107,12 @@ export default function CatalogoScreen() {
             />
           ))}
         </ScrollView>
+        <View style={estilos.ordenes}>
+          <Text style={tipografia.etiqueta}>Mostrar</Text>
+          {PERIODOS.map(({ valor, etiqueta }) => (
+            <Chip key={valor} etiqueta={etiqueta} activo={periodo === valor} onPress={() => setPeriodo(valor)} />
+          ))}
+        </View>
         <View style={estilos.ordenes}>
           <Text style={tipografia.etiqueta}>Ordenar por</Text>
           {ORDENES.map(({ valor, etiqueta }) => (

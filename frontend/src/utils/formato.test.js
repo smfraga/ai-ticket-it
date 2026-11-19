@@ -1,4 +1,15 @@
-import { formatearFecha, formatearPrecio } from "./formato";
+import { formatearEstrellas, formatearFecha, formatearFechaCorta, formatearPrecio } from "./formato";
+
+describe("formatearEstrellas y formatearFechaCorta", () => {
+  it("completa las estrellas hasta 5", () => {
+    expect(formatearEstrellas(4)).toBe("★★★★☆");
+    expect(formatearEstrellas(5)).toBe("★★★★★");
+  });
+
+  it("muestra la fecha sin hora", () => {
+    expect(formatearFechaCorta(new Date(2026, 9, 26, 15, 0).toISOString())).toBe("26 oct 2026");
+  });
+});
 
 describe("formatearPrecio", () => {
   it("separa los miles con punto", () => {
