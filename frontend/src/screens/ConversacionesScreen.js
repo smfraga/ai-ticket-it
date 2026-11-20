@@ -8,6 +8,7 @@ import { useMensajes } from "../auth/MensajesContext";
 import Avatar from "../components/Avatar";
 import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
+import MensajeDeError from "../components/MensajeDeError";
 import { API_URL } from "../config";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { insigniaDeNoLeidos, lineaDeLaConversacion, vistaPreviaDelMensaje } from "../utils/chat";
@@ -60,7 +61,9 @@ export default function ConversacionesScreen({ navigation }) {
         ItemSeparatorComponent={() => <View style={estilos.separador} />}
         contentContainerStyle={estilos.lista}
         refreshControl={<RefreshControl refreshing={refrescando} onRefresh={refrescar} tintColor={colores.primario} />}
-        ListHeaderComponent={error ? <Text style={estilos.errorAviso}>Sin conexión: {error}</Text> : null}
+        ListHeaderComponent={
+          error ? <MensajeDeError mensaje={`Sin conexión: ${error}`} style={estilos.errorAviso} /> : null
+        }
         ListEmptyComponent={
           <Text style={[tipografia.cuerpo, estilos.vacio]}>
             {esComprador

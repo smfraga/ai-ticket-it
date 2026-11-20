@@ -4,6 +4,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import Boton from "../components/Boton";
 import CompraCard from "../components/CompraCard";
 import Estado from "../components/Estado";
+import MensajeDeError from "../components/MensajeDeError";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { listarComprasDelEvento } from "../services/comprasService";
@@ -76,7 +77,7 @@ export default function ComprasDelEventoScreen({ route, navigation }) {
 
   const cabecera = (
     <View style={estilos.cabecera}>
-      {error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
+      <MensajeDeError mensaje={error} style={estilos.errorAviso} />
       {aviso ? <Text style={estilos.aviso}>{aviso}</Text> : null}
       <Text style={tipografia.cuerpo}>{formatearFecha(datos.evento.fecha)}</Text>
       {datos.evento.cancelado ? (
@@ -123,7 +124,7 @@ export default function ComprasDelEventoScreen({ route, navigation }) {
       ListFooterComponent={
         gestionable ? (
           <View style={estilos.pie}>
-            {errorDeCancelar ? <Text style={estilos.errorAviso}>{errorDeCancelar}</Text> : null}
+            <MensajeDeError mensaje={errorDeCancelar} style={estilos.errorAviso} />
             <Boton titulo="Cancelar evento" variante="peligro" onPress={pedirConfirmacion} cargando={cancelando} />
           </View>
         ) : null

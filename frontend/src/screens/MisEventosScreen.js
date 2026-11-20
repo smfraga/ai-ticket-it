@@ -7,6 +7,7 @@ import Boton from "../components/Boton";
 import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
+import MensajeDeError from "../components/MensajeDeError";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { LIMITE_MAXIMO_DE_EVENTOS, listarEventos } from "../services/eventosService";
@@ -71,7 +72,7 @@ export default function MisEventosScreen({ navigation }) {
         stickySectionHeadersEnabled={false}
         contentContainerStyle={estilos.lista}
         refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
-        ListHeaderComponent={error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
+        ListHeaderComponent={error ? <MensajeDeError mensaje={error} style={estilos.errorAviso} /> : null}
         ListEmptyComponent={<Text style={[tipografia.cuerpo, estilos.vacio]}>Todavía no creaste ningún evento.</Text>}
       />
     );

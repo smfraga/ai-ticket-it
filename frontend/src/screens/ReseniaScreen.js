@@ -3,6 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput
 import { useHeaderHeight } from "@react-navigation/elements";
 import Boton from "../components/Boton";
 import SelectorEstrellas from "../components/SelectorEstrellas";
+import MensajeDeError from "../components/MensajeDeError";
 import { mensajeDeError } from "../services/api";
 import { reseniarCompra } from "../services/comprasService";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
@@ -60,7 +61,7 @@ export default function ReseniaScreen({ route, navigation }) {
           style={estilos.campo}
         />
 
-        {error ? <Text style={estilos.error}>{error}</Text> : null}
+        <MensajeDeError mensaje={error} style={estilos.error} />
         <Boton titulo="Publicar reseña" onPress={publicar} cargando={enviando} />
       </ScrollView>
     </KeyboardAvoidingView>

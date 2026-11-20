@@ -6,6 +6,7 @@ import { useFavoritos } from "../auth/FavoritosContext";
 import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import TarjetaFavorito from "../components/TarjetaFavorito";
+import MensajeDeError from "../components/MensajeDeError";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { listarFavoritos } from "../services/eventosService";
@@ -73,7 +74,7 @@ export default function FavoritosScreen({ navigation }) {
         ListHeaderComponent={
           error || resumen ? (
             <View>
-              {error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
+              <MensajeDeError mensaje={error} style={estilos.errorAviso} />
               {resumen ? <Text style={estilos.resumen}>{resumen}</Text> : null}
             </View>
           ) : null
