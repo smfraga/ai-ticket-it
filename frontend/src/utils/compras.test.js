@@ -1,6 +1,10 @@
 import {
   errorDeResenia,
   ETIQUETAS_DE_ESTADO,
+  filtrarPorGrupo,
+  GRUPO_TODAS,
+  gruposDeEstado,
+  grupoVigente,
   motivoSinCancelacion,
   motivoSinUtilizar,
   puedeMarcarUtilizada,
@@ -117,6 +121,48 @@ describe("resumenDeEstados", () => {
 
   it("sin compras devuelve null", () => {
     expect(resumenDeEstados([])).toBeNull();
+  });
+});
+
+describe("gruposDeEstado, grupoVigente y filtrarPorGrupo", () => {
+  const compras = ["UTILIZADA", "CONFIRMADA", "REEMBOLSADA", "CONFIRMADA", "CANCELADA", "UTILIZADA", "CONFIRMADA"].map(
+    (estado, i) => ({ id: `c${i}`, estado }),
+  );
+
+  it("muestra Todas y solo los grupos presentes, en orden y con su cantidad", () => {
+    expect(gruposDeEstado(compras)).toEqual([
+      { id: GRUPO_TODAS, etiqueta: "Todas", cantidad: 7 },
+      { id: "CONFIRMADA", etiqueta: "Confirmadas", cantidad: 3 },
+      { id: "UTILIZADA", etiqueta: "Utilizadas", cantidad: 2 },
+      { id: "CANCELADA", etiqueta: "Canceladas", cantidad: 2 },
+    ]);
+  });
+
+  it("con un solo grupo o sin compras no hay chips", () => {
+    expect(gruposDeEstado([{ estado: "CANCELADA" }, { estado: "REEMBOLSADA" }])).toEqual([]);
+    expect(gruposDeEstado([])).toEqual([]);
+  });
+
+  it("Pendientes aparece con dos grupos", () => {
+    const grupos = gruposDeEstado([{ estado: "PENDIENTE" }, { estado: "CONFIRMADA" }]);
+    expect(grupos.map(({ id }) => id)).toEqual([GRUPO_TODAS, "CONFIRMADA", "PENDIENTE"]);
+  });
+
+  it("Canceladas junta CANCELADA y REEMBOLSADA", () => {
+    expect(filtrarPorGrupo(compras, "CANCELADA").map(({ id }) => id)).toEqual(["c2", "c4"]);
+  });
+
+  it("filtra por un estado y Todas devuelve la lista entera", () => {
+    expect(filtrarPorGrupo(compras, "CONFIRMADA").map(({ id }) => id)).toEqual(["c1", "c3", "c6"]);
+    expect(filtrarPorGrupo(compras, "UTILIZADA").map(({ id }) => id)).toEqual(["c0", "c5"]);
+    expect(filtrarPorGrupo(compras, GRUPO_TODAS)).toBe(compras);
+  });
+
+  it("el grupo elegido vuelve a Todas si ya no está entre los chips", () => {
+    const grupos = gruposDeEstado(compras);
+    expect(grupoVigente(grupos, "UTILIZADA")).toBe("UTILIZADA");
+    expect(grupoVigente(grupos, "PENDIENTE")).toBe(GRUPO_TODAS);
+    expect(grupoVigente([], "CONFIRMADA")).toBe(GRUPO_TODAS);
   });
 });
 
