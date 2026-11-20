@@ -16,6 +16,20 @@ export const idPath = (description) => ({
   schema: { type: "string", format: "uuid", example: "00000000-0000-4000-8000-300000000002" },
 });
 
+// Paginación de los listados, como en el TP grupal: los parámetros `page` y `limit` y la respuesta paginada.
+export const page = { name: "page", in: "query", schema: { type: "integer", minimum: 1, default: 1 } };
+export const limit = { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 100, default: 20 } };
+
+export const paginado = (clave, item) => ({
+  type: "object",
+  properties: {
+    [clave]: { type: "array", items: ref(item) },
+    total: { type: "integer", example: 37, description: "Cuántos cumplen los filtros, en todas las páginas" },
+    page: { type: "integer", example: 1 },
+    totalPages: { type: "integer", example: 2 },
+  },
+});
+
 // Una operación que exige token: suma el esquema Bearer y la respuesta 401.
 export const conToken = (operacion) => ({
   ...operacion,

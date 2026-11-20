@@ -7,6 +7,7 @@ import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
 import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
+import { LIMITE_POR_DEFECTO } from "../validations/paginacionValidation.js";
 import { rutaDeFoto } from "./fotos.js";
 import { formatearFecha, formatearPrecio } from "./formato.js";
 
@@ -172,6 +173,21 @@ export class EventoService {
     return eventos
       .sort(compararEventos(orden, sentido, puntajes))
       .map((evento) => this.toEventoResponse(evento, puntajes.get(evento.organizador.id), ahora));
+  }
+
+  // Una página del catálogo, con la forma de los listados paginados del TP grupal: `{ eventos, total, page, totalPages }`.
+  // Se corta acá y no en el repositorio porque los filtros y el orden usan métodos del dominio (como `buscarPerfiles`
+  // del grupo, que también filtra en memoria y pagina en el service).
+  async buscarPaginado(page = 1, limit = LIMITE_POR_DEFECTO, filtros = {}) {
+    const eventos = await this.buscar(filtros);
+    const desde = (page - 1) * limit;
+
+    return {
+      eventos: eventos.slice(desde, desde + limit),
+      total: eventos.length,
+      page,
+      totalPages: Math.ceil(eventos.length / limit),
+    };
   }
 
   async getById(id) {

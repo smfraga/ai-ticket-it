@@ -20,7 +20,7 @@ describe("EventoController", () => {
 
   beforeEach(() => {
     service = {
-      buscar: jest.fn().mockResolvedValue([{ id: "e1" }]),
+      buscarPaginado: jest.fn().mockResolvedValue({ eventos: [{ id: "e1" }], total: 1, page: 1, totalPages: 1 }),
       getById: jest.fn().mockResolvedValue({ id: ID_VALIDO }),
       crear: jest.fn().mockResolvedValue({ id: "nuevo" }),
     };
@@ -34,12 +34,14 @@ describe("EventoController", () => {
   });
 
   describe("getAll", () => {
-    it("valida la query, se la pasa al service ya transformada y responde 200", async () => {
-      const req = { query: { texto: " rock ", precioMin: "1000", orden: "precio", direccion: "desc" } };
+    it("valida la query, le pasa al service la página, el límite y los filtros ya transformados y responde 200", async () => {
+      const req = {
+        query: { texto: " rock ", precioMin: "1000", orden: "precio", direccion: "desc", page: "2", limit: "10" },
+      };
 
       await controller.getAll(req, res, next);
 
-      expect(service.buscar).toHaveBeenCalledWith({
+      expect(service.buscarPaginado).toHaveBeenCalledWith(2, 10, {
         texto: "rock",
         precioMin: 1000,
         periodo: "proximos",
@@ -47,31 +49,32 @@ describe("EventoController", () => {
         direccion: "desc",
       });
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith([{ id: "e1" }]);
+      expect(res.json).toHaveBeenCalledWith({ eventos: [{ id: "e1" }], total: 1, page: 1, totalPages: 1 });
       expect(next).not.toHaveBeenCalled();
     });
 
     it("sin parámetros usa los valores por defecto", async () => {
       await controller.getAll({ query: {} }, res, next);
 
-      expect(service.buscar).toHaveBeenCalledWith({ periodo: "proximos", orden: "fecha" });
+      expect(service.buscarPaginado).toHaveBeenCalledWith(1, 20, { periodo: "proximos", orden: "fecha" });
     });
 
     it.each([
       ["un orden desconocido", { orden: "nombre" }],
       ["un rango de precios invertido", { precioMin: "20", precioMax: "10" }],
       ["un parámetro que no existe", { pagina: "2" }],
+      ["un limit de más de 100", { limit: "101" }],
     ])("con %s pasa un ValidationError a next sin llamar al service", async (_, query) => {
       await controller.getAll({ query }, res, next);
 
       expect(next.mock.calls[0][0]).toBeInstanceOf(ValidationError);
-      expect(service.buscar).not.toHaveBeenCalled();
+      expect(service.buscarPaginado).not.toHaveBeenCalled();
       expect(res.json).not.toHaveBeenCalled();
     });
 
     it("pasa a next el error del service", async () => {
       const error = new Error("falló");
-      service.buscar.mockRejectedValue(error);
+      service.buscarPaginado.mockRejectedValue(error);
 
       await controller.getAll({ query: {} }, res, next);
 

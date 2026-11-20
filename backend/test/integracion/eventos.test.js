@@ -80,7 +80,7 @@ describe("Eventos (API completa)", () => {
       const catalogo = await request(app).get("/eventos").query({ texto: "para ver enseguida" });
 
       expect(detalle.body).toEqual(creado);
-      expect(catalogo.body).toEqual([creado]);
+      expect(catalogo.body.eventos).toEqual([creado]);
     });
 
     it("responde 401 sin token", async () => {
@@ -187,7 +187,8 @@ describe("Eventos (API completa)", () => {
       );
     });
 
-    const nombres = (respuesta) => respuesta.body.map((evento) => evento.nombre);
+    // GET /eventos responde paginado ({ eventos, total, page, totalPages }), como los listados del TP grupal.
+    const nombres = (respuesta) => respuesta.body.eventos.map((evento) => evento.nombre);
     const delCatalogo = (query) =>
       request(app)
         .get("/eventos")
@@ -224,7 +225,7 @@ describe("Eventos (API completa)", () => {
 
     it("filtra por categoría", async () => {
       expect(nombres(await delCatalogo({ categoriaId: teatro.id }))).toEqual(["Obra Ñandú del catálogo"]);
-      expect(await delCatalogo({ categoriaId: ID_INEXISTENTE }).then((r) => r.body)).toEqual([]);
+      expect(await delCatalogo({ categoriaId: ID_INEXISTENTE }).then((r) => r.body.eventos)).toEqual([]);
     });
 
     it("filtra por organizador: cada uno ve solo los suyos, pasados incluidos si se pide", async () => {
@@ -243,14 +244,36 @@ describe("Eventos (API completa)", () => {
         "Obra Ñandú del catálogo",
         "Festival del catálogo",
       ]);
-      expect(deOlivia.body.every((evento) => evento.organizador.id === olivia.id)).toBe(true);
+      expect(deOlivia.body.eventos.every((evento) => evento.organizador.id === olivia.id)).toBe(true);
 
       expect(
         await request(app)
           .get("/eventos")
           .query({ organizadorId: ID_INEXISTENTE })
-          .then((r) => r.body),
+          .then((r) => r.body.eventos),
       ).toEqual([]);
+    });
+
+    it("pagina con page y limit: cada página es un tramo de la lista completa, con el total y la cantidad de páginas", async () => {
+      const ids = (respuesta) => respuesta.body.eventos.map((evento) => evento.id);
+      const todos = await request(app).get("/eventos?periodo=todos&orden=precio&limit=100");
+      const primera = await request(app).get("/eventos?periodo=todos&orden=precio&limit=2");
+      const segunda = await request(app).get("/eventos?periodo=todos&orden=precio&limit=2&page=2");
+      const total = todos.body.total;
+
+      expect(total).toBeGreaterThan(2);
+      expect(ids(todos)).toHaveLength(total);
+      expect(primera.body).toMatchObject({ total, page: 1, totalPages: Math.ceil(total / 2) });
+      expect(ids(primera)).toEqual(ids(todos).slice(0, 2));
+      expect(segunda.body).toMatchObject({ total, page: 2 });
+      expect(ids(segunda)).toEqual(ids(todos).slice(2, 4));
+    });
+
+    it("sin page ni limit devuelve la primera página de a 20", async () => {
+      const respuesta = await request(app).get("/eventos");
+
+      expect(respuesta.body).toMatchObject({ page: 1, totalPages: Math.ceil(respuesta.body.total / 20) });
+      expect(respuesta.body.eventos.length).toBe(Math.min(respuesta.body.total, 20));
     });
 
     it("filtra por rango de precio", async () => {
@@ -274,7 +297,7 @@ describe("Eventos (API completa)", () => {
       const respuesta = await delCatalogo({ orden: "puntaje" });
 
       expect(respuesta.status).toBe(200);
-      expect(respuesta.body.map((evento) => evento.organizador.puntaje)).toEqual([null, null]);
+      expect(respuesta.body.eventos.map((evento) => evento.organizador.puntaje)).toEqual([null, null]);
     });
 
     it.each([
@@ -285,6 +308,8 @@ describe("Eventos (API completa)", () => {
       ["un organizador que no es UUID", { organizadorId: "olivia" }],
       ["un precio que no es número", { precioMax: "barato" }],
       ["un parámetro que no existe", { pagina: 2 }],
+      ["un limit de más de 100", { limit: 101 }],
+      ["una page 0", { page: 0 }],
     ])("responde 400 con el detalle si la query trae %s", async (_, query) => {
       const respuesta = await request(app).get("/eventos").query(query);
 
@@ -306,7 +331,7 @@ describe("Eventos (API completa)", () => {
     });
 
     it("también devuelve un evento ya realizado", async () => {
-      const [pasado] = (await request(app).get("/eventos").query({ periodo: "pasados" })).body;
+      const [pasado] = (await request(app).get("/eventos").query({ periodo: "pasados" })).body.eventos;
 
       const respuesta = await request(app).get(`/eventos/${pasado.id}`);
 

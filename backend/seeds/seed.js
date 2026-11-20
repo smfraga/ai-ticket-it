@@ -53,7 +53,7 @@ const CATEGORIAS = [
 // `organizador` y `categoria` son posiciones en USUARIOS y CATEGORIAS; `dias` es relativo a hoy
 // (positivo: todavía no se hizo; negativo: ya se realizó) y `hora` es la hora local de inicio.
 // `multimedia` son fotos de Unsplash (uso libre) acordes a cada evento; se verificó que cada URL responda una imagen.
-const EVENTOS = [
+const EVENTOS_PRINCIPALES = [
   {
     nombre: "Rock en el Río de la Plata",
     hora: "21:00",
@@ -159,6 +159,112 @@ const EVENTOS = [
     dias: -40,
     tipos: [["Inscripción", "Incluye remera y kit del corredor", 2500, 400]],
   },
+];
+
+// --- Eventos del catálogo -----------------------------------------------------------------------------------------
+// 40 eventos más (32 próximos y 8 ya realizados) para que el catálogo tenga varias páginas. No tienen compras ni
+// reseñas: los puntajes, los chats y los mensajes nuevos siguen saliendo de los 8 de arriba. Ninguno se llama
+// parecido a "Rock", "Stand Up" o "Congreso", así las búsquedas del guion de prueba siguen encontrando uno solo.
+
+// Las fotos se reutilizan de los 8 eventos de arriba (ya verificadas), según la categoría.
+const FOTOS_POR_CATEGORIA = [
+  [...EVENTOS_PRINCIPALES[0].multimedia, ...EVENTOS_PRINCIPALES[6].multimedia], // Recitales
+  [...EVENTOS_PRINCIPALES[1].multimedia, ...EVENTOS_PRINCIPALES[5].multimedia], // Teatro
+  EVENTOS_PRINCIPALES[2].multimedia, // Festivales
+  EVENTOS_PRINCIPALES[3].multimedia, // Conferencias
+  [...EVENTOS_PRINCIPALES[4].multimedia, ...EVENTOS_PRINCIPALES[7].multimedia], // Deportes
+];
+
+const redondear = (precio) => Math.round(precio / 500) * 500;
+
+// Los tipos de entrada de cada categoría, a partir de un precio base: [nombre, descripción, precio, cupo].
+const TIPOS_POR_CATEGORIA = [
+  (base) => [
+    ["General", "Campo, de pie", base, 300],
+    ["Platea", "Sector con butacas", redondear(base * 2), 100],
+  ],
+  (base) => [
+    ["Platea", "Butacas numeradas", base, 150],
+    ["Pullman", "Primer piso", redondear(base * 0.7), 80],
+  ],
+  (base) => [
+    ["Anticipada", "Precio de lanzamiento", base, 400],
+    ["General", "Entrada del día", redondear(base * 1.4), 800],
+  ],
+  (base) => [
+    ["Estudiante", "Con credencial vigente", redondear(base * 0.4), 100],
+    ["General", "Incluye certificado", base, 200],
+  ],
+  (base) => [
+    ["General", "Sin ubicación asignada", base, 500],
+    ["Platea", "Tribuna techada", redondear(base * 2), 150],
+  ],
+];
+
+// [nombre, descripción, categoría, organizador, días, hora, precio base]
+const EVENTOS_DEL_CATALOGO = [
+  ["Noche de Tango en San Telmo", "Orquesta típica y bailarines en un salón histórico.", 0, 0, 3, "21:00", 7000],
+  ["Orquesta Sinfónica: Beethoven", "La Quinta y la Novena en una sola noche.", 0, 1, 14, "20:00", 9000],
+  ["Cumbia en el Club Atlético", "Las bandas del momento en el gimnasio del club.", 0, 1, 22, "22:00", 5000],
+  ["Trap y Freestyle en vivo", "Batallas de improvisación y artistas invitados.", 0, 0, 27, "21:30", 8000],
+  ["Coro Gospel de Navidad", "Voces y palmas para despedir el año.", 0, 0, 33, "19:30", 4500],
+  ["Electrónica al Atardecer", "DJ sets frente al río, de la tarde a la noche.", 0, 1, 40, "18:00", 12000],
+  ["Piano a la Luz de las Velas", "Clásicos del cine y del pop en piano solo.", 0, 0, 8, "20:30", 10000],
+  ["Ciclo de Cantautores", "Cuatro voces, cuatro guitarras y canciones propias.", 0, 1, -5, "21:00", 3500],
+  ["Comedia: Los Vecinos de Arriba", "Una comedia de enredos en un edificio de Caballito.", 1, 1, 6, "20:30", 6500],
+  ["Musical: Sueños de Broadway", "Los grandes números del teatro musical.", 1, 0, 16, "20:00", 15000],
+  ["Impro Teatral: Sin Libreto", "El público elige las historias y el elenco las inventa.", 1, 1, 11, "22:00", 4000],
+  ["Títeres para Chicos", "Un cuento con títeres de guante y canciones.", 1, 0, 4, "16:00", 2500],
+  ["Monólogos de Medianoche", "Humor para trasnochar, con micrófono abierto al final.", 1, 1, 25, "23:30", 5500],
+  ["Ballet: El Lago de los Cisnes", "La compañía estable en una función de gala.", 1, 0, 36, "19:00", 18000],
+  ["Drama: La Casa de Bernarda Alba", "El clásico de Lorca con un elenco joven.", 1, 0, -8, "20:00", 6000],
+  ["Magia y Ilusionismo", "Una hora de trucos de cerca y grandes ilusiones.", 1, 1, -18, "18:30", 5000],
+  ["Festival de Cerveza Artesanal", "Más de 30 cervecerías, música y comida.", 2, 1, 10, "14:00", 3000],
+  ["Feria de Comida Callejera", "Puestos de todo el mundo en una sola plaza.", 2, 0, 13, "12:00", 2000],
+  ["Festival de Cine Independiente", "Cortos y largos de directores nuevos.", 2, 1, 19, "18:00", 4000],
+  ["Festival de Folk y Bluegrass", "Banjos, violines y bandas de todo el país.", 2, 0, 29, "16:00", 6000],
+  ["Feria del Libro Barrial", "Editoriales chicas, firmas y charlas con autores.", 2, 1, 7, "11:00", 1500],
+  ["Festival de Primavera", "Dos escenarios, feria y actividades para chicos.", 2, 0, 45, "15:00", 9500],
+  ["Festival de Murgas", "Las murgas del barrio en un corso de verano.", 2, 1, -15, "17:00", 2000],
+  ["Charla: Inteligencia Artificial en la Salud", "Casos reales de diagnóstico asistido.", 3, 1, 12, "18:30", 5000],
+  ["Jornada de Emprendedores", "Charlas, rondas de negocios y networking.", 3, 0, 17, "09:30", 8000],
+  ["Taller de Fotografía Urbana", "Teoría por la mañana y salida a la calle.", 3, 0, 5, "10:00", 12000],
+  ["Encuentro de Diseño UX", "Investigación con usuarios y prototipos.", 3, 1, 23, "09:00", 10000],
+  ["Seminario de Finanzas Personales", "Presupuesto, ahorro e inversiones para empezar.", 3, 0, 31, "19:00", 6000],
+  ["Hackatón Universitaria", "48 horas para resolver un desafío en equipo.", 3, 1, 38, "09:00", 2500],
+  ["Charla: Astronomía para Todos", "Planetas, estrellas y observación con telescopios.", 3, 0, -3, "20:00", 3000],
+  ["Jornada de Ciberseguridad", "Ataques comunes y cómo defenderse.", 3, 1, -22, "09:00", 7000],
+  ["Torneo de Básquet 3x3", "Equipos mixtos en la cancha del parque.", 4, 1, 2, "16:00", 2000],
+  ["Carrera Nocturna 5K", "Circuito iluminado por la costanera.", 4, 0, 15, "20:00", 3500],
+  ["Final de Vóley Playero", "Las mejores parejas del verano.", 4, 1, 18, "17:30", 4500],
+  ["Exhibición de Patín Artístico", "Coreografías de los clubes de la ciudad.", 4, 0, 24, "18:00", 3000],
+  ["Duatlón del Parque", "Correr, pedalear y volver a correr.", 4, 0, 34, "08:00", 6500],
+  ["Copa de Fútbol Femenino", "Cuartos de final del torneo de la liga.", 4, 1, 42, "15:00", 2500],
+  ["Torneo de Ajedrez Abierto", "Partidas rápidas con premios por categoría.", 4, 1, 26, "10:00", 1500],
+  ["Travesía de Natación", "Dos kilómetros en aguas abiertas.", 4, 0, -30, "09:00", 5500],
+  ["Partido de Rugby Juvenil", "Los equipos sub 18 del torneo regional.", 4, 1, -9, "15:30", 3000],
+];
+
+// Todos los eventos del seed: los 8 de arriba conservan sus posiciones (las usan las compras, las reseñas y los
+// favoritos) y después vienen los del catálogo. Uno de cada tres tiene dos fotos, para ver el "1/2" en la tarjeta.
+const EVENTOS = [
+  ...EVENTOS_PRINCIPALES,
+  ...EVENTOS_DEL_CATALOGO.map(([nombre, descripcion, categoria, organizador, dias, hora, precio], i) => {
+    const fotos = FOTOS_POR_CATEGORIA[categoria];
+    const primera = fotos[i % fotos.length];
+    const segunda = fotos[(i + 1) % fotos.length];
+    const multimedia = i % 3 === 0 && segunda !== primera ? [primera, segunda] : [primera];
+    return {
+      nombre,
+      descripcion,
+      categoria,
+      organizador,
+      dias,
+      hora,
+      multimedia,
+      tipos: TIPOS_POR_CATEGORIA[categoria](precio),
+    };
+  }),
 ];
 
 // Eventos favoritos de los compradores, en el orden en que los guardaron: `comprador` es una posición en USUARIOS

@@ -212,7 +212,7 @@ Ver el catálogo es público (no pide token). Crear un evento exige estar loguea
 
 | Método y ruta       | Descripción                                                                                                   |
 |---------------------|---------------------------------------------------------------------------------------------------------------|
-| `GET /eventos`      | Busca eventos con los filtros de abajo. Por defecto, solo los próximos. Los cancelados no aparecen, salvo al filtrar por `organizadorId` |
+| `GET /eventos`      | Busca eventos con los filtros de abajo, de a una página. Por defecto, solo los próximos. Los cancelados no aparecen, salvo al filtrar por `organizadorId` |
 | `GET /eventos/:id`  | Detalle de un evento (también de los ya realizados y los cancelados, con `cancelado: true`), con sus tipos de entrada y lugares disponibles |
 | `POST /eventos`     | Crea un evento con sus tipos de entrada (`201`). Sin token: `401`. Sin rol de organizador: `403`              |
 | `PATCH /eventos/:id` | Edita un evento próximo (solo su organizador, si no `403`). Cambia solo lo que viene: `nombre`, `descripcion`, `categoriaId`, `fecha` (futura), `multimedia` y `tiposEntrada` (lista completa: con `id` los existentes, sin `id` los nuevos; los que faltan se quitan). Un tipo con entradas vendidas no se quita ni cambia de precio, y su cupo no baja de lo vendido (`409`). Evento ya realizado: `409`. Si cambia la fecha, cada compra pendiente o confirmada recibe un aviso en su chat. Evento cancelado: `409` |
@@ -230,6 +230,10 @@ Parámetros de `GET /eventos` (todos opcionales):
 | `periodo`      | `proximos` (por defecto), `pasados`, `todos`   | Qué eventos mostrar según su fecha                                                                           |
 | `orden`        | `fecha` (por defecto), `precio`, `puntaje`     | `precio` usa la entrada más barata del evento; `puntaje` es el promedio de reseñas del organizador            |
 | `direccion`    | `asc`, `desc`                                  | Por defecto `asc`, salvo `puntaje` que es `desc`. Los organizadores sin reseñas quedan al final               |
+| `page`         | 1 o más (por defecto `1`)                      | Qué página, después de filtrar y ordenar                                                                     |
+| `limit`        | de 1 a 100 (por defecto `20`)                  | Eventos por página (la app pide de a 10, con scroll infinito)                                                |
+
+La respuesta es paginada, como los listados del TP grupal: `{ "eventos": [...], "total": 37, "page": 1, "totalPages": 2 }`, donde `total` es cuántos eventos cumplen los filtros en todas las páginas.
 
 #### Compras
 
@@ -305,7 +309,7 @@ Usuarios (todos con la contraseña **`Demo1234!`**):
 | `carla@example.com`   | Comprador   |
 | `camilo@example.com`  | Comprador   |
 
-Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 8 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA` (una de las canceladas, la de Carla en el congreso, la canceló la plataforma porque venció su plazo de pago), y tres de ellas tienen chat: la compra de Carla en el recital de rock (6 mensajes con Olivia), la `PENDIENTE` de Camilo en el stand up (1 mensaje) y la compra vencida de Carla en el congreso (1 mensaje).
+Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 48 eventos: 37 próximos y 11 ya realizados. Los 8 primeros (5 próximos y 3 realizados) tienen toda la historia que sigue; los otros 40 están para que el catálogo tenga varias páginas y no tienen compras ni reseñas. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 8 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA` (una de las canceladas, la de Carla en el congreso, la canceló la plataforma porque venció su plazo de pago), y tres de ellas tienen chat: la compra de Carla en el recital de rock (6 mensajes con Olivia), la `PENDIENTE` de Camilo en el stand up (1 mensaje) y la compra vencida de Carla en el congreso (1 mensaje).
 
 Para correr los tests:
 
