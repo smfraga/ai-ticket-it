@@ -21,6 +21,7 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 **Organizador** (pestañas Eventos, Mis eventos, Mensajes y Perfil):
 
 - Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo, y una imagen opcional (URL).
+- Editar un evento próximo (datos, fecha y tipos de entrada; si cambia la fecha, cada comprador recibe un aviso en el chat) o cancelarlo (las compras confirmadas se reembolsan y las pendientes se cancelan).
 - Ver sus eventos y, de cada uno, las entradas que quedan por tipo y las compras con su estado.
 - Marcar una compra como utilizada (cuando el comprador entra al evento).
 - Responder el chat de cada compra.
@@ -304,7 +305,7 @@ Usuarios (todos con la contraseña **`Demo1234!`**):
 | `carla@example.com`   | Comprador   |
 | `camilo@example.com`  | Comprador   |
 
-Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 8 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA` (una de las canceladas, la de Carla en el congreso, la canceló la plataforma porque venció su plazo de pago), y dos de ellas tienen chat: la compra de Carla en el recital de rock (4 mensajes con Olivia) y la `PENDIENTE` de Camilo en el stand up (1 mensaje).
+Además se cargan 5 categorías (Recitales, Teatro, Festivales, Conferencias y Deportes) y 8 eventos: 5 próximos y 3 ya realizados. Los realizados tienen compras utilizadas con reseñas, de modo que Olivia tiene un puntaje de 4.5 y Octavio de 2.5, y el orden por puntaje se puede ver con datos reales. Los próximos tienen 8 compras de Carla y Camilo en los estados `PENDIENTE`, `CONFIRMADA`, `CANCELADA` y `REEMBOLSADA` (una de las canceladas, la de Carla en el congreso, la canceló la plataforma porque venció su plazo de pago), y tres de ellas tienen chat: la compra de Carla en el recital de rock (6 mensajes con Olivia), la `PENDIENTE` de Camilo en el stand up (1 mensaje) y la compra vencida de Carla en el congreso (1 mensaje).
 
 Para correr los tests:
 
