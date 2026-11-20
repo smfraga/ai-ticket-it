@@ -2,6 +2,15 @@ import { ConflictError, ForbiddenError, ValidationError } from "../errors/AppErr
 import { rolUsuario } from "./RolUsuario.js";
 import { TipoEntrada } from "./TipoEntrada.js";
 
+const MS_POR_DIA = 24 * 60 * 60 * 1000;
+
+// Medianoche del mismo día, en la hora local del servidor.
+function inicioDelDia(fecha) {
+  const inicio = new Date(fecha);
+  inicio.setHours(0, 0, 0, 0);
+  return inicio.getTime();
+}
+
 export class Evento {
   id;
   nombre;
@@ -132,6 +141,14 @@ export class Evento {
 
   yaPaso(ahora = new Date()) {
     return this.fecha.getTime() <= ahora.getTime();
+  }
+
+  // Días de calendario que faltan para el evento (0 = es hoy), o null si ya se realizó. Se cuentan fechas y no
+  // horas: un evento de mañana a las 00:30 está a 1 día aunque falten 3 horas, y uno de hoy a la noche, a 0.
+  // Math.round absorbe un posible cambio de horario. Un evento cancelado también cuenta: la marca la pone quien muestra.
+  diasRestantes(ahora = new Date()) {
+    if (this.yaPaso(ahora)) return null;
+    return Math.round((inicioDelDia(this.fecha) - inicioDelDia(ahora)) / MS_POR_DIA);
   }
 
   tieneTipoEntrada(tipoEntrada) {

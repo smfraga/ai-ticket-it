@@ -130,6 +130,8 @@ describe("Favoritos (API completa)", () => {
 
       expect(favoritos.map((e) => e.nombre)).toEqual(["Obra ya realizada", "Festival de jazz", "Recital de rock"]);
       expect(favoritos.map((e) => e.yaPaso)).toEqual([true, false, false]);
+      // Para la cuenta regresiva de la pantalla: días de calendario, null si ya se realizó.
+      expect(favoritos.map((e) => e.diasParaElEvento)).toEqual([null, 30, 10]);
     });
 
     it("cada comprador ve solo los suyos", async () => {

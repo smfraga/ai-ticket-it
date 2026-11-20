@@ -230,6 +230,8 @@ export class EventoService {
       },
       precioDesde: evento.precioMinimo(),
       yaPaso: evento.yaPaso(ahora),
+      // Se calcula en el servidor para no depender del reloj del celular (igual que `diasRestantes` de la compra).
+      diasParaElEvento: evento.diasRestantes(ahora),
       cancelado: evento.cancelado,
       tiposEntrada: evento.tiposEntrada.map((tipo) => ({
         id: tipo.id,
