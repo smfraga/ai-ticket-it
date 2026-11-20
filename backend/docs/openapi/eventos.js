@@ -119,6 +119,48 @@ export default {
         },
       }),
     },
+    "/eventos/{id}/imagenes": {
+      post: conToken({
+        tags: ["Eventos"],
+        summary: "Adjuntar una imagen al evento",
+        description:
+          "Solo su organizador, en un evento próximo y no cancelado (409). La imagen va como data URL de un JPEG o " +
+          "PNG en base64 (la app la achica a 1080 px de lado); el tipo se verifica por los primeros bytes y puede " +
+          "pesar hasta 400 KB (este pedido acepta un cuerpo de hasta 600 KB; el resto de la API, 100 KB). " +
+          "Su ruta se suma al final de `multimedia`. Hasta 6 imágenes por evento, contando las URLs (409).",
+        parameters: [eventoId],
+        requestBody: body("ImagenNueva"),
+        responses: {
+          201: ok("El evento, con la ruta de la imagen nueva al final de `multimedia`", ref("Evento")),
+          400: error("BadRequest"),
+          403: error("Forbidden"),
+          404: error("NotFound"),
+          409: error("Conflict"),
+          413: { description: "El cuerpo supera los 600 KB" },
+        },
+      }),
+    },
+    "/eventos/{id}/imagenes/{imagenId}": {
+      get: {
+        tags: ["Eventos"],
+        summary: "Imagen adjunta de un evento",
+        description:
+          "Pública, como el detalle. Devuelve la imagen, no JSON. Cada imagen tiene su id y no cambia nunca, así que " +
+          "tiene caché de un año. Se pierde si el servidor se reinicia (los datos viven en memoria).",
+        parameters: [eventoId, { ...idPath("Id de la imagen"), name: "imagenId" }],
+        responses: {
+          200: {
+            description: "La imagen",
+            content: {
+              "image/jpeg": { schema: { type: "string", format: "binary" } },
+              "image/png": { schema: { type: "string", format: "binary" } },
+            },
+          },
+          400: error("BadRequest"),
+          404: error("NotFound"),
+        },
+      },
+    },
     "/categorias": {
       get: {
         tags: ["Categorías"],
@@ -149,7 +191,13 @@ export default {
         descripcion: { type: "string" },
         categoria: { type: "object", properties: { id: { type: "string" }, nombre: { type: "string" } } },
         fecha,
-        multimedia: { type: "array", items: { type: "string", format: "uri" } },
+        multimedia: {
+          type: "array",
+          maxItems: 6,
+          items: { type: "string" },
+          description:
+            "URLs y rutas de imágenes adjuntas (`/eventos/{id}/imagenes/{imagenId}`, relativas al servidor), en orden",
+        },
         organizador: {
           type: "object",
           properties: {
@@ -193,7 +241,15 @@ export default {
         categoriaId: { type: "string", format: "uuid", example: "00000000-0000-4000-8000-200000000001" },
         fecha: { ...fecha, example: "2026-12-20T21:00:00-03:00" },
         tiposEntrada: { type: "array", minItems: 1, items: ref("TipoEntradaNuevo") },
-        multimedia: { type: "array", items: { type: "string", format: "uri" } },
+        multimedia: { type: "array", maxItems: 6, items: { type: "string", format: "uri" } },
+      },
+    },
+    ImagenNueva: {
+      type: "object",
+      required: ["imagen"],
+      additionalProperties: false,
+      properties: {
+        imagen: { type: "string", maxLength: 560000, example: "data:image/jpeg;base64,/9j/4AAQSkZJRg..." },
       },
     },
     EventoEdicion: {
@@ -206,7 +262,14 @@ export default {
         descripcion: { type: "string" },
         categoriaId: { type: "string", format: "uuid" },
         fecha,
-        multimedia: { type: "array", items: { type: "string", format: "uri" } },
+        multimedia: {
+          type: "array",
+          maxItems: 6,
+          items: { type: "string" },
+          description:
+            "La lista completa de lo que queda: URLs o rutas de imágenes adjuntas de este evento. Los bytes de las " +
+            "adjuntas que no estén se descartan",
+        },
         tiposEntrada: {
           type: "array",
           minItems: 1,

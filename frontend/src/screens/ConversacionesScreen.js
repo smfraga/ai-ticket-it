@@ -8,8 +8,10 @@ import { useMensajes } from "../auth/MensajesContext";
 import Avatar from "../components/Avatar";
 import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
+import { API_URL } from "../config";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { insigniaDeNoLeidos, lineaDeLaConversacion, vistaPreviaDelMensaje } from "../utils/chat";
+import { urlDeImagen } from "../utils/eventos";
 import { horaEnLista } from "../utils/fechasChat";
 
 const LADO_IMAGEN = 56;
@@ -98,7 +100,7 @@ function FilaDeConversacion({ conversacion, ahora, onPress }) {
       <View>
         {evento.imagen && !imagenFallo ? (
           <Image
-            source={{ uri: evento.imagen }}
+            source={{ uri: urlDeImagen(evento.imagen, API_URL) }}
             style={estilos.imagen}
             accessibilityIgnoresInvertColors
             onError={() => setImagenFallo(true)}

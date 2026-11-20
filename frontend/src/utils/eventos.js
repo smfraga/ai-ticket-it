@@ -158,15 +158,54 @@ export const leerCupo = (texto) => {
   return Number(limpio);
 };
 
-// El primer problema del formulario, o null si se puede enviar. Los tipos se numeran desde 1, como en pantalla.
-// Imagen opcional: vacía, o una URL http(s) sin espacios (el backend la vuelve a validar).
-const URL_DE_IMAGEN = /^https?:\/\/[^\s/$.?#][^\s]*$/i;
+// --- Imágenes del evento -----------------------------------------------------------------------------------------
+// En el formulario, `imagenes` es una lista en el orden en que se ven: las que el evento ya tenía ({ url }: una URL
+// o la ruta de una imagen adjunta) y las elegidas de la galería ({ uri, dataUrl }: la vista previa y lo que se sube).
 
-export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada, imagen = "" }, ahora = new Date()) => {
-  if (!nombre.trim()) return "Escribí el nombre del evento.";
-  if (imagen.trim() && !URL_DE_IMAGEN.test(imagen.trim())) {
-    return "La imagen tiene que ser una dirección web que empiece con https:// (o dejala vacía).";
+export const MAXIMO_DE_IMAGENES = 6; // el mismo tope que el backend, contando las URLs del seed
+
+// Las imágenes adjuntas llegan como rutas del servidor ("/eventos/.../imagenes/..."): se les antepone su dirección,
+// como a las fotos de perfil. Las URLs completas (las del seed) quedan igual.
+export const urlDeImagen = (url, apiUrl) => {
+  if (!url) return null;
+  return url.startsWith("/") ? `${apiUrl.replace(/\/+$/, "")}${url}` : url;
+};
+
+// Cuántas se pueden elegir todavía en la galería.
+export const imagenesQueFaltan = (imagenes) => Math.max(0, MAXIMO_DE_IMAGENES - imagenes.length);
+
+// Al editar: las que el evento ya tenía y siguen en la lista (el PATCH reemplaza `multimedia` con estas).
+export const multimediaConservada = (imagenes) => imagenes.filter((imagen) => imagen.url).map((imagen) => imagen.url);
+
+// Las elegidas de la galería, que se suben de a una después de crear o guardar el evento.
+export const imagenesParaSubir = (imagenes) =>
+  imagenes.filter((imagen) => imagen.dataUrl).map((imagen) => imagen.dataUrl);
+
+// Sube las imágenes de a una (cada subida es un pedido de hasta 600 KB). Si alguna falla sigue con las demás: el
+// evento ya quedó creado o guardado. `subir(eventoId, dataUrl)` es el pedido (se inyecta para poder probarlo).
+export const subirImagenes = async (eventoId, dataUrls, subir) => {
+  let fallidas = 0;
+  for (const dataUrl of dataUrls) {
+    try {
+      await subir(eventoId, dataUrl);
+    } catch {
+      fallidas += 1;
+    }
   }
+  return fallidas;
+};
+
+// Se suma al aviso de "¡Evento creado!" o "¡Cambios guardados!". null si se subieron todas.
+export const textoDeImagenesSinSubir = (fallidas) => {
+  if (!fallidas) return null;
+  const cuantas = fallidas === 1 ? "No se pudo subir 1 imagen" : `No se pudieron subir ${fallidas} imágenes`;
+  return `${cuantas}: probá de nuevo desde Editar evento.`;
+};
+
+// El primer problema del formulario, o null si se puede enviar. Los tipos se numeran desde 1, como en pantalla.
+export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada, imagenes = [] }, ahora = new Date()) => {
+  if (!nombre.trim()) return "Escribí el nombre del evento.";
+  if (imagenes.length > MAXIMO_DE_IMAGENES) return `Podés tener hasta ${MAXIMO_DE_IMAGENES} imágenes.`;
   if (!categoriaId) return "Elegí una categoría.";
   if (!(fecha instanceof Date) || fecha.getTime() <= ahora.getTime())
     return "La fecha del evento tiene que ser futura.";
@@ -188,11 +227,10 @@ export const errorDeEvento = ({ nombre, categoriaId, fecha, tiposEntrada, imagen
   return null;
 };
 
-// El cuerpo de POST /eventos. Llamar solo si errorDeEvento devolvió null.
-export const armarEventoParaEnviar = ({ nombre, descripcion, categoriaId, fecha, tiposEntrada, imagen = "" }) => ({
+// El cuerpo de POST /eventos. Llamar solo si errorDeEvento devolvió null. Las imágenes van después, una por pedido.
+export const armarEventoParaEnviar = ({ nombre, descripcion, categoriaId, fecha, tiposEntrada }) => ({
   nombre: nombre.trim(),
   ...(descripcion.trim() ? { descripcion: descripcion.trim() } : {}),
-  ...(imagen.trim() ? { multimedia: [imagen.trim()] } : {}),
   categoriaId,
   fecha: fecha.toISOString(),
   tiposEntrada: tiposEntrada.map(tipoParaEnviar),
@@ -213,7 +251,7 @@ const tipoParaEnviar = (tipo) => ({
 export const eventoAFormulario = (evento) => ({
   nombre: evento.nombre,
   descripcion: evento.descripcion ?? "",
-  imagen: evento.multimedia?.[0] ?? "",
+  imagenes: (evento.multimedia ?? []).map((url) => ({ url })),
   categoriaId: evento.categoria.id,
   fecha: new Date(evento.fecha),
   tiposEntrada: evento.tiposEntrada.map((tipo) => ({
@@ -226,19 +264,16 @@ export const eventoAFormulario = (evento) => ({
 });
 
 // El cuerpo de PATCH /eventos/:id. Manda todo el formulario (la descripción vacía también, para poder borrarla).
-// El formulario edita solo la primera imagen: las demás del evento se conservan.
-export const armarEdicionParaEnviar = (formulario, eventoOriginal) => {
-  const resto = (eventoOriginal.multimedia ?? []).slice(1);
-  const imagen = formulario.imagen.trim();
-  return {
-    nombre: formulario.nombre.trim(),
-    descripcion: formulario.descripcion.trim(),
-    categoriaId: formulario.categoriaId,
-    fecha: formulario.fecha.toISOString(),
-    multimedia: imagen ? [imagen, ...resto] : resto,
-    tiposEntrada: formulario.tiposEntrada.map(tipoParaEnviar),
-  };
-};
+// `multimedia` son las imágenes que el evento ya tenía y siguen en la lista (las quitadas con ✕ no van, y el backend
+// descarta sus bytes); las nuevas se suben después.
+export const armarEdicionParaEnviar = (formulario) => ({
+  nombre: formulario.nombre.trim(),
+  descripcion: formulario.descripcion.trim(),
+  categoriaId: formulario.categoriaId,
+  fecha: formulario.fecha.toISOString(),
+  multimedia: multimediaConservada(formulario.imagenes),
+  tiposEntrada: formulario.tiposEntrada.map(tipoParaEnviar),
+});
 
 // Se puede editar o cancelar solo un evento propio que no pasó ni está cancelado (respuesta de GET /eventos/:id/compras).
 export const puedeGestionarEvento = (evento) => !evento.yaPaso && !evento.cancelado;

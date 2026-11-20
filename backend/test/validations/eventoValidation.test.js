@@ -4,7 +4,9 @@ import {
   ORDENES,
   PERIODOS,
   crearEventoValidation,
+  editarEventoValidation,
   filtrosEventosValidation,
+  imagenEventoValidation,
 } from "../../validations/eventoValidation.js";
 
 const CATEGORIA_ID = "3f2b8c1e-9d4a-4b6e-8a1f-2c7d5e9b0a13";
@@ -173,5 +175,44 @@ describe("filtrosEventosValidation", () => {
       path: ["precioMax"],
       message: "precioMin no puede ser mayor que precioMax",
     });
+  });
+});
+
+describe("editarEventoValidation: multimedia", () => {
+  const EVENTO = "3f2b8c1e-9d4a-4b6e-8a1f-2c7d5e9b0a13";
+  const IMAGEN = "0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d";
+
+  it("acepta URLs y rutas de imágenes adjuntas, mezcladas", () => {
+    const multimedia = ["https://example.com/foto.jpg", `/eventos/${EVENTO}/imagenes/${IMAGEN}`];
+
+    expect(editarEventoValidation.parse({ multimedia }).multimedia).toEqual(multimedia);
+  });
+
+  it.each([
+    ["un nombre de archivo suelto", "foto.jpg"],
+    ["otra ruta del servidor", `/usuarios/${EVENTO}/foto`],
+    ["una ruta de imagen con ids que no son UUID", "/eventos/e-1/imagenes/img-1"],
+    ["una ruta de imagen con algo de más", `/eventos/${EVENTO}/imagenes/${IMAGEN}/x`],
+  ])("rechaza %s", (_, valor) => {
+    expect(editarEventoValidation.safeParse({ multimedia: [valor] }).success).toBe(false);
+  });
+});
+
+describe("imagenEventoValidation", () => {
+  const base64 = Buffer.from([0xff, 0xd8, 0xff, 0xe0]).toString("base64");
+
+  it("acepta un data URL de JPEG o PNG", () => {
+    expect(imagenEventoValidation.safeParse({ imagen: `data:image/jpeg;base64,${base64}` }).success).toBe(true);
+    expect(imagenEventoValidation.safeParse({ imagen: `data:image/png;base64,${base64}` }).success).toBe(true);
+  });
+
+  it.each([
+    ["sin imagen", {}],
+    ["con otro tipo", { imagen: `data:image/gif;base64,${base64}` }],
+    ["con un texto que no es data URL", { imagen: "https://example.com/foto.jpg" }],
+    ["con un campo de más", { imagen: `data:image/jpeg;base64,${base64}`, nombre: "x" }],
+    ["demasiado larga", { imagen: `data:image/jpeg;base64,${"A".repeat(560000)}` }],
+  ])("rechaza un cuerpo %s", (_, cuerpo) => {
+    expect(imagenEventoValidation.safeParse(cuerpo).success).toBe(false);
   });
 });

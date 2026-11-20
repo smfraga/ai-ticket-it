@@ -72,6 +72,10 @@ export const crearEvento = (datos) => api.post("/eventos", datos);
 // con `id` se editan, sin `id` se crean y los que faltan se quitan. 409 si viola una regla (cupo, precio con ventas).
 export const editarEvento = (id, datos) => api.patch(`/eventos/${id}`, datos);
 
+// Adjunta una imagen (data URL de un JPEG, ya achicada) a un evento propio y próximo. Devuelve el evento con la ruta
+// de la imagen al final de `multimedia`. 409 si ya tiene 6 imágenes.
+export const subirImagenDeEvento = (id, dataUrl) => api.post(`/eventos/${id}/imagenes`, { imagen: dataUrl });
+
 // Solo el organizador, en un evento próximo (409 si ya pasó o ya estaba cancelado). Las compras confirmadas quedan
 // REEMBOLSADA y las pendientes CANCELADA. Devuelve el evento con `cancelado: true`.
 export const cancelarEvento = (id) => api.post(`/eventos/${id}/cancelar`);

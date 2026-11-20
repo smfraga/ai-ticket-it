@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { API_URL } from "../config";
 import { colores, espacio, fuentes, radio } from "../theme";
-import { avisoDeCupo, textoCuentaRegresiva } from "../utils/eventos";
+import { avisoDeCupo, textoCuentaRegresiva, urlDeImagen } from "../utils/eventos";
 import { formatearFecha } from "../utils/formato";
 import BotonFavorito from "./BotonFavorito";
 
@@ -10,7 +11,7 @@ import BotonFavorito from "./BotonFavorito";
 // aunque la cantidad sea impar.
 export default function TarjetaFavorito({ evento, ancho, onPress, onQuitar }) {
   const [imagenFallo, setImagenFallo] = useState(false);
-  const imagen = evento.multimedia?.[0];
+  const imagen = urlDeImagen(evento.multimedia?.[0], API_URL);
   const apagada = evento.cancelado || evento.yaPaso;
   const cuenta = textoCuentaRegresiva(evento);
   const aviso = avisoDeCupo(evento);

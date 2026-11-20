@@ -1,4 +1,5 @@
 import { ForbiddenError, ValidationError } from "../errors/AppError.js";
+import { tipoDeImagen } from "./Imagen.js";
 import { rolUsuario } from "./RolUsuario.js";
 
 const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,15 +19,6 @@ function validarApellido(apellido) {
 
 // Foto de perfil: la app la achica a 256×256 antes de mandarla, así que 64 KB sobran.
 export const TAMANIO_MAXIMO_DE_FOTO = 64 * 1024;
-
-// El tipo se decide por los primeros bytes del archivo y no por lo que diga quien lo manda.
-const FIRMAS_DE_IMAGEN = [
-  { tipo: "image/jpeg", bytes: [0xff, 0xd8, 0xff] },
-  { tipo: "image/png", bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
-];
-
-const tipoDeImagen = (datos) =>
-  FIRMAS_DE_IMAGEN.find(({ bytes }) => bytes.every((byte, i) => datos[i] === byte))?.tipo ?? null;
 
 // Dos eventos son el mismo si tienen el mismo id; si todavía no tienen, si son el mismo objeto.
 function mismoEvento(uno, otro) {

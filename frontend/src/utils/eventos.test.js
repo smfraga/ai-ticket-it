@@ -195,12 +195,13 @@ describe("errorDeEvento", () => {
     );
   });
 
-  it("la imagen es opcional, pero si se escribe tiene que ser una URL http(s)", () => {
-    expect(errorDeEvento(formulario({ imagen: "" }), AHORA)).toBeNull();
-    expect(errorDeEvento(formulario({ imagen: " https://example.com/foto.jpg " }), AHORA)).toBeNull();
-    for (const imagen of ["foto.jpg", "ftp://example.com/a.jpg", "https://", "https://ejemplo .com/a.jpg"]) {
-      expect(errorDeEvento(formulario({ imagen }), AHORA)).toMatch(/imagen/);
-    }
+  it("las imágenes son opcionales, hasta 6", () => {
+    const imagenes = (cantidad) =>
+      Array.from({ length: cantidad }, (_, i) => ({ url: `https://example.com/${i}.jpg` }));
+
+    expect(errorDeEvento(formulario({ imagenes: [] }), AHORA)).toBeNull();
+    expect(errorDeEvento(formulario({ imagenes: imagenes(6) }), AHORA)).toBeNull();
+    expect(errorDeEvento(formulario({ imagenes: imagenes(7) }), AHORA)).toBe("Podés tener hasta 6 imágenes.");
   });
 
   it("no acepta dos tipos con el mismo nombre", () => {
@@ -226,9 +227,9 @@ describe("armarEventoParaEnviar y fechaInicialDeEvento", () => {
       ],
     });
     expect(armarEventoParaEnviar(formulario({ descripcion: " Bandas " })).descripcion).toBe("Bandas");
-    expect(armarEventoParaEnviar(formulario({ imagen: " https://example.com/a.jpg " })).multimedia).toEqual([
-      "https://example.com/a.jpg",
-    ]);
+    // Las imágenes no van en este cuerpo: se suben después, una por pedido.
+    const conImagenes = formulario({ imagenes: [{ uri: "file:///a.jpg", dataUrl: "data:image/jpeg;base64,AAAA" }] });
+    expect(armarEventoParaEnviar(conImagenes)).not.toHaveProperty("multimedia");
   });
 
   it("propone una semana después, a las 21:00", () => {

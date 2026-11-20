@@ -1,16 +1,19 @@
 import { useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { API_URL } from "../config";
 import { colores, espacio, fuentes, radio } from "../theme";
+import { urlDeImagen } from "../utils/eventos";
 
 const ALTO = 200;
 
 // Las imágenes del evento (multimedia), deslizables de a una. Las que no cargan se ocultan;
 // si no queda ninguna, no se muestra nada.
+// Las imágenes adjuntas llegan como rutas del servidor: `urlDeImagen` les antepone su dirección.
 export default function GaleriaImagenes({ urls = [] }) {
   const [ancho, setAncho] = useState(0);
   const [fallidas, setFallidas] = useState(() => new Set());
   const [actual, setActual] = useState(0);
-  const visibles = urls.filter((url) => !fallidas.has(url));
+  const visibles = urls.map((url) => urlDeImagen(url, API_URL)).filter((url) => url && !fallidas.has(url));
 
   if (visibles.length === 0) return null;
 

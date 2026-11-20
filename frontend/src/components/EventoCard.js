@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
+import { API_URL } from "../config";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
+import { urlDeImagen } from "../utils/eventos";
 import { formatearPrecio } from "../utils/formato";
 import BotonFavorito from "./BotonFavorito";
 import Entrada from "./Entrada";
@@ -17,7 +19,7 @@ export default function EventoCard({ evento, onPress, favorito, onAlternarFavori
   const conCorazon = typeof onAlternarFavorito === "function";
   // La primera imagen del evento, si tiene. Si no carga (URL rota, sin internet), la tarjeta queda sin imagen.
   const [imagenFallo, setImagenFallo] = useState(false);
-  const imagen = evento.multimedia?.[0];
+  const imagen = urlDeImagen(evento.multimedia?.[0], API_URL);
   const cantidadDeImagenes = evento.multimedia?.length ?? 0;
 
   return (

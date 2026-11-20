@@ -6,7 +6,11 @@ import { ResenaController } from "../controllers/ResenaController.js";
 import { autenticar } from "../middlewares/autenticar.js";
 import { validate } from "../middlewares/validate.js";
 import { comprarValidation } from "../validations/compraValidation.js";
-import { crearEventoValidation, editarEventoValidation } from "../validations/eventoValidation.js";
+import {
+  crearEventoValidation,
+  editarEventoValidation,
+  imagenEventoValidation,
+} from "../validations/eventoValidation.js";
 
 const eventoController = new EventoController();
 const compraController = new CompraController();
@@ -25,6 +29,13 @@ router
   .patch(autenticar, validate(editarEventoValidation), (req, res, next) => eventoController.update(req, res, next));
 
 router.post("/:id/cancelar", autenticar, (req, res, next) => eventoController.cancelar(req, res, next));
+
+// Imágenes adjuntas: subirlas es del organizador; verlas es público, como el detalle. El cuerpo de la subida lo lee
+// un parser JSON con más tamaño (ver app.js).
+router.post("/:id/imagenes", autenticar, validate(imagenEventoValidation), (req, res, next) =>
+  eventoController.agregarImagen(req, res, next),
+);
+router.get("/:id/imagenes/:imagenId", (req, res, next) => eventoController.getImagen(req, res, next));
 
 router
   .route("/:id/compras")

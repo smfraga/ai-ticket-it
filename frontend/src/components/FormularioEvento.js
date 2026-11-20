@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useHeaderHeight } from "@react-navigation/elements";
+import { API_URL } from "../config";
 import { mensajeDeError } from "../services/api";
 import { listarCategorias } from "../services/eventosService";
+import { elegirImagenesDeEvento } from "../services/imagenesDeEvento";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
-import { errorDeEvento, tipoEntradaVacio } from "../utils/eventos";
+import { errorDeEvento, imagenesQueFaltan, MAXIMO_DE_IMAGENES, tipoEntradaVacio, urlDeImagen } from "../utils/eventos";
 import Boton from "./Boton";
 import CampoTexto from "./CampoTexto";
 import Chip from "./Chip";
 import SelectorFechaHora from "./SelectorFechaHora";
+
+const LADO_MINIATURA = 96;
 
 // Formulario del organizador para crear o editar un evento: datos del evento y uno o más tipos de entrada.
 // `inicial` trae los valores de arranque (al editar, los del evento; un tipo con `vendidas > 0` tiene el precio
@@ -19,7 +24,10 @@ export default function FormularioEvento({ inicial, textoBoton, onEnviar }) {
   const [ahora] = useState(() => new Date());
   const [nombre, setNombre] = useState(inicial.nombre);
   const [descripcion, setDescripcion] = useState(inicial.descripcion);
-  const [imagen, setImagen] = useState(inicial.imagen);
+  // `clave` identifica cada miniatura en pantalla (las elegidas todavía no tienen ruta en el servidor).
+  const proximaClaveDeImagen = useRef(inicial.imagenes.length);
+  const [imagenes, setImagenes] = useState(() => inicial.imagenes.map((imagen, i) => ({ ...imagen, clave: i })));
+  const [adjuntando, setAdjuntando] = useState(false);
   const [categoriaId, setCategoriaId] = useState(inicial.categoriaId);
   const [fecha, setFecha] = useState(inicial.fecha);
   // `clave` identifica cada tarjeta en pantalla (los tipos nuevos todavía no tienen id).
@@ -53,8 +61,28 @@ export default function FormularioEvento({ inicial, textoBoton, onEnviar }) {
 
   const quitarTipo = (clave) => setTiposEntrada((tipos) => tipos.filter((tipo) => tipo.clave !== clave));
 
+  // Las elegidas se suman al final, en el orden en que se tocaron; se suben recién al crear o guardar.
+  const adjuntarImagenes = async () => {
+    setAdjuntando(true);
+    try {
+      const elegidas = await elegirImagenesDeEvento(imagenesQueFaltan(imagenes));
+      setImagenes((previas) =>
+        [...previas, ...elegidas.map((imagen) => ({ ...imagen, clave: proximaClaveDeImagen.current++ }))].slice(
+          0,
+          MAXIMO_DE_IMAGENES,
+        ),
+      );
+    } catch {
+      setError("No se pudieron abrir las imágenes. Probá con otras.");
+    } finally {
+      setAdjuntando(false);
+    }
+  };
+
+  const quitarImagen = (clave) => setImagenes((previas) => previas.filter((imagen) => imagen.clave !== clave));
+
   const enviar = async () => {
-    const formulario = { nombre, descripcion, imagen, categoriaId, fecha, tiposEntrada };
+    const formulario = { nombre, descripcion, imagenes, categoriaId, fecha, tiposEntrada };
     const problema = errorDeEvento(formulario, new Date());
     setError(problema);
     if (problema) return;
@@ -84,15 +112,50 @@ export default function FormularioEvento({ inicial, textoBoton, onEnviar }) {
           multiline
           style={estilos.multilinea}
         />
-        <CampoTexto
-          etiqueta="Imagen (URL, opcional)"
-          value={imagen}
-          onChangeText={setImagen}
-          placeholder="https://…"
-          keyboardType="url"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+        <View style={estilos.bloque}>
+          <Text style={tipografia.etiqueta}>
+            Imágenes (opcional, {imagenes.length} de {MAXIMO_DE_IMAGENES})
+          </Text>
+          {imagenes.length > 0 ? (
+            <View style={estilos.miniaturas}>
+              {imagenes.map((imagen, i) => (
+                <View key={imagen.clave} style={estilos.miniatura}>
+                  <Image
+                    source={{ uri: imagen.uri ?? urlDeImagen(imagen.url, API_URL) }}
+                    style={estilos.miniaturaImagen}
+                    resizeMode="cover"
+                    accessibilityLabel={`Imagen ${i + 1}${i === 0 ? ", portada" : ""}`}
+                    accessibilityIgnoresInvertColors
+                  />
+                  {/* La primera es la que se ve en las tarjetas del catálogo y de favoritos. */}
+                  {i === 0 ? <Text style={estilos.portada}>Portada</Text> : null}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Quitar la imagen ${i + 1}`}
+                    onPress={() => quitarImagen(imagen.clave)}
+                    hitSlop={8}
+                    style={({ pressed }) => [estilos.quitarImagen, pressed && estilos.presionado]}
+                  >
+                    <Ionicons name="close" size={16} color={colores.textoSobreCapa} />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          <Boton
+            titulo={
+              imagenes.length >= MAXIMO_DE_IMAGENES
+                ? `Ya tiene ${MAXIMO_DE_IMAGENES} imágenes`
+                : imagenes.length > 0
+                  ? "+ Adjuntar más imágenes"
+                  : "+ Adjuntar imágenes"
+            }
+            variante="secundario"
+            onPress={adjuntarImagenes}
+            cargando={adjuntando}
+            deshabilitado={imagenes.length >= MAXIMO_DE_IMAGENES}
+          />
+        </View>
 
         <View style={estilos.bloque}>
           <Text style={tipografia.etiqueta}>Categoría</Text>
@@ -190,6 +253,34 @@ const estilos = StyleSheet.create({
   contenido: { padding: espacio.l, gap: espacio.l, paddingBottom: espacio.xxl },
   multilinea: { minHeight: 96, paddingTop: espacio.m, textAlignVertical: "top" },
   bloque: { gap: espacio.s },
+  miniaturas: { flexDirection: "row", flexWrap: "wrap", gap: espacio.s },
+  miniatura: { width: LADO_MINIATURA, height: LADO_MINIATURA, borderRadius: radio.control, overflow: "hidden" },
+  miniaturaImagen: { width: "100%", height: "100%", backgroundColor: colores.superficieAlta },
+  portada: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingVertical: 2,
+    textAlign: "center",
+    backgroundColor: colores.capaSobreFoto,
+    color: colores.textoSobreCapa,
+    fontSize: 11,
+    fontFamily: fuentes.seminegrita,
+  },
+  // Círculo oscuro con la ✕, para que se vea sobre cualquier foto.
+  quitarImagen: {
+    position: "absolute",
+    top: espacio.xs,
+    right: espacio.xs,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colores.capaSobreFoto,
+  },
+  presionado: { opacity: 0.6 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: espacio.s },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.s },
   tarjeta: {

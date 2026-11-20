@@ -27,7 +27,7 @@ describe("eventoAFormulario", () => {
     expect(eventoAFormulario(eventoDelBackend)).toEqual({
       nombre: "Noche de Stand Up",
       descripcion: "Seis humoristas",
-      imagen: "https://ejemplo.com/1.jpg",
+      imagenes: [{ url: "https://ejemplo.com/1.jpg" }, { url: "https://ejemplo.com/2.jpg" }],
       categoriaId: "cat-1",
       fecha: new Date("2026-11-25T00:30:00.000Z"),
       tiposEntrada: [
@@ -40,7 +40,7 @@ describe("eventoAFormulario", () => {
   it("sin multimedia ni descripción deja los campos vacíos", () => {
     const formulario = eventoAFormulario({ ...eventoDelBackend, multimedia: [], descripcion: undefined });
 
-    expect(formulario.imagen).toBe("");
+    expect(formulario.imagenes).toEqual([]);
     expect(formulario.descripcion).toBe("");
   });
 });
@@ -76,7 +76,6 @@ describe("armarEdicionParaEnviar", () => {
           { nombre: "Palco", precio: "15000,50", cupo: "10" },
         ],
       }),
-      eventoDelBackend,
     );
 
     expect(cuerpo).toEqual({
@@ -93,15 +92,22 @@ describe("armarEdicionParaEnviar", () => {
   });
 
   it("manda la descripción vacía para poder borrarla", () => {
-    expect(armarEdicionParaEnviar(formulario({ descripcion: "  " }), eventoDelBackend).descripcion).toBe("");
+    expect(armarEdicionParaEnviar(formulario({ descripcion: "  " })).descripcion).toBe("");
   });
 
-  it("cambia o borra solo la primera imagen y conserva las demás", () => {
-    const cambiada = armarEdicionParaEnviar(formulario({ imagen: "https://ejemplo.com/nueva.jpg" }), eventoDelBackend);
-    const borrada = armarEdicionParaEnviar(formulario({ imagen: "" }), eventoDelBackend);
+  it("en multimedia van solo las imágenes que ya tenía y siguen, en orden; las nuevas no", () => {
+    const ruta = "/eventos/ev-1/imagenes/img-1";
+    const imagenes = [
+      { url: ruta },
+      { uri: "file:///nueva.jpg", dataUrl: "data:image/jpeg;base64,AAAA" },
+      { url: "https://ejemplo.com/2.jpg" },
+    ];
 
-    expect(cambiada.multimedia).toEqual(["https://ejemplo.com/nueva.jpg", "https://ejemplo.com/2.jpg"]);
-    expect(borrada.multimedia).toEqual(["https://ejemplo.com/2.jpg"]);
+    expect(armarEdicionParaEnviar(formulario({ imagenes })).multimedia).toEqual([ruta, "https://ejemplo.com/2.jpg"]);
+  });
+
+  it("si se quitaron todas, manda multimedia vacía (el backend descarta los bytes)", () => {
+    expect(armarEdicionParaEnviar(formulario({ imagenes: [] })).multimedia).toEqual([]);
   });
 });
 

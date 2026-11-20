@@ -47,7 +47,7 @@ describe("Documentación de la API (Swagger)", () => {
 
   it("el router tiene las rutas esperadas (si esto falla, el test no está leyendo bien las rutas)", () => {
     const rutas = rutasDelRouter();
-    expect(rutas.size).toBe(30);
+    expect(rutas.size).toBe(32);
     expect(rutas.get("get /eventos")).toBe(false);
     expect(rutas.get("post /eventos")).toBe(true);
     expect(rutas.get("patch /eventos/{id}")).toBe(true);
@@ -57,6 +57,8 @@ describe("Documentación de la API (Swagger)", () => {
     expect(rutas.get("get /perfil")).toBe(true);
     expect(rutas.get("put /perfil/foto")).toBe(true);
     expect(rutas.get("get /usuarios/{id}/foto")).toBe(false);
+    expect(rutas.get("post /eventos/{id}/imagenes")).toBe(true);
+    expect(rutas.get("get /eventos/{id}/imagenes/{imagenId}")).toBe(false);
   });
 
   it("cada ruta del router está documentada", () => {
