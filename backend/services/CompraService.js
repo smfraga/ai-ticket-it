@@ -65,13 +65,19 @@ export class CompraService {
       evento: {
         ...respuesta.evento,
         yaPaso: compra.evento.yaPaso(ahora),
-        organizador: { id: organizador.id, nombre: organizador.nombre, apellido: organizador.apellido },
+        organizador: {
+          id: organizador.id,
+          nombre: organizador.nombre,
+          apellido: organizador.apellido,
+          foto: rutaDeFoto(organizador),
+        },
       },
-      // Solo nombre y apellido: nunca el email ni el hash del comprador.
+      // Nombre, apellido y la ruta de su foto: nunca el email ni el hash del comprador.
       comprador: {
         id: compra.comprador.id,
         nombre: compra.comprador.nombre,
         apellido: compra.comprador.apellido,
+        foto: rutaDeFoto(compra.comprador),
       },
       resenia: resenia
         ? {
@@ -204,11 +210,12 @@ export class CompraService {
       })),
       compras: compras.map((compra) => ({
         ...this.toCompraResponse(compra, ahora, usuario),
-        // Solo nombre y apellido: nunca el email ni el hash del comprador.
+        // Nombre, apellido y la ruta de su foto: nunca el email ni el hash del comprador.
         comprador: {
           id: compra.comprador.id,
           nombre: compra.comprador.nombre,
           apellido: compra.comprador.apellido,
+          foto: rutaDeFoto(compra.comprador),
         },
       })),
     };

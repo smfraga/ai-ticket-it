@@ -29,6 +29,15 @@ export const persona = {
   properties: { id: { type: "string" }, nombre: { type: "string" }, apellido: { type: "string" } },
 };
 
+// Una persona con la ruta de su foto de perfil (`/usuarios/{id}/foto?v=N`), o null si no tiene.
+export const personaConFoto = {
+  type: "object",
+  properties: {
+    ...persona.properties,
+    foto: { type: "string", nullable: true, description: "Ruta de su foto de perfil, o null" },
+  },
+};
+
 export const schemasComunes = {
   Error: {
     type: "object",

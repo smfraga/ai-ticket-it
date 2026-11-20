@@ -150,6 +150,7 @@ export default {
             id: { type: "string" },
             nombre: { type: "string" },
             apellido: { type: "string" },
+            foto: { type: "string", nullable: true, description: "Ruta de su foto de perfil, o null" },
             puntaje: {
               type: "number",
               nullable: true,

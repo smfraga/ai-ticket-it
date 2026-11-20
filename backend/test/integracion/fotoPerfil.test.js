@@ -97,6 +97,50 @@ describe("Foto de perfil (API completa)", () => {
     expect(mensajes.body[0].autor.foto).toBe(rutaDeCarla);
   });
 
+  it("las compras del evento, el detalle, el catálogo y las reseñas traen la foto del comprador y del organizador", async () => {
+    const conToken = (pedido, token) => pedido.set("Authorization", `Bearer ${token}`);
+    const fotoDeOlivia = (await subir({ imagen: comoDataUrl(JPEG) }, olivia.token)).body.foto;
+    const rutaDeCarla = `/usuarios/${carla.usuario.id}/foto?v=2`;
+    const categoria = await categoriaRepository.save(new Categoria("Teatro de la foto", "Obras"));
+    const evento = (
+      await conToken(request(app).post("/eventos"), olivia.token).send({
+        nombre: "Obra con fotos",
+        categoriaId: categoria.id,
+        fecha: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+        tiposEntrada: [{ nombre: "Platea", precio: 2000, cupo: 10 }],
+      })
+    ).body;
+    const compra = (
+      await conToken(request(app).post(`/eventos/${evento.id}/compras`), carla.token).send({
+        tipoEntradaId: evento.tiposEntrada[0].id,
+        cantidad: 2,
+      })
+    ).body;
+
+    const delEvento = await conToken(request(app).get(`/eventos/${evento.id}/compras`), olivia.token);
+    expect(delEvento.body.compras[0].comprador.foto).toBe(rutaDeCarla);
+
+    const detalle = await conToken(request(app).get(`/compras/${compra.id}`), olivia.token);
+    expect(detalle.body.comprador.foto).toBe(rutaDeCarla);
+    expect(detalle.body.evento.organizador.foto).toBe(fotoDeOlivia);
+
+    expect((await request(app).get(`/eventos/${evento.id}`)).body.organizador.foto).toBe(fotoDeOlivia);
+
+    await conToken(request(app).post(`/compras/${compra.id}/utilizar`), olivia.token);
+    await conToken(request(app).post(`/compras/${compra.id}/resenia`), carla.token).send({
+      puntuacion: 5,
+      detalle: "Muy linda",
+    });
+
+    const delOrganizador = await request(app).get(`/organizadores/${olivia.usuario.id}/resenias`);
+    expect(delOrganizador.body.organizador.foto).toBe(fotoDeOlivia);
+    expect(delOrganizador.body.resenias[0].autor.foto).toBe(rutaDeCarla);
+
+    const delEventoResenias = await request(app).get(`/eventos/${evento.id}/resenias`);
+    expect(delEventoResenias.body.organizador.foto).toBe(fotoDeOlivia);
+    expect(delEventoResenias.body.resenias[0].autor.foto).toBe(rutaDeCarla);
+  });
+
   it.each([
     ["una imagen que no es JPEG ni PNG", { imagen: comoDataUrl(Buffer.from("GIF89a....")) }],
     ["un texto que no es un data URL", { imagen: "esto no es una imagen" }],
