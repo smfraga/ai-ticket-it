@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { idValidation } from "./idValidation.js";
+import { mensajesDeTipo } from "./mensajesDeTipo.js";
 import { paginacionValidation } from "./paginacionValidation.js";
 
 export const PERIODOS = ["proximos", "pasados", "todos"];
@@ -10,9 +11,11 @@ const tipoEntradaValidation = z
   .object({
     nombre: z.string().trim().min(1, "El nombre del tipo de entrada es obligatorio"),
     descripcion: z.string().trim().optional(),
-    precio: z.number({ invalid_type_error: "El precio debe ser un número" }).min(0, "El precio no puede ser negativo"),
+    precio: z
+      .number(mensajesDeTipo({ tipoInvalido: "El precio debe ser un número" }))
+      .min(0, "El precio no puede ser negativo"),
     cupo: z
-      .number({ invalid_type_error: "El cupo debe ser un número" })
+      .number(mensajesDeTipo({ tipoInvalido: "El cupo debe ser un número" }))
       .int("El cupo debe ser un número entero")
       .positive("El cupo debe ser mayor a 0"),
   })
@@ -70,7 +73,7 @@ const FORMATO_DE_IMAGEN = /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/]+={0,2}$/
 export const imagenEventoValidation = z
   .object({
     imagen: z
-      .string({ required_error: "Falta la imagen" })
+      .string(mensajesDeTipo({ obligatorio: "Falta la imagen" }))
       .max(560000, "La imagen es demasiado grande")
       .regex(FORMATO_DE_IMAGEN, "La imagen tiene que ser un JPEG o un PNG en base64"),
   })
@@ -79,10 +82,13 @@ export const imagenEventoValidation = z
 // Los parámetros de la query llegan como texto: "" se trata como "no enviado" y los números se convierten.
 const precioDeQuery = z.preprocess(
   (valor) => (valor === "" ? undefined : valor),
-  z.coerce.number({ invalid_type_error: "Debe ser un número" }).min(0, "No puede ser negativo").optional(),
+  z.coerce
+    .number(mensajesDeTipo({ tipoInvalido: "Debe ser un número" }))
+    .min(0, "No puede ser negativo")
+    .optional(),
 );
 
-const opcionDe = (valores) => z.enum(valores, { errorMap: () => ({ message: `Tiene que ser ${valores.join(", ")}` }) });
+const opcionDe = (valores) => z.enum(valores, { error: `Tiene que ser ${valores.join(", ")}` });
 
 // Los filtros del catálogo más `page` y `limit` (paginación, como los listados del TP grupal).
 export const filtrosEventosValidation = paginacionValidation
