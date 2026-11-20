@@ -62,6 +62,24 @@ export const sinFiltro = (filtros, clave) => ({ ...filtros, [clave]: FILTROS_POR
 // "Filtros" o "Filtros (2)", para el botón que abre la hoja.
 export const tituloDelBotonDeFiltros = (cantidad) => (cantidad > 0 ? `Filtros (${cantidad})` : "Filtros");
 
+// --- Paginación del catálogo (scroll infinito) ----------------------------------------------------------------
+
+// Con `pagina` y `totalPaginas` de la respuesta paginada: hay más si la que llegó no es la última.
+export const hayMasPaginas = (pagina, totalPaginas) => pagina < totalPaginas;
+
+// Al pie del catálogo: "Mostrando 20 de 37 eventos" (o "Mostrando los 7 eventos" si ya están todos).
+export const textoDeCantidad = (mostrados, total) => {
+  if (total === 0) return null;
+  if (mostrados >= total) return total === 1 ? "Mostrando el único evento" : `Mostrando los ${total} eventos`;
+  return `Mostrando ${mostrados} de ${total} eventos`;
+};
+
+// Suma una página al final sin repetir eventos (si el catálogo cambió entre página y página, uno puede repetirse).
+export const agregarPagina = (previos, nuevos) => {
+  const ids = new Set(previos.map((evento) => evento.id));
+  return previos.concat(nuevos.filter((evento) => !ids.has(evento.id)));
+};
+
 // --- Favoritos -------------------------------------------------------------------------------------------------
 
 // Un Set nuevo con el evento guardado o quitado; no modifica el anterior (React compara por referencia).

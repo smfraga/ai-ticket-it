@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,13 +21,16 @@ import EventoCard from "../components/EventoCard";
 import HojaDeFiltros from "../components/HojaDeFiltros";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
-import { listarCategorias, listarEventos, ORDENES, PERIODOS } from "../services/eventosService";
+import { EVENTOS_POR_PAGINA, listarCategorias, listarEventos, ORDENES, PERIODOS } from "../services/eventosService";
 import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
 import {
+  agregarPagina,
   FILTROS_POR_DEFECTO,
   filtrosActivos,
+  hayMasPaginas,
   parametrosDePrecio,
   sinFiltro,
+  textoDeCantidad,
   tituloDelBotonDeFiltros,
 } from "../utils/eventos";
 
@@ -32,6 +45,12 @@ export default function CatalogoScreen({ navigation }) {
   const [eventos, setEventos] = useState(null); // null = todavía no llegó la primera respuesta
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  // Scroll infinito: la última página que llegó, si puede haber más, y la carga y el error de la siguiente.
+  const [pagina, setPagina] = useState(1);
+  const [hayMas, setHayMas] = useState(false);
+  const [total, setTotal] = useState(0); // cuántos cumplen los filtros, en todas las páginas
+  const [cargandoMas, setCargandoMas] = useState(false);
+  const [errorDeMas, setErrorDeMas] = useState(null);
   const nuevoPedido = useUltimoPedido();
   const { esComprador } = useAuth();
   const { esFavorito, alternar, recargar: recargarFavoritos } = useFavoritos();
@@ -48,20 +67,65 @@ export default function CatalogoScreen({ navigation }) {
     return () => clearTimeout(espera);
   }, [busqueda]);
 
+  // Lo que se le pide al backend con la búsqueda y los filtros actuales, para una página dada.
+  const pedirPagina = useCallback(
+    (numero) => {
+      const { categoriaId, orden, periodo, rangoDePrecio } = filtros;
+      return listarEventos({
+        texto,
+        categoriaId,
+        orden,
+        periodo,
+        ...parametrosDePrecio(rangoDePrecio),
+        pagina: numero,
+        limite: EVENTOS_POR_PAGINA,
+      });
+    },
+    [texto, filtros],
+  );
+
+  // Primera página: al entrar, al cambiar la búsqueda o un filtro y al tirar para refrescar. Deja sin efecto una
+  // página siguiente que estuviera en camino (`useUltimoPedido`).
   const cargar = useCallback(async () => {
     const esVigente = nuevoPedido();
     setCargando(true);
+    setCargandoMas(false);
     setError(null);
+    setErrorDeMas(null);
     try {
-      const { categoriaId, orden, periodo, rangoDePrecio } = filtros;
-      const lista = await listarEventos({ texto, categoriaId, orden, periodo, ...parametrosDePrecio(rangoDePrecio) });
-      if (esVigente()) setEventos(lista);
+      const respuesta = await pedirPagina(1);
+      if (!esVigente()) return;
+      setEventos(respuesta.eventos);
+      setPagina(respuesta.pagina);
+      setTotal(respuesta.total);
+      setHayMas(hayMasPaginas(respuesta.pagina, respuesta.totalPaginas));
     } catch (e) {
       if (esVigente()) setError(mensajeDeError(e));
     } finally {
       if (esVigente()) setCargando(false);
     }
-  }, [texto, filtros, nuevoPedido]);
+  }, [pedirPagina, nuevoPedido]);
+
+  // La página siguiente, al acercarse al final de la lista. Una sola a la vez y nunca mientras se recarga. Si la
+  // anterior falló, no se reintenta sola al desplazarse: hay que tocar "Reintentar" (`reintentar`).
+  const cargarMas = async ({ reintentar = false } = {}) => {
+    if (!hayMas || cargando || cargandoMas || (errorDeMas && !reintentar)) return;
+    const esVigente = nuevoPedido();
+    setErrorDeMas(null);
+    setCargandoMas(true);
+    try {
+      const respuesta = await pedirPagina(pagina + 1);
+      if (!esVigente()) return;
+      setEventos((previos) => agregarPagina(previos ?? [], respuesta.eventos));
+      setPagina(respuesta.pagina);
+      setTotal(respuesta.total);
+      setHayMas(hayMasPaginas(respuesta.pagina, respuesta.totalPaginas));
+    } catch (e) {
+      if (esVigente()) setErrorDeMas(mensajeDeError(e));
+    } finally {
+      if (esVigente()) setCargandoMas(false);
+    }
+  };
 
   useEffect(() => {
     cargar();
@@ -105,6 +169,22 @@ export default function CatalogoScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
         ListHeaderComponent={error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
         ListEmptyComponent={<Text style={[tipografia.cuerpo, estilos.vacio]}>{textoVacio}</Text>}
+        onEndReached={() => cargarMas()}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          cargandoMas ? (
+            <ActivityIndicator color={colores.primario} style={estilos.pie} />
+          ) : errorDeMas ? (
+            <Pressable accessibilityRole="button" onPress={() => cargarMas({ reintentar: true })} style={estilos.pie}>
+              <Text style={estilos.errorAviso}>No se pudieron cargar más eventos: {errorDeMas}</Text>
+              <Text style={estilos.reintentar}>Tocá para reintentar</Text>
+            </Pressable>
+          ) : eventos.length > 0 ? (
+            <Text accessibilityRole="text" style={[tipografia.suave, estilos.pie, estilos.centrado]}>
+              {textoDeCantidad(eventos.length, total)}
+            </Text>
+          ) : null
+        }
       />
     );
   };
@@ -221,4 +301,7 @@ const estilos = StyleSheet.create({
   lista: { padding: espacio.l, gap: espacio.m, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl, color: colores.textoSuave },
   errorAviso: { ...tipografia.cuerpo, color: colores.error, marginBottom: espacio.m },
+  pie: { paddingVertical: espacio.l },
+  centrado: { textAlign: "center" },
+  reintentar: { ...tipografia.cuerpo, color: colores.primario, textAlign: "center" },
 });

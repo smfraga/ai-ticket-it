@@ -15,8 +15,42 @@ export const PERIODOS = Object.freeze([
 // Público: no necesita sesión. Los parámetros vacíos no se mandan (ver api.js).
 // Con `organizadorId` trae solo los eventos de ese organizador ("Mis eventos"); `precioMin` y `precioMax` filtran
 // por precio (ver RANGOS_DE_PRECIO en utils/eventos.js).
-export const listarEventos = ({ texto, categoriaId, organizadorId, precioMin, precioMax, orden, periodo } = {}) =>
-  api.get("/eventos", { texto, categoriaId, organizadorId, precioMin, precioMax, orden, periodo });
+// La respuesta es paginada, como los listados del TP grupal ({ eventos, total, page, totalPages }); se pasa a nombres
+// en castellano para las pantallas. El catálogo pide de a EVENTOS_POR_PAGINA; Mis eventos, todos de una vez (el máximo).
+export const EVENTOS_POR_PAGINA = 10;
+export const LIMITE_MAXIMO_DE_EVENTOS = 100;
+
+const aPagina = (respuesta) => ({
+  eventos: respuesta.eventos,
+  total: respuesta.total,
+  pagina: respuesta.page,
+  totalPaginas: respuesta.totalPages,
+});
+
+export const listarEventos = async ({
+  texto,
+  categoriaId,
+  organizadorId,
+  precioMin,
+  precioMax,
+  orden,
+  periodo,
+  pagina,
+  limite,
+} = {}) =>
+  aPagina(
+    await api.get("/eventos", {
+      texto,
+      categoriaId,
+      organizadorId,
+      precioMin,
+      precioMax,
+      orden,
+      periodo,
+      page: pagina,
+      limit: limite,
+    }),
+  );
 
 export const obtenerEvento = (id) => api.get(`/eventos/${id}`);
 

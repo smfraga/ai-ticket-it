@@ -9,7 +9,7 @@ import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
-import { listarEventos } from "../services/eventosService";
+import { LIMITE_MAXIMO_DE_EVENTOS, listarEventos } from "../services/eventosService";
 import { colores, espacio, tipografia } from "../theme";
 import { separarPorPeriodo } from "../utils/eventos";
 
@@ -26,7 +26,12 @@ export default function MisEventosScreen({ navigation }) {
     setCargando(true);
     setError(null);
     try {
-      const lista = await listarEventos({ organizadorId: usuario.id, periodo: "todos" });
+      // Todos los suyos de una vez (la respuesta es paginada; un organizador no llega a 100 eventos).
+      const { eventos: lista } = await listarEventos({
+        organizadorId: usuario.id,
+        periodo: "todos",
+        limite: LIMITE_MAXIMO_DE_EVENTOS,
+      });
       if (esVigente()) setEventos(lista);
     } catch (e) {
       if (esVigente()) setError(mensajeDeError(e));
