@@ -1,4 +1,4 @@
-import { body, conToken, error, fecha, idPath, lista, ok, ref } from "./comun.js";
+import { body, conToken, error, fecha, idPath, limit, lista, ok, page, paginado, ref } from "./comun.js";
 
 const eventoId = idPath("Id del evento");
 const query = (name, schema, description) => ({ name, in: "query", required: false, schema, description });
@@ -22,7 +22,8 @@ export default {
         summary: "Buscar eventos",
         description:
           "Público. Por defecto, solo los próximos y ordenados por fecha. Los cancelados no aparecen, salvo al " +
-          'filtrar por `organizadorId` ("Mis eventos"). Un parámetro desconocido responde 400.',
+          'filtrar por `organizadorId` ("Mis eventos"). Paginado con `page` y `limit` (de a 20 por defecto; la app pide de a 10). ' +
+          "Un parámetro desconocido responde 400.",
         parameters: [
           query(
             "texto",
@@ -52,8 +53,13 @@ export default {
             { type: "string", enum: ["asc", "desc"] },
             "Por defecto `asc`, salvo `puntaje` (`desc`). Sin puntaje, siempre al final",
           ),
+          page,
+          limit,
         ],
-        responses: { 200: ok("Los eventos que cumplen los filtros", lista("Evento")), 400: error("BadRequest") },
+        responses: {
+          200: ok("Una página de los eventos que cumplen los filtros", paginado("eventos", "Evento")),
+          400: error("BadRequest"),
+        },
       },
       post: conToken({
         tags: ["Eventos"],

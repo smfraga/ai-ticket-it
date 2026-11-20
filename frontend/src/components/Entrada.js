@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colores, espacio, fuentes, radio } from "../theme";
 import { partesDeFecha } from "../utils/formato";
 
-const ANCHO_TALON = 68;
+const ANCHO_TALON = 56;
 const RADIO_MUESCA = 9;
 const ALTO_TRAZO = 6;
 const SEPARACION_TRAZO = 5;
@@ -81,13 +81,13 @@ const estilos = StyleSheet.create({
     backgroundColor: colores.primario,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: espacio.m,
+    paddingVertical: espacio.s,
   },
   talonApagado: { backgroundColor: colores.superficieAlta },
-  diaSemana: { fontFamily: fuentes.seminegrita, fontSize: 12, letterSpacing: 1 },
-  dia: { fontFamily: fuentes.cartel, fontSize: 38, lineHeight: 40 },
-  mes: { fontFamily: fuentes.seminegrita, fontSize: 12, letterSpacing: 1 },
-  hora: { fontFamily: fuentes.regular, fontSize: 12, marginTop: espacio.xs },
+  diaSemana: { fontFamily: fuentes.seminegrita, fontSize: 11, letterSpacing: 1 },
+  dia: { fontFamily: fuentes.cartel, fontSize: 30, lineHeight: 32 },
+  mes: { fontFamily: fuentes.seminegrita, fontSize: 11, letterSpacing: 1 },
+  hora: { fontFamily: fuentes.regular, fontSize: 11, marginTop: 2 },
   perforado: {
     width: 2,
     alignItems: "center",

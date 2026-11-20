@@ -10,10 +10,10 @@ export class EventoController extends BaseController {
 
   async getAll(req, res, next) {
     try {
-      const filtros = this.extraerYValidarQuery(req.query, filtrosEventosValidation);
-      const eventos = await this.eventoService.buscar(filtros);
+      const { page, limit, ...filtros } = this.extraerYValidarQuery(req.query, filtrosEventosValidation);
+      const resultado = await this.eventoService.buscarPaginado(page, limit, filtros);
 
-      return res.status(200).json(eventos);
+      return res.status(200).json(resultado);
     } catch (error) {
       return next(error);
     }

@@ -98,7 +98,7 @@ describe("crearEventoValidation", () => {
 
 describe("filtrosEventosValidation", () => {
   it("sin parámetros usa los valores por defecto", () => {
-    expect(filtrosEventosValidation.parse({})).toEqual({ periodo: "proximos", orden: "fecha" });
+    expect(filtrosEventosValidation.parse({})).toEqual({ periodo: "proximos", orden: "fecha", page: 1, limit: 20 });
   });
 
   it("convierte los números de la query, que llegan como texto", () => {
@@ -148,9 +148,21 @@ describe("filtrosEventosValidation", () => {
     ["orden desconocido", { orden: "nombre" }],
     ["dirección desconocida", { direccion: "arriba" }],
     ["texto de más de 100 caracteres", { texto: "a".repeat(101) }],
-    ["un parámetro que no existe", { pagina: "2" }],
+    ["un parámetro que no existe", { pais: "AR" }],
+    ["page 0", { page: "0" }],
+    ["limit 0", { limit: "0" }],
+    ["limit de más de 100", { limit: "101" }],
+    ["limit con decimales", { limit: "10.5" }],
+    ["page que no es número", { page: "dos" }],
+    ["los nombres en castellano (pagina y limite)", { pagina: "2", limite: "10" }],
   ])("rechaza %s", (_, query) => {
     expect(filtrosEventosValidation.safeParse(query).success).toBe(false);
+  });
+
+  it("acepta la paginación y la convierte a números; por defecto, la página 1 de a 20", () => {
+    expect(filtrosEventosValidation.parse({ page: "3", limit: "10" })).toMatchObject({ page: 3, limit: 10 });
+    expect(filtrosEventosValidation.parse({ limit: "100" })).toMatchObject({ page: 1, limit: 100 });
+    expect(filtrosEventosValidation.parse({ page: "2" })).toMatchObject({ page: 2, limit: 20 });
   });
 
   it("rechaza un rango invertido y marca precioMax como el campo con error", () => {

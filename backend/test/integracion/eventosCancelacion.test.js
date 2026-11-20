@@ -76,10 +76,10 @@ describe("POST /eventos/:id/cancelar (API completa)", () => {
   it("el evento cancelado sale del catálogo pero sigue en Mis eventos, en su detalle y en las compras del evento", async () => {
     await cancelar();
 
-    const catalogo = (await request(app).get("/eventos?periodo=todos")).body;
+    const catalogo = (await request(app).get("/eventos?periodo=todos")).body.eventos;
     expect(catalogo.map((e) => e.id)).not.toContain(evento.id);
 
-    const misEventos = (await request(app).get(`/eventos?periodo=todos&organizadorId=${olivia.id}`)).body;
+    const misEventos = (await request(app).get(`/eventos?periodo=todos&organizadorId=${olivia.id}`)).body.eventos;
     expect(misEventos.find((e) => e.id === evento.id)).toMatchObject({ cancelado: true });
     expect((await request(app).get(`/eventos/${evento.id}`)).body.cancelado).toBe(true);
 

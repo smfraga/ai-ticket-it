@@ -345,6 +345,64 @@ describe("EventoService", () => {
       expect(ids(await service.buscar({ ...filtros, categoriaId: "c-teatro" }))).toEqual([]);
     });
 
+    describe("buscarPaginado (como los listados del TP grupal: { eventos, total, page, totalPages })", () => {
+      const pagina = async (page, limit, filtros) => {
+        const resultado = await service.buscarPaginado(page, limit, filtros);
+        return { ...resultado, eventos: ids(resultado.eventos) };
+      };
+
+      it("devuelve la página pedida, el total de eventos que cumplen los filtros y la cantidad de páginas", async () => {
+        expect(await pagina(1, 2, { periodo: "todos" })).toEqual({
+          eventos: ["e4", "e5"],
+          total: 5,
+          page: 1,
+          totalPages: 3,
+        });
+      });
+
+      it("cada página sigue donde terminó la anterior, y la última puede venir incompleta", async () => {
+        expect((await pagina(2, 2, { periodo: "todos" })).eventos).toEqual(["e2", "e1"]);
+        expect((await pagina(3, 2, { periodo: "todos" })).eventos).toEqual(["e3"]);
+      });
+
+      it("una página más allá del final viene vacía, con el total igual", async () => {
+        expect(await pagina(4, 2, { periodo: "todos" })).toEqual({ eventos: [], total: 5, page: 4, totalPages: 3 });
+      });
+
+      it("pagina sobre el resultado ya filtrado y ordenado", async () => {
+        expect((await pagina(1, 2, { orden: "precio", direccion: "desc" })).eventos).toEqual(["e3", "e1"]);
+        expect(await pagina(2, 1, { texto: "obra", periodo: "todos" })).toEqual({
+          eventos: ["e2"],
+          total: 2,
+          page: 2,
+          totalPages: 2,
+        });
+      });
+
+      it("sin eventos, el total es 0 y no hay páginas", async () => {
+        eventoRepository.findAll.mockResolvedValue([]);
+        expect(await pagina(1, 20)).toEqual({ eventos: [], total: 0, page: 1, totalPages: 0 });
+      });
+
+      it("por defecto, la página 1 de a 20", async () => {
+        const muchos = Array.from({ length: 21 }, (_, i) =>
+          evento(`m${i}`, {
+            nombre: `Evento ${i}`,
+            categoria: rock,
+            dias: i + 1,
+            organizador: olivia,
+            tipos: [["General", 1000]],
+          }),
+        );
+        eventoRepository.findAll.mockResolvedValue(muchos);
+
+        const resultado = await service.buscarPaginado();
+
+        expect(resultado).toMatchObject({ page: 1, total: 21, totalPages: 2 });
+        expect(resultado.eventos).toHaveLength(20);
+      });
+    });
+
     describe("orden", () => {
       it.each([
         ["fecha ascendente", { orden: "fecha" }, ["e2", "e1", "e3"]],

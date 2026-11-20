@@ -22,6 +22,64 @@ export const parametrosDePrecio = (valor) => {
   return { precioMin: rango?.precioMin, precioMax: rango?.precioMax };
 };
 
+// --- Filtros del catálogo --------------------------------------------------------------------------------------
+// Viven plegados en una hoja ("Filtros"). Debajo del buscador se ve cada filtro que no está en su valor por defecto,
+// para quitarlo de un toque.
+
+export const FILTROS_POR_DEFECTO = Object.freeze({
+  categoriaId: null,
+  periodo: "proximos",
+  rangoDePrecio: "cualquiera",
+  orden: "fecha",
+});
+
+// [{ clave, etiqueta }] de los filtros cambiados, en el orden de la hoja. `periodos` y `ordenes` son las listas
+// { valor, etiqueta } del servicio de eventos; `categorias`, las del backend (si no llegaron, dice "Categoría").
+export const filtrosActivos = (filtros, { categorias = [], periodos = [], ordenes = [] } = {}) => {
+  const activos = [];
+  if (filtros.categoriaId !== FILTROS_POR_DEFECTO.categoriaId) {
+    const categoria = categorias.find((c) => c.id === filtros.categoriaId);
+    activos.push({ clave: "categoriaId", etiqueta: categoria?.nombre ?? "Categoría" });
+  }
+  if (filtros.periodo !== FILTROS_POR_DEFECTO.periodo) {
+    const periodo = periodos.find((p) => p.valor === filtros.periodo);
+    activos.push({ clave: "periodo", etiqueta: periodo?.etiqueta ?? filtros.periodo });
+  }
+  if (filtros.rangoDePrecio !== FILTROS_POR_DEFECTO.rangoDePrecio) {
+    const rango = RANGOS_DE_PRECIO.find((r) => r.valor === filtros.rangoDePrecio);
+    activos.push({ clave: "rangoDePrecio", etiqueta: rango?.etiqueta ?? filtros.rangoDePrecio });
+  }
+  if (filtros.orden !== FILTROS_POR_DEFECTO.orden) {
+    const orden = ordenes.find((o) => o.valor === filtros.orden);
+    activos.push({ clave: "orden", etiqueta: `Orden: ${orden?.etiqueta ?? filtros.orden}` });
+  }
+  return activos;
+};
+
+// Los filtros con uno vuelto a su valor por defecto (la ✕ de cada filtro activo).
+export const sinFiltro = (filtros, clave) => ({ ...filtros, [clave]: FILTROS_POR_DEFECTO[clave] });
+
+// "Filtros" o "Filtros (2)", para el botón que abre la hoja.
+export const tituloDelBotonDeFiltros = (cantidad) => (cantidad > 0 ? `Filtros (${cantidad})` : "Filtros");
+
+// --- Paginación del catálogo (scroll infinito) ----------------------------------------------------------------
+
+// Con `pagina` y `totalPaginas` de la respuesta paginada: hay más si la que llegó no es la última.
+export const hayMasPaginas = (pagina, totalPaginas) => pagina < totalPaginas;
+
+// Al pie del catálogo: "Mostrando 20 de 37 eventos" (o "Mostrando los 7 eventos" si ya están todos).
+export const textoDeCantidad = (mostrados, total) => {
+  if (total === 0) return null;
+  if (mostrados >= total) return total === 1 ? "Mostrando el único evento" : `Mostrando los ${total} eventos`;
+  return `Mostrando ${mostrados} de ${total} eventos`;
+};
+
+// Suma una página al final sin repetir eventos (si el catálogo cambió entre página y página, uno puede repetirse).
+export const agregarPagina = (previos, nuevos) => {
+  const ids = new Set(previos.map((evento) => evento.id));
+  return previos.concat(nuevos.filter((evento) => !ids.has(evento.id)));
+};
+
 // --- Favoritos -------------------------------------------------------------------------------------------------
 
 // Un Set nuevo con el evento guardado o quitado; no modifica el anterior (React compara por referencia).

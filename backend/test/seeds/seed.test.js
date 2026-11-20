@@ -105,10 +105,26 @@ describe("cargarSeed", () => {
   });
 
   describe("eventos", () => {
-    it("carga 8 eventos: 5 próximos y 3 ya realizados", () => {
-      expect(eventos).toHaveLength(8);
-      expect(eventos.filter((e) => !e.yaPaso(AHORA))).toHaveLength(5);
-      expect(eventos.filter((e) => e.yaPaso(AHORA))).toHaveLength(3);
+    it("carga 48 eventos: 37 próximos y 11 ya realizados", () => {
+      expect(eventos).toHaveLength(48);
+      expect(eventos.filter((e) => !e.yaPaso(AHORA))).toHaveLength(37);
+      expect(eventos.filter((e) => e.yaPaso(AHORA))).toHaveLength(11);
+    });
+
+    it("los 8 primeros tienen la historia (compras, reseñas y chats); los 40 del catálogo, ninguna compra ni reseña", async () => {
+      const delCatalogo = new Set(eventos.slice(8).map((e) => e.id));
+      const compras = [...repos.compras.compras.values()];
+      const resenias = [...repos.resenias.resenias.values()];
+
+      expect(compras.filter((c) => delCatalogo.has(c.evento.id))).toEqual([]);
+      expect(resenias.filter((r) => delCatalogo.has(r.evento.id))).toEqual([]);
+      eventos.slice(8).forEach((e) => e.tiposEntrada.forEach((tipo) => expect(tipo.vendidas).toBe(0)));
+    });
+
+    it("ningún evento del catálogo se llama como los del guion de prueba, así cada búsqueda sigue dando uno solo", () => {
+      ["rock", "stand up", "congreso"].forEach((texto) => {
+        expect(eventos.filter((e) => e.coincideConTexto(texto))).toHaveLength(1);
+      });
     });
 
     it("el día es relativo a la fecha que se le pasa y la hora es fija (en hora local)", async () => {
@@ -370,21 +386,19 @@ describe("cargarSeed", () => {
   });
 
   describe("junto con el EventoService", () => {
-    it("el catálogo por defecto muestra los 5 próximos y por puntaje van primero los de Olivia", async () => {
+    it("el catálogo por defecto muestra los 37 próximos (4 páginas de 10) y por puntaje van primero los de Olivia", async () => {
       const service = new EventoService(repos.eventos, repos.categorias, repos.usuarios, repos.resenias, () => AHORA);
 
       const porDefecto = await service.buscar();
       const porPuntaje = await service.buscar({ orden: "puntaje" });
+      const deOlivia = porDefecto.filter((e) => e.organizador.nombre === "Olivia").length;
 
-      expect(porDefecto).toHaveLength(5);
-      expect(porPuntaje.map((e) => e.organizador.nombre)).toEqual([
-        "Olivia",
-        "Olivia",
-        "Octavio",
-        "Octavio",
-        "Octavio",
-      ]);
-      expect(porPuntaje.map((e) => e.organizador.puntaje)).toEqual([4.5, 4.5, 2.5, 2.5, 2.5]);
+      expect(porDefecto).toHaveLength(37);
+      expect(await service.buscarPaginado(4, 10)).toMatchObject({ total: 37, totalPages: 4 });
+      expect((await service.buscarPaginado(4, 10)).eventos).toHaveLength(7);
+      expect(porPuntaje.slice(0, deOlivia).every((e) => e.organizador.nombre === "Olivia")).toBe(true);
+      expect(porPuntaje.slice(deOlivia).every((e) => e.organizador.nombre === "Octavio")).toBe(true);
+      expect(new Set(porPuntaje.map((e) => e.organizador.puntaje))).toEqual(new Set([4.5, 2.5]));
     });
 
     it("los eventos pasados se ven con periodo=pasados y muestran sus entradas vendidas", async () => {
@@ -392,9 +406,14 @@ describe("cargarSeed", () => {
 
       const pasados = await service.buscar({ periodo: "pasados" });
 
-      expect(pasados).toHaveLength(3);
-      pasados.forEach((evento) => {
-        expect(evento.yaPaso).toBe(true);
+      expect(pasados).toHaveLength(11);
+      pasados.forEach((evento) => expect(evento.yaPaso).toBe(true));
+      // Los 3 realizados con historia (compras utilizadas y reseñas) muestran sus entradas vendidas.
+      const conHistoria = pasados.filter((e) =>
+        ["Obra: El Gran Teatro del Mundo", "Recital Aniversario Folklore", "Maratón Solidaria 10K"].includes(e.nombre),
+      );
+      expect(conHistoria).toHaveLength(3);
+      conHistoria.forEach((evento) => {
         expect(evento.tiposEntrada[0].disponibles).toBeLessThan(evento.tiposEntrada[0].cupo);
       });
     });

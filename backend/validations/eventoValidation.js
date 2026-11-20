@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { idValidation } from "./idValidation.js";
+import { paginacionValidation } from "./paginacionValidation.js";
 
 export const PERIODOS = ["proximos", "pasados", "todos"];
 export const ORDENES = ["fecha", "precio", "puntaje"];
@@ -59,8 +60,9 @@ const precioDeQuery = z.preprocess(
 
 const opcionDe = (valores) => z.enum(valores, { errorMap: () => ({ message: `Tiene que ser ${valores.join(", ")}` }) });
 
-export const filtrosEventosValidation = z
-  .object({
+// Los filtros del catálogo más `page` y `limit` (paginación, como los listados del TP grupal).
+export const filtrosEventosValidation = paginacionValidation
+  .extend({
     texto: z
       .string()
       .trim()

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
-import { colores, espacio, fuentes, tipografia } from "../theme";
+import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { formatearPrecio } from "../utils/formato";
 import BotonFavorito from "./BotonFavorito";
 import Entrada from "./Entrada";
 
-const ALTO_DE_IMAGEN = 120;
+const ALTO_DE_IMAGEN = 84;
 
 const lugaresDisponibles = (evento) => evento.tiposEntrada.reduce((total, tipo) => total + tipo.disponibles, 0);
 
@@ -18,17 +18,26 @@ export default function EventoCard({ evento, onPress, favorito, onAlternarFavori
   // La primera imagen del evento, si tiene. Si no carga (URL rota, sin internet), la tarjeta queda sin imagen.
   const [imagenFallo, setImagenFallo] = useState(false);
   const imagen = evento.multimedia?.[0];
+  const cantidadDeImagenes = evento.multimedia?.length ?? 0;
 
   return (
     <Entrada fecha={evento.fecha} apagada={evento.cancelado || evento.yaPaso} onPress={onPress}>
       {imagen && !imagenFallo ? (
-        <Image
-          source={{ uri: imagen }}
-          style={estilos.imagen}
-          resizeMode="cover"
-          accessibilityIgnoresInvertColors
-          onError={() => setImagenFallo(true)}
-        />
+        <View>
+          <Image
+            source={{ uri: imagen }}
+            style={estilos.imagen}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+            onError={() => setImagenFallo(true)}
+          />
+          {cantidadDeImagenes > 1 ? (
+            // Las demás se deslizan en el detalle del evento.
+            <Text style={estilos.contador} accessibilityLabel={`${cantidadDeImagenes} imágenes`}>
+              1/{cantidadDeImagenes}
+            </Text>
+          ) : null}
+        </View>
       ) : null}
       <View style={estilos.info}>
         <View style={estilos.fila}>
@@ -63,13 +72,25 @@ export default function EventoCard({ evento, onPress, favorito, onAlternarFavori
 
 const estilos = StyleSheet.create({
   imagen: { height: ALTO_DE_IMAGEN, backgroundColor: colores.superficieAlta },
-  info: { padding: espacio.m, gap: 2 },
+  info: { paddingHorizontal: espacio.m, paddingVertical: espacio.s, gap: 1 },
+  contador: {
+    position: "absolute",
+    right: espacio.s,
+    bottom: espacio.s,
+    paddingHorizontal: espacio.s,
+    paddingVertical: 1,
+    borderRadius: radio.pastilla,
+    backgroundColor: colores.capaSobreFoto,
+    color: colores.textoSobreCapa,
+    fontSize: 12,
+    fontFamily: fuentes.seminegrita,
+  },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: espacio.s },
   filaNombre: { alignItems: "flex-start" },
-  nombre: { flex: 1, marginTop: espacio.xs },
+  nombre: { flex: 1, marginTop: 2 },
   categoria: { color: colores.primarioOscuro, fontSize: 12, letterSpacing: 1, fontFamily: fuentes.seminegrita },
   puntaje: { fontFamily: fuentes.regular, color: colores.textoSuave, fontSize: 13 },
-  precio: { color: colores.texto, fontSize: 16, fontFamily: fuentes.negrita, marginTop: espacio.xs },
+  precio: { color: colores.texto, fontSize: 15, fontFamily: fuentes.negrita, marginTop: 2 },
   agotado: { color: colores.error, fontFamily: fuentes.seminegrita },
   cancelado: { color: colores.error, fontSize: 15, fontFamily: fuentes.negrita },
 });
