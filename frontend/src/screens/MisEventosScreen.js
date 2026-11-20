@@ -4,6 +4,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import Boton from "../components/Boton";
+import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -74,7 +75,7 @@ export default function MisEventosScreen({ navigation }) {
   return (
     <SafeAreaView style={estilos.pantalla} edges={["top"]}>
       <View style={estilos.cabecera}>
-        <Text style={tipografia.titulo}>Mis eventos</Text>
+        <EncabezadoDePestania titulo="Mis eventos" />
         <Text style={tipografia.suave}>Tocá un evento para ver sus compras y las entradas que quedan.</Text>
         <View style={estilos.crear}>
           <Boton titulo="+ Crear evento" onPress={() => navigation.navigate("CrearEvento")} />
