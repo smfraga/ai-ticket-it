@@ -1,5 +1,6 @@
 import {
   armarEventoParaEnviar,
+  avisoDeCupo,
   conFavorito,
   errorDeEvento,
   fechaInicialDeEvento,
@@ -7,7 +8,9 @@ import {
   leerPrecio,
   parametrosDePrecio,
   RANGOS_DE_PRECIO,
+  resumenDeFavoritos,
   separarPorPeriodo,
+  textoCuentaRegresiva,
   textoCupo,
 } from "./eventos";
 
@@ -54,6 +57,103 @@ describe("conFavorito", () => {
   it("repetir la misma acción no cambia el contenido", () => {
     expect([...conFavorito(new Set(["rock"]), "rock", true)]).toEqual(["rock"]);
     expect([...conFavorito(new Set(), "rock", false)]).toEqual([]);
+  });
+});
+
+describe("textoCuentaRegresiva", () => {
+  const evento = (cambios) => ({ cancelado: false, yaPaso: false, diasParaElEvento: 5, ...cambios });
+
+  it("cuenta los días en singular y plural, y hoy", () => {
+    expect(textoCuentaRegresiva(evento())).toBe("Faltan 5 días");
+    expect(textoCuentaRegresiva(evento({ diasParaElEvento: 1 }))).toBe("Falta 1 día");
+    expect(textoCuentaRegresiva(evento({ diasParaElEvento: 0 }))).toBe("Es hoy");
+  });
+
+  it("un evento realizado no cuenta días", () => {
+    expect(textoCuentaRegresiva(evento({ yaPaso: true, diasParaElEvento: null }))).toBe("Ya se realizó");
+  });
+
+  it("cancelado gana aunque falten días o ya se haya realizado", () => {
+    expect(textoCuentaRegresiva(evento({ cancelado: true }))).toBe("Cancelado");
+    expect(textoCuentaRegresiva(evento({ cancelado: true, yaPaso: true, diasParaElEvento: null }))).toBe("Cancelado");
+  });
+});
+
+describe("avisoDeCupo", () => {
+  // Un solo tipo de entrada: `cupo` lugares, de los que quedan `disponibles`.
+  const evento = (disponibles, cupo, cambios = {}) => ({
+    cancelado: false,
+    yaPaso: false,
+    tiposEntrada: [{ disponibles, cupo }],
+    ...cambios,
+  });
+
+  it("Agotado sin lugares", () => {
+    expect(avisoDeCupo(evento(0, 300))).toBe("Agotado");
+  });
+
+  it("Quedan pocas con 20 o menos, aunque sean más del 10 % del cupo", () => {
+    // Cupo 150: el 10 % son 15, así que solo decide la regla de los 20.
+    expect(avisoDeCupo(evento(20, 150))).toBe("Quedan pocas");
+    expect(avisoDeCupo(evento(21, 150))).toBeNull();
+  });
+
+  it("Quedan pocas con el 10 % del cupo o menos, aunque sean más de 20", () => {
+    expect(avisoDeCupo(evento(30, 300))).toBe("Quedan pocas");
+    expect(avisoDeCupo(evento(31, 300))).toBeNull();
+  });
+
+  it("suma los lugares de todos los tipos de entrada", () => {
+    const dosTipos = {
+      cancelado: false,
+      yaPaso: false,
+      tiposEntrada: [
+        { disponibles: 15, cupo: 100 },
+        { disponibles: 10, cupo: 100 },
+      ],
+    };
+    expect(avisoDeCupo(dosTipos)).toBeNull(); // 25 de 200: más de 20 y más del 10 %
+    expect(
+      avisoDeCupo({
+        ...dosTipos,
+        tiposEntrada: [
+          { disponibles: 0, cupo: 50 },
+          { disponibles: 0, cupo: 10 },
+        ],
+      }),
+    ).toBe("Agotado");
+  });
+
+  it("sin aviso si el evento ya se realizó o se canceló", () => {
+    expect(avisoDeCupo(evento(0, 300, { yaPaso: true }))).toBeNull();
+    expect(avisoDeCupo(evento(5, 300, { cancelado: true }))).toBeNull();
+  });
+});
+
+describe("resumenDeFavoritos", () => {
+  const evento = (diasParaElEvento, cambios = {}) => ({
+    cancelado: false,
+    yaPaso: diasParaElEvento === null,
+    diasParaElEvento,
+    ...cambios,
+  });
+
+  it("cuenta los guardados y dice cuánto falta para el más cercano", () => {
+    expect(resumenDeFavoritos([evento(30), evento(null), evento(5)])).toBe("3 guardados · el próximo en 5 días");
+  });
+
+  it("hoy, mañana y en singular", () => {
+    expect(resumenDeFavoritos([evento(0), evento(8)])).toBe("2 guardados · el próximo es hoy");
+    expect(resumenDeFavoritos([evento(1)])).toBe("1 guardado · el próximo es mañana");
+  });
+
+  it("no toma como próximo un evento cancelado", () => {
+    expect(resumenDeFavoritos([evento(2, { cancelado: true }), evento(9)])).toBe("2 guardados · el próximo en 9 días");
+  });
+
+  it("sin eventos por venir, solo la cantidad; sin favoritos, null", () => {
+    expect(resumenDeFavoritos([evento(null), evento(3, { cancelado: true })])).toBe("2 guardados");
+    expect(resumenDeFavoritos([])).toBeNull();
   });
 });
 

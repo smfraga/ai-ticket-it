@@ -11,12 +11,12 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 - Explorar el catálogo: búsqueda por texto, categorías, rango de precio, eventos próximos o ya realizados y orden por fecha, precio o puntaje del organizador.
 - Ver el detalle de un evento, con sus fotos, los lugares que quedan de cada tipo de entrada y las reseñas de los eventos anteriores de su organizador.
 - Comprar eligiendo tipo de entrada y cantidad, sin superar el cupo (el pago está simulado: la compra se confirma en el momento).
-- Seguir sus compras: estado, días que faltan para el evento y el historial de cada cambio de estado.
+- Seguir sus compras, con un filtro por estado: estado, días que faltan para el evento y el historial de cada cambio de estado.
 - Pagar una compra que quedó pendiente de pago (pago simulado).
 - Chatear con el organizador desde cada compra, en cualquier estado.
 - Cancelar una compra (con reembolso si estaba confirmada) mientras no esté utilizada y el evento no haya pasado.
 - Reseñar con puntaje y comentario una compra ya utilizada.
-- Guardar eventos favoritos (♡) y verlos en su pestaña.
+- Guardar eventos favoritos (♡) y verlos en su pestaña, en una grilla con fotos, los días que faltan y un aviso si quedan pocas entradas.
 
 **Organizador** (pestañas Eventos, Mis eventos, Mensajes y Perfil):
 
@@ -212,7 +212,7 @@ Ver el catálogo es público (no pide token). Crear un evento exige estar loguea
 
 | Método y ruta       | Descripción                                                                                                   |
 |---------------------|---------------------------------------------------------------------------------------------------------------|
-| `GET /eventos`      | Busca eventos con los filtros de abajo, de a una página. Por defecto, solo los próximos. Los cancelados no aparecen, salvo al filtrar por `organizadorId` |
+| `GET /eventos`      | Busca eventos con los filtros de abajo, de a una página. Por defecto, solo los próximos. Los cancelados no aparecen, salvo al filtrar por `organizadorId`. Cada evento trae `diasParaElEvento` (días de calendario, `0` si es hoy, `null` si ya se realizó) |
 | `GET /eventos/:id`  | Detalle de un evento (también de los ya realizados y los cancelados, con `cancelado: true`), con sus tipos de entrada y lugares disponibles |
 | `POST /eventos`     | Crea un evento con sus tipos de entrada (`201`). Sin token: `401`. Sin rol de organizador: `403`              |
 | `PATCH /eventos/:id` | Edita un evento próximo (solo su organizador, si no `403`). Cambia solo lo que viene: `nombre`, `descripcion`, `categoriaId`, `fecha` (futura), `multimedia` y `tiposEntrada` (lista completa: con `id` los existentes, sin `id` los nuevos; los que faltan se quitan). Un tipo con entradas vendidas no se quita ni cambia de precio, y su cupo no baja de lo vendido (`409`). Evento ya realizado: `409`. Si cambia la fecha, cada compra pendiente o confirmada recibe un aviso en su chat. Evento cancelado: `409` |
@@ -276,7 +276,7 @@ Los compradores pueden guardar eventos para encontrarlos después. Las tres ruta
 |--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | `POST /eventos/:id/favorito`   | Guarda el evento como favorito. `201` con el evento la primera vez y `200` si ya lo era. `404` si el evento no existe. Se pueden guardar eventos ya realizados |
 | `DELETE /eventos/:id/favorito` | Quita el evento de los favoritos. `204` sin cuerpo, haya estado guardado o no. `404` si el evento no existe                                    |
-| `GET /favoritos`               | La lista del comprador, con el último guardado primero, en el mismo formato que `GET /eventos` (incluye `yaPaso`, el puntaje del organizador y los lugares disponibles) |
+| `GET /favoritos`               | La lista del comprador, con el último guardado primero, en el mismo formato que `GET /eventos` (incluye `yaPaso`, `diasParaElEvento`, el puntaje del organizador y los lugares disponibles) |
 
 El catálogo es público y no sabe quién lo mira, así que no marca cuáles son favoritos: para pintar el corazón en una pantalla, se compara el id de cada evento con los de `GET /favoritos`. En el seed, Carla tiene guardados el recital de rock y el festival de jazz, y Camilo el stand up.
 

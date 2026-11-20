@@ -90,6 +90,46 @@ export const conFavorito = (ids, eventoId, guardado) => {
   return nuevos;
 };
 
+// Cuenta regresiva de la tarjeta de favorito, con `diasParaElEvento` del backend (días de calendario, null si ya
+// se realizó): no depende del reloj del celular. Un evento cancelado lo dice antes que nada.
+export const textoCuentaRegresiva = ({ cancelado, yaPaso, diasParaElEvento }) => {
+  if (cancelado) return "Cancelado";
+  if (yaPaso || diasParaElEvento === null || diasParaElEvento === undefined) return "Ya se realizó";
+  if (diasParaElEvento === 0) return "Es hoy";
+  if (diasParaElEvento === 1) return "Falta 1 día";
+  return `Faltan ${diasParaElEvento} días`;
+};
+
+// Pocas entradas: 20 o menos, o el 10 % del cupo total o menos (lo que se cumpla primero).
+export const POCAS_ENTRADAS = 20;
+export const FRACCION_DE_POCAS_ENTRADAS = 0.1;
+
+// "Agotado" si no queda ningún lugar, "Quedan pocas" si quedan pocos, o null. Sin aviso si el evento ya se
+// realizó o se canceló: ahí ya no se vende.
+export const avisoDeCupo = ({ cancelado, yaPaso, tiposEntrada }) => {
+  if (cancelado || yaPaso) return null;
+  const disponibles = tiposEntrada.reduce((total, tipo) => total + tipo.disponibles, 0);
+  const cupo = tiposEntrada.reduce((total, tipo) => total + tipo.cupo, 0);
+  if (disponibles === 0) return "Agotado";
+  if (disponibles <= POCAS_ENTRADAS || disponibles <= cupo * FRACCION_DE_POCAS_ENTRADAS) return "Quedan pocas";
+  return null;
+};
+
+// Arriba de la grilla: "3 guardados · el próximo en 5 días". El próximo es el que menos días tiene entre los que
+// todavía no se realizaron ni se cancelaron; si no hay ninguno, solo la cantidad. Sin favoritos, null.
+export const resumenDeFavoritos = (eventos) => {
+  if (eventos.length === 0) return null;
+  const cantidad = eventos.length === 1 ? "1 guardado" : `${eventos.length} guardados`;
+  const dias = eventos
+    .filter((evento) => !evento.cancelado && !evento.yaPaso && Number.isInteger(evento.diasParaElEvento))
+    .map((evento) => evento.diasParaElEvento);
+  if (dias.length === 0) return cantidad;
+  const proximo = Math.min(...dias);
+  if (proximo === 0) return `${cantidad} · el próximo es hoy`;
+  if (proximo === 1) return `${cantidad} · el próximo es mañana`;
+  return `${cantidad} · el próximo en ${proximo} días`;
+};
+
 // --- Crear evento ---------------------------------------------------------------------------------------------
 // El formulario guarda precio y cupo como texto (lo que se tipea); se validan y convierten antes de enviar.
 // El backend vuelve a validar todo (400) y exige que la fecha sea futura.
