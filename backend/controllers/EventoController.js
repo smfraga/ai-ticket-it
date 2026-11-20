@@ -51,6 +51,33 @@ export class EventoController extends BaseController {
     }
   }
 
+  async agregarImagen(req, res, next) {
+    try {
+      const id = this.parsearId(req.params.id);
+      const evento = await this.eventoService.agregarImagen(req.usuario.id, id, req.body.imagen);
+
+      return res.status(201).json(evento);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  // La imagen como imagen (no JSON). Cada imagen nueva tiene otro id, así que su contenido no cambia nunca y se
+  // puede guardar en caché todo lo que se quiera.
+  async getImagen(req, res, next) {
+    try {
+      const id = this.parsearId(req.params.id);
+      const imagenId = this.parsearId(req.params.imagenId);
+      const { tipo, datos } = await this.eventoService.imagenDe(id, imagenId);
+
+      res.set("Content-Type", tipo);
+      res.set("Cache-Control", "public, max-age=31536000, immutable");
+      return res.status(200).send(datos);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async cancelar(req, res, next) {
     try {
       const id = this.parsearId(req.params.id);

@@ -20,8 +20,8 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 
 **Organizador** (pestañas Eventos, Mis eventos, Mensajes y Perfil):
 
-- Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo, y una imagen opcional (URL).
-- Editar un evento próximo (datos, fecha y tipos de entrada; si cambia la fecha, cada comprador recibe un aviso en el chat) o cancelarlo (las compras confirmadas se reembolsan y las pendientes se cancelan).
+- Crear eventos con uno o más tipos de entrada, cada uno con precio y cupo, y hasta 6 imágenes adjuntas desde la galería del celular.
+- Editar un evento próximo (datos, fecha, imágenes y tipos de entrada; si cambia la fecha, cada comprador recibe un aviso en el chat) o cancelarlo (las compras confirmadas se reembolsan y las pendientes se cancelan).
 - Ver sus eventos y, de cada uno, las entradas que quedan por tipo y las compras con su estado.
 - Marcar una compra como utilizada (cuando el comprador entra al evento).
 - Responder el chat de cada compra.
@@ -217,6 +217,8 @@ Ver el catálogo es público (no pide token). Crear un evento exige estar loguea
 | `POST /eventos`     | Crea un evento con sus tipos de entrada (`201`). Sin token: `401`. Sin rol de organizador: `403`              |
 | `PATCH /eventos/:id` | Edita un evento próximo (solo su organizador, si no `403`). Cambia solo lo que viene: `nombre`, `descripcion`, `categoriaId`, `fecha` (futura), `multimedia` y `tiposEntrada` (lista completa: con `id` los existentes, sin `id` los nuevos; los que faltan se quitan). Un tipo con entradas vendidas no se quita ni cambia de precio, y su cupo no baja de lo vendido (`409`). Evento ya realizado: `409`. Si cambia la fecha, cada compra pendiente o confirmada recibe un aviso en su chat. Evento cancelado: `409` |
 | `POST /eventos/:id/cancelar` | Cancela un evento próximo (solo su organizador, si no `403`; ya realizado o ya cancelado: `409`). Las compras confirmadas quedan `REEMBOLSADA` y las pendientes `CANCELADA`, con el organizador como responsable, y cada una recibe un aviso en su chat. Después no se pueden comprar entradas (`409`) |
+| `POST /eventos/:id/imagenes` | Adjunta una imagen. Body: `{ "imagen": "data:image/jpeg;base64,..." }` (JPEG o PNG, verificado por sus bytes, hasta 400 KB; esta ruta acepta un cuerpo de hasta 600 KB, el resto de la API 100 KB). `201` con el evento y la ruta de la imagen al final de `multimedia`. Solo su organizador (`403`), en un evento próximo y no cancelado (`409`), y hasta 6 imágenes contando las URLs (`409`). Para quitar una, `PATCH /eventos/:id` con la lista de las que quedan |
+| `GET /eventos/:id/imagenes/:imagenId` | La imagen adjunta (pública, no JSON), con caché de un año porque cada imagen tiene su id. `404` si no existe o se quitó. Vive en memoria: se pierde al reiniciar el servidor |
 | `GET /categorias`   | Lista las categorías, ordenadas por nombre                                                                    |
 
 Parámetros de `GET /eventos` (todos opcionales):

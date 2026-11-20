@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Evento } from "../domain/Evento.js";
 import { calcularPuntaje } from "../domain/Puntaje.js";
 import { TipoEntrada } from "../domain/TipoEntrada.js";
@@ -23,6 +24,7 @@ export class EventoService {
     ahora = () => new Date(),
     // Al final, para no romper a quien ya construye el service con los parámetros anteriores.
     repositorioDeCompras = compraRepository,
+    nuevoIdDeImagen = randomUUID,
   ) {
     this.eventoRepository = repositorioDeEventos;
     this.categoriaRepository = repositorioDeCategorias;
@@ -30,6 +32,7 @@ export class EventoService {
     this.resenaRepository = repositorioDeResenias;
     this.ahora = ahora;
     this.compraRepository = repositorioDeCompras;
+    this.nuevoIdDeImagen = nuevoIdDeImagen;
   }
 
   async crear(usuarioId, datos) {
@@ -107,6 +110,30 @@ export class EventoService {
 
     const puntaje = await this.puntajeDelOrganizador(organizador.id);
     return this.toEventoResponse(guardado, puntaje, ahora);
+  }
+
+  // `imagen` es un data URL ya validado por formato; el dominio decide quién, cuándo, el tipo real, el tamaño y el
+  // máximo de imágenes. El id lo genera el service, como el repositorio con los demás ids.
+  async agregarImagen(usuarioId, eventoId, imagen) {
+    const organizador = await this.buscarUsuario(usuarioId);
+    const evento = await this.buscarEvento(eventoId);
+
+    const ahora = this.ahora();
+    const datos = Buffer.from(imagen.slice(imagen.indexOf(",") + 1), "base64");
+    evento.agregarImagen(datos, this.nuevoIdDeImagen(), organizador, ahora);
+    const guardado = await this.eventoRepository.save(evento);
+
+    const puntaje = await this.puntajeDelOrganizador(organizador.id);
+    return this.toEventoResponse(guardado, puntaje, ahora);
+  }
+
+  // Pública, como el detalle: { tipo, datos }. 404 si el evento o la imagen no existen.
+  async imagenDe(eventoId, imagenId) {
+    const imagen = (await this.buscarEvento(eventoId)).imagen(imagenId);
+    if (!imagen) {
+      throw new NotFoundError("La imagen no existe");
+    }
+    return imagen;
   }
 
   async avisarALasComprasActivas(evento, organizador, textoPara, ahora) {
