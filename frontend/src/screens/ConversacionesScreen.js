@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import { useMensajes } from "../auth/MensajesContext";
 import Avatar from "../components/Avatar";
+import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { insigniaDeNoLeidos, lineaDeLaConversacion, vistaPreviaDelMensaje } from "../utils/chat";
@@ -72,7 +73,7 @@ export default function ConversacionesScreen({ navigation }) {
   return (
     <SafeAreaView style={estilos.pantalla} edges={["top"]}>
       <View style={estilos.cabecera}>
-        <Text style={tipografia.titulo}>Mensajes</Text>
+        <EncabezadoDePestania titulo="Mensajes" />
       </View>
       {contenido()}
     </SafeAreaView>

@@ -3,6 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CompraCard from "../components/CompraCard";
+import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
@@ -57,7 +58,7 @@ export default function MisComprasScreen({ navigation }) {
   return (
     <SafeAreaView style={estilos.pantalla} edges={["top"]}>
       <View style={estilos.cabecera}>
-        <Text style={tipografia.titulo}>Mis compras</Text>
+        <EncabezadoDePestania titulo="Mis compras" />
       </View>
       {contenido()}
     </SafeAreaView>

@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import { useFavoritos } from "../auth/FavoritosContext";
 import Chip from "../components/Chip";
+import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -102,7 +103,7 @@ export default function CatalogoScreen({ navigation }) {
   return (
     <SafeAreaView style={estilos.pantalla} edges={["top"]}>
       <View style={estilos.cabecera}>
-        <Text style={tipografia.titulo}>Eventos</Text>
+        <EncabezadoDePestania titulo="Eventos" />
         <TextInput
           accessibilityLabel="Buscar eventos"
           placeholder="Buscar por nombre o descripción"

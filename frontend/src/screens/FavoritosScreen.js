@@ -3,6 +3,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFavoritos } from "../auth/FavoritosContext";
+import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -73,7 +74,7 @@ export default function FavoritosScreen({ navigation }) {
   return (
     <SafeAreaView style={estilos.pantalla} edges={["top"]}>
       <View style={estilos.cabecera}>
-        <Text style={tipografia.titulo}>Favoritos</Text>
+        <EncabezadoDePestania titulo="Favoritos" />
       </View>
       {contenido()}
     </SafeAreaView>
