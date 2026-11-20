@@ -121,6 +121,37 @@ export const resumenDeEstados = (compras) => {
   return partes.length ? partes.join(" · ") : null;
 };
 
+// Filtro de Mis compras. "Canceladas" junta CANCELADA y REEMBOLSADA: para el comprador las dos son una compra que ya
+// no vale. El orden pone primero lo que más se consulta (las entradas que sirven para ir).
+export const GRUPO_TODAS = "TODAS";
+const GRUPOS_DE_ESTADO = Object.freeze([
+  { id: "CONFIRMADA", etiqueta: "Confirmadas", estados: ["CONFIRMADA"] },
+  { id: "PENDIENTE", etiqueta: "Pendientes", estados: ["PENDIENTE"] },
+  { id: "UTILIZADA", etiqueta: "Utilizadas", estados: ["UTILIZADA"] },
+  { id: "CANCELADA", etiqueta: "Canceladas", estados: ["CANCELADA", "REEMBOLSADA"] },
+]);
+
+// Los chips a mostrar: "Todas" y solo los grupos que tienen compras, cada uno con su cantidad.
+// Con menos de dos grupos el filtro no sirve para nada y devuelve [] (la pantalla no muestra la fila).
+export const gruposDeEstado = (compras) => {
+  const presentes = GRUPOS_DE_ESTADO.map(({ id, etiqueta, estados }) => ({
+    id,
+    etiqueta,
+    cantidad: compras.filter((compra) => estados.includes(compra.estado)).length,
+  })).filter(({ cantidad }) => cantidad > 0);
+  if (presentes.length < 2) return [];
+  return [{ id: GRUPO_TODAS, etiqueta: "Todas", cantidad: compras.length }, ...presentes];
+};
+
+// El grupo elegido, si sigue entre los chips; si no (se quedó sin compras al refrescar, o ya no hay fila), "Todas".
+export const grupoVigente = (grupos, elegido) => (grupos.some(({ id }) => id === elegido) ? elegido : GRUPO_TODAS);
+
+// Un grupo que no existe (incluido "Todas") devuelve la lista entera.
+export const filtrarPorGrupo = (compras, grupoId) => {
+  const grupo = GRUPOS_DE_ESTADO.find(({ id }) => id === grupoId);
+  return grupo ? compras.filter((compra) => grupo.estados.includes(compra.estado)) : compras;
+};
+
 // Para el organizador, antes de cancelar el evento: qué les pasa a las compras activas (mismas reglas que el backend).
 export const textoDeConfirmacionDeCancelacionDeEvento = (compras) => {
   const confirmadas = compras.filter((compra) => compra.estado === "CONFIRMADA").length;
