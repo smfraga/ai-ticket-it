@@ -7,6 +7,7 @@ import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
 import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
+import { rutaDeFoto } from "./fotos.js";
 import { formatearFecha, formatearPrecio } from "./formato.js";
 
 const PRECIO_MAXIMO = Number.MAX_SAFE_INTEGER;
@@ -208,6 +209,7 @@ export class EventoService {
         id: evento.organizador.id,
         nombre: evento.organizador.nombre,
         apellido: evento.organizador.apellido,
+        foto: rutaDeFoto(evento.organizador),
         puntaje,
       },
       precioDesde: evento.precioMinimo(),

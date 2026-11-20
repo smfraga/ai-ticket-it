@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { formatearEstrellas, formatearFechaCorta } from "../utils/formato";
+import Avatar from "./Avatar";
 
 export default function ReseniaItem({ resenia }) {
   return (
@@ -12,9 +13,12 @@ export default function ReseniaItem({ resenia }) {
         <Text style={tipografia.suave}>{formatearFechaCorta(resenia.fecha)}</Text>
       </View>
       <Text style={tipografia.cuerpo}>{resenia.detalle}</Text>
-      <Text style={tipografia.suave}>
-        {resenia.autor.nombre} {resenia.autor.apellido} · {resenia.evento.nombre}
-      </Text>
+      <View style={estilos.autor}>
+        <Avatar persona={resenia.autor} tamanio={28} />
+        <Text style={[tipografia.suave, estilos.textoAutor]}>
+          {resenia.autor.nombre} {resenia.autor.apellido} · {resenia.evento.nombre}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -29,5 +33,7 @@ const estilos = StyleSheet.create({
     gap: espacio.xs,
   },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  autor: { flexDirection: "row", alignItems: "center", gap: espacio.s, marginTop: espacio.xs },
+  textoAutor: { flexShrink: 1 },
   estrellas: { fontFamily: fuentes.regular, color: colores.aviso, fontSize: 16, letterSpacing: 1 },
 });

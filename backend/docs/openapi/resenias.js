@@ -1,9 +1,9 @@
-import { body, conToken, error, fecha, idPath, lista, ok, persona, ref } from "./comun.js";
+import { body, conToken, error, fecha, idPath, lista, ok, personaConFoto, ref } from "./comun.js";
 
 const organizadorConPuntaje = {
   type: "object",
   properties: {
-    ...persona.properties,
+    ...personaConFoto.properties,
     puntaje: {
       type: "number",
       nullable: true,
@@ -93,7 +93,7 @@ export default {
         puntuacion: { type: "integer" },
         detalle: { type: "string" },
         fecha,
-        autor: persona,
+        autor: personaConFoto,
         evento: { type: "object", properties: { id: { type: "string" }, nombre: { type: "string" } } },
       },
     },

@@ -75,7 +75,7 @@ describe("ResenaService", () => {
         puntuacion: 5,
         detalle: "Impecable",
         fecha: AHORA.toISOString(),
-        autor: { id: "carla", nombre: "Carla", apellido: "Gómez" },
+        autor: { id: "carla", nombre: "Carla", apellido: "Gómez", foto: null },
         evento: { id: "evento-1", nombre: "Rock" },
       });
       expect(resenaRepository.save).toHaveBeenCalledTimes(1);
@@ -174,7 +174,13 @@ describe("ResenaService", () => {
       const respuesta = await service.listarDeEvento("evento-1");
 
       expect(respuesta.evento).toEqual({ id: "evento-1", nombre: "Rock" });
-      expect(respuesta.organizador).toEqual({ id: "olivia", nombre: "Olivia", apellido: "Rossi", puntaje: 4 });
+      expect(respuesta.organizador).toEqual({
+        id: "olivia",
+        nombre: "Olivia",
+        apellido: "Rossi",
+        foto: null,
+        puntaje: 4,
+      });
       expect(respuesta.resenias.map((r) => r.puntuacion)).toEqual([5, 4]);
     });
 
@@ -215,6 +221,7 @@ describe("ResenaService", () => {
         id: "olivia",
         nombre: "Olivia",
         apellido: "Rossi",
+        foto: null,
         puntaje: 4.3,
         cantidadResenias: 3,
       });

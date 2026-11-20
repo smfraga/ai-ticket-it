@@ -278,7 +278,7 @@ El catálogo es público y no sabe quién lo mira, así que no marca cuáles son
 
 #### Perfil
 
-Los datos del usuario logueado (el del token), que piden token, y la foto de perfil de cualquier usuario, que es pública. Las respuestas con un usuario (la sesión, el perfil, la `contraparte` de `GET /conversaciones` y el `autor` de cada mensaje) traen `foto` con la ruta de su foto, o `null`.
+Los datos del usuario logueado (el del token), que piden token, y la foto de perfil de cualquier usuario, que es pública. Las respuestas con un usuario (la sesión, el perfil, la `contraparte` de `GET /conversaciones`, el `autor` de cada mensaje y de cada reseña, el `organizador` de los eventos y de las reseñas, y el `comprador` en `GET /compras/:id` y en `GET /eventos/:id/compras`) traen `foto` con la ruta de su foto, o `null`.
 
 | Método y ruta  | Descripción                                                                                                                                                   |
 |----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|

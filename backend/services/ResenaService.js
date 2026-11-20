@@ -6,6 +6,7 @@ import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
 import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
+import { rutaDeFoto } from "./fotos.js";
 
 export class ResenaService {
   // `ahora` es un reloj inyectable para poder probar sin depender de la fecha real.
@@ -60,6 +61,7 @@ export class ResenaService {
         id: evento.organizador.id,
         nombre: evento.organizador.nombre,
         apellido: evento.organizador.apellido,
+        foto: rutaDeFoto(evento.organizador),
         puntaje: calcularPuntaje(delOrganizador),
       },
       resenias: resenias.map((resenia) => this.toReseniaResponse(resenia)),
@@ -78,6 +80,7 @@ export class ResenaService {
         id: organizador.id,
         nombre: organizador.nombre,
         apellido: organizador.apellido,
+        foto: rutaDeFoto(organizador),
         puntaje: calcularPuntaje(resenias),
         cantidadResenias: resenias.length,
       },
@@ -96,6 +99,7 @@ export class ResenaService {
         id: resenia.comprador.id,
         nombre: resenia.comprador.nombre,
         apellido: resenia.comprador.apellido,
+        foto: rutaDeFoto(resenia.comprador),
       },
       evento: { id: resenia.evento.id, nombre: resenia.evento.nombre },
     };

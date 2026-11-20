@@ -1,4 +1,4 @@
-import { body, conToken, error, fecha, idPath, lista, ok, persona, ref } from "./comun.js";
+import { body, conToken, error, fecha, idPath, lista, ok, persona, personaConFoto, ref } from "./comun.js";
 
 const compraId = idPath("Id de la compra");
 const eventoId = idPath("Id del evento");
@@ -191,10 +191,10 @@ export default {
           properties: {
             evento: {
               type: "object",
-              properties: { yaPaso: { type: "boolean" }, organizador: persona },
+              properties: { yaPaso: { type: "boolean" }, organizador: personaConFoto },
               description: "Además de lo de `Compra`",
             },
-            comprador: persona,
+            comprador: personaConFoto,
             resenia: {
               type: "object",
               nullable: true,
@@ -236,7 +236,7 @@ export default {
         },
         compras: {
           type: "array",
-          items: { allOf: [ref("Compra"), { type: "object", properties: { comprador: persona } }] },
+          items: { allOf: [ref("Compra"), { type: "object", properties: { comprador: personaConFoto } }] },
         },
       },
     },

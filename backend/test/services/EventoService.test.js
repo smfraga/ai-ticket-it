@@ -88,7 +88,7 @@ describe("EventoService", () => {
         categoria: { id: "c-rock", nombre: "Rock" },
         fecha: enDias(30).toISOString(),
         multimedia: ["https://example.com/foto.jpg"],
-        organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", puntaje: 4.5 },
+        organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", foto: null, puntaje: 4.5 },
         precioDesde: 15000,
         yaPaso: false,
         cancelado: false,
@@ -109,7 +109,7 @@ describe("EventoService", () => {
     it("no expone el email ni el hash del organizador", async () => {
       const respuesta = await service.crear("olivia", datos());
 
-      expect(Object.keys(respuesta.organizador).sort()).toEqual(["apellido", "id", "nombre", "puntaje"]);
+      expect(Object.keys(respuesta.organizador).sort()).toEqual(["apellido", "foto", "id", "nombre", "puntaje"]);
       expect(JSON.stringify(respuesta)).not.toContain("passwordHash");
       expect(JSON.stringify(respuesta)).not.toContain(olivia.email);
     });
@@ -446,7 +446,7 @@ describe("EventoService", () => {
         categoria: { id: "c-rock", nombre: "Rock" },
         fecha: enDias(10).toISOString(),
         multimedia: [],
-        organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", puntaje: 4.5 },
+        organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", foto: null, puntaje: 4.5 },
         precioDesde: 10000,
         yaPaso: false,
         cancelado: false,
