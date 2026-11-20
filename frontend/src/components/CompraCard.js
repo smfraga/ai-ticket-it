@@ -9,6 +9,7 @@ import {
   textoPlazoDePagoCorto,
 } from "../utils/compras";
 import { formatearFechaCorta, formatearPrecio } from "../utils/formato";
+import Avatar from "./Avatar";
 import Entrada from "./Entrada";
 import EstadoCompra from "./EstadoCompra";
 
@@ -41,9 +42,12 @@ export default function CompraCard({ compra, onPress, mostrarComprador = false }
           ) : null}
         </View>
         {mostrarComprador ? (
-          <Text style={tipografia.subtitulo}>
-            {compra.comprador.nombre} {compra.comprador.apellido}
-          </Text>
+          <View style={estilos.persona}>
+            <Avatar persona={compra.comprador} tamanio={36} />
+            <Text style={[tipografia.subtitulo, estilos.nombre]} numberOfLines={1}>
+              {compra.comprador.nombre} {compra.comprador.apellido}
+            </Text>
+          </View>
         ) : (
           <>
             <Text style={tipografia.tituloTarjeta}>{compra.evento.nombre}</Text>
@@ -82,4 +86,6 @@ const estilos = StyleSheet.create({
   plazo: { color: colores.aviso, fontSize: 15, fontFamily: fuentes.seminegrita },
   fila: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: espacio.xs },
   total: { fontSize: 16, fontFamily: fuentes.negrita, color: colores.texto },
+  persona: { flexDirection: "row", alignItems: "center", gap: espacio.s },
+  nombre: { flexShrink: 1 },
 });

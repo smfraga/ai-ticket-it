@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "../auth/AuthContext";
 import { useFavoritos } from "../auth/FavoritosContext";
+import Avatar from "../components/Avatar";
 import Boton from "../components/Boton";
 import BotonFavorito from "../components/BotonFavorito";
 import Estado from "../components/Estado";
@@ -120,9 +121,12 @@ export default function DetalleEventoScreen({ route }) {
       ) : null}
 
       <Text style={estilos.seccion}>Organizador</Text>
-      <Text style={tipografia.subtitulo}>
-        {organizador.nombre} {organizador.apellido}
-      </Text>
+      <View style={estilos.organizador}>
+        <Avatar persona={organizador} tamanio={44} />
+        <Text style={[tipografia.subtitulo, estilos.nombreOrganizador]}>
+          {organizador.nombre} {organizador.apellido}
+        </Text>
+      </View>
       {reputacion ? (
         <>
           <Text style={tipografia.suave}>
@@ -158,6 +162,8 @@ const estilos = StyleSheet.create({
   aviso: { color: colores.aviso, fontSize: 14, fontFamily: fuentes.seminegrita },
   cancelado: { color: colores.error, fontSize: 15, fontFamily: fuentes.negrita },
   seccion: { ...tipografia.subtitulo, marginTop: espacio.xl },
+  organizador: { flexDirection: "row", alignItems: "center", gap: espacio.m },
+  nombreOrganizador: { flexShrink: 1 },
   tipo: {
     flexDirection: "row",
     justifyContent: "space-between",
