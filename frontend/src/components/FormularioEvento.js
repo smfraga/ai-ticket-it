@@ -12,6 +12,7 @@ import Boton from "./Boton";
 import CampoTexto from "./CampoTexto";
 import Chip from "./Chip";
 import SelectorFechaHora from "./SelectorFechaHora";
+import MensajeDeError from "./MensajeDeError";
 
 const LADO_MINIATURA = 96;
 
@@ -161,7 +162,7 @@ export default function FormularioEvento({ inicial, textoBoton, onEnviar }) {
           <Text style={tipografia.etiqueta}>Categoría</Text>
           {errorDeCategorias ? (
             <View style={estilos.bloque}>
-              <Text style={estilos.error}>{errorDeCategorias}</Text>
+              <MensajeDeError mensaje={errorDeCategorias} style={estilos.error} />
               <Boton titulo="Reintentar" variante="secundario" onPress={cargarCategorias} />
             </View>
           ) : categorias === null ? (
@@ -240,7 +241,7 @@ export default function FormularioEvento({ inicial, textoBoton, onEnviar }) {
         <Boton titulo="+ Agregar tipo de entrada" variante="secundario" onPress={agregarTipo} />
 
         <View style={estilos.acciones}>
-          {error ? <Text style={estilos.error}>{error}</Text> : null}
+          <MensajeDeError mensaje={error} style={estilos.error} />
           <Boton titulo={textoBoton} onPress={enviar} cargando={enviando} />
         </View>
       </ScrollView>

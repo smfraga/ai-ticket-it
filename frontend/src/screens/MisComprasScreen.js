@@ -6,6 +6,7 @@ import Chip from "../components/Chip";
 import CompraCard from "../components/CompraCard";
 import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
+import MensajeDeError from "../components/MensajeDeError";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { listarMisCompras } from "../services/comprasService";
@@ -57,7 +58,7 @@ export default function MisComprasScreen({ navigation }) {
         )}
         contentContainerStyle={estilos.lista}
         refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
-        ListHeaderComponent={error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
+        ListHeaderComponent={error ? <MensajeDeError mensaje={error} style={estilos.errorAviso} /> : null}
         ListEmptyComponent={<Text style={[tipografia.cuerpo, estilos.vacio]}>Todavía no hiciste ninguna compra.</Text>}
       />
     );

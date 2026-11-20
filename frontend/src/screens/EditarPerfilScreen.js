@@ -3,24 +3,28 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from "re
 import { useAuth } from "../auth/AuthContext";
 import Boton from "../components/Boton";
 import CampoTexto from "../components/CampoTexto";
+import MensajeDeError from "../components/MensajeDeError";
 import { mensajeDeError } from "../services/api";
 import { editarPerfil } from "../services/perfilService";
 import { colores, espacio, fuentes, tipografia } from "../theme";
-import { errorDePerfil, LARGO_MAXIMO_DE_NOMBRE, perfilCambio } from "../utils/perfil";
+import { hayErrores, RESUMEN_DE_ERRORES } from "../utils/formularios";
+import { erroresDePerfil, LARGO_MAXIMO_DE_NOMBRE, perfilCambio } from "../utils/perfil";
 
 // Editar nombre y apellido. El email y los roles no se cambian (se muestran como referencia).
 export default function EditarPerfilScreen({ navigation }) {
   const { usuario, actualizarUsuario } = useAuth();
   const [datos, setDatos] = useState({ nombre: usuario.nombre, apellido: usuario.apellido });
-  const [error, setError] = useState(null);
+  const [errores, setErrores] = useState({}); // por campo
+  const [error, setError] = useState(null); // el resumen o el del servidor
   const [enviando, setEnviando] = useState(false);
 
   const cambiar = (campo) => (valor) => setDatos((previo) => ({ ...previo, [campo]: valor }));
 
   const guardar = async () => {
-    const problema = errorDePerfil(datos);
-    if (problema) {
-      setError(problema);
+    const problemas = erroresDePerfil(datos);
+    setErrores(problemas);
+    if (hayErrores(problemas)) {
+      setError(RESUMEN_DE_ERRORES);
       return;
     }
     if (!perfilCambio(usuario, datos)) {
@@ -46,21 +50,27 @@ export default function EditarPerfilScreen({ navigation }) {
           etiqueta="Nombre"
           value={datos.nombre}
           onChangeText={cambiar("nombre")}
+          error={errores.nombre}
           autoCapitalize="words"
+          autoComplete="given-name"
+          textContentType="givenName"
           maxLength={LARGO_MAXIMO_DE_NOMBRE + 10}
         />
         <CampoTexto
           etiqueta="Apellido"
           value={datos.apellido}
           onChangeText={cambiar("apellido")}
+          error={errores.apellido}
           autoCapitalize="words"
+          autoComplete="family-name"
+          textContentType="familyName"
           maxLength={LARGO_MAXIMO_DE_NOMBRE + 10}
         />
         <Text style={tipografia.suave}>
           Tu email ({usuario.email}) y tus roles no se pueden cambiar. Los demás ven tu nombre en el chat y en las
           compras.
         </Text>
-        {error ? <Text style={estilos.error}>{error}</Text> : null}
+        <MensajeDeError mensaje={error} style={estilos.error} />
         <Boton titulo="Guardar" onPress={guardar} cargando={enviando} />
       </ScrollView>
     </KeyboardAvoidingView>

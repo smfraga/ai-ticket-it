@@ -6,6 +6,7 @@ import Boton from "../components/Boton";
 import Estado from "../components/Estado";
 import EstadoCompra from "../components/EstadoCompra";
 import SeguimientoCompra from "../components/SeguimientoCompra";
+import MensajeDeError from "../components/MensajeDeError";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { cancelarCompra, obtenerCompra, pagarCompra, utilizarCompra } from "../services/comprasService";
@@ -152,7 +153,7 @@ export default function DetalleCompraScreen({ route, navigation }) {
       contentContainerStyle={estilos.contenido}
       refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
     >
-      {error ? <Text style={estilos.error}>{error}</Text> : null}
+      <MensajeDeError mensaje={error} style={estilos.error} />
       {aviso ? <Text style={estilos.aviso}>{aviso}</Text> : null}
 
       <EstadoCompra estado={compra.estado} />
@@ -190,7 +191,7 @@ export default function DetalleCompraScreen({ route, navigation }) {
             Esta compra está pendiente de pago: las entradas quedan reservadas hasta que la pagues.
           </Text>
           {plazoDePago ? <Text style={estilos.plazo}>{plazoDePago}</Text> : null}
-          {errorDePagar ? <Text style={estilos.error}>{errorDePagar}</Text> : null}
+          <MensajeDeError mensaje={errorDePagar} style={estilos.error} />
           <Boton
             titulo={`Pagar ${formatearPrecio(compra.total)}`}
             onPress={pedirConfirmacionDePago}
@@ -212,7 +213,7 @@ export default function DetalleCompraScreen({ route, navigation }) {
       {!esElOrganizador ? null : puedeMarcarUtilizada(compra) ? (
         <View style={estilos.acciones}>
           <Text style={tipografia.cuerpo}>¿El comprador ya ingresó al evento?</Text>
-          {errorDeMarcar ? <Text style={estilos.error}>{errorDeMarcar}</Text> : null}
+          <MensajeDeError mensaje={errorDeMarcar} style={estilos.error} />
           <Boton titulo="Marcar como utilizada" onPress={pedirConfirmacionDeUso} cargando={marcando} />
         </View>
       ) : motivoDeUso ? (
@@ -250,7 +251,7 @@ export default function DetalleCompraScreen({ route, navigation }) {
 
       {!esElComprador ? null : puedeCancelar(compra) ? (
         <View style={estilos.acciones}>
-          {errorDeCancelar ? <Text style={estilos.error}>{errorDeCancelar}</Text> : null}
+          <MensajeDeError mensaje={errorDeCancelar} style={estilos.error} />
           <Boton titulo="Cancelar compra" variante="peligro" onPress={pedirConfirmacion} cargando={cancelando} />
         </View>
       ) : motivo ? (

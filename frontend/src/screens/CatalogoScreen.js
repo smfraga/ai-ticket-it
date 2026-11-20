@@ -19,6 +19,7 @@ import EncabezadoDePestania from "../components/EncabezadoDePestania";
 import Estado from "../components/Estado";
 import EventoCard from "../components/EventoCard";
 import HojaDeFiltros from "../components/HojaDeFiltros";
+import MensajeDeError from "../components/MensajeDeError";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { EVENTOS_POR_PAGINA, listarCategorias, listarEventos, ORDENES, PERIODOS } from "../services/eventosService";
@@ -167,16 +168,21 @@ export default function CatalogoScreen({ navigation }) {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         refreshControl={<RefreshControl refreshing={cargando} onRefresh={cargar} tintColor={colores.primario} />}
-        ListHeaderComponent={error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
+        ListHeaderComponent={error ? <MensajeDeError mensaje={error} style={estilos.errorAviso} /> : null}
         ListEmptyComponent={<Text style={[tipografia.cuerpo, estilos.vacio]}>{textoVacio}</Text>}
         onEndReached={() => cargarMas()}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           cargandoMas ? (
-            <ActivityIndicator color={colores.primario} style={estilos.pie} />
+            <ActivityIndicator color={colores.primario} style={estilos.pie} accessibilityLabel="Cargando más eventos" />
           ) : errorDeMas ? (
-            <Pressable accessibilityRole="button" onPress={() => cargarMas({ reintentar: true })} style={estilos.pie}>
-              <Text style={estilos.errorAviso}>No se pudieron cargar más eventos: {errorDeMas}</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`No se pudieron cargar más eventos: ${errorDeMas}. Tocá para reintentar`}
+              onPress={() => cargarMas({ reintentar: true })}
+              style={estilos.pie}
+            >
+              <MensajeDeError mensaje={`No se pudieron cargar más eventos: ${errorDeMas}`} style={estilos.errorAviso} />
               <Text style={estilos.reintentar}>Tocá para reintentar</Text>
             </Pressable>
           ) : eventos.length > 0 ? (

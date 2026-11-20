@@ -6,6 +6,7 @@ import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { formatearPrecio } from "../utils/formato";
 import Boton from "./Boton";
 import SelectorCantidad from "./SelectorCantidad";
+import MensajeDeError from "./MensajeDeError";
 
 const textoDeEntradas = (cantidad) => `${cantidad} ${cantidad === 1 ? "entrada" : "entradas"}`;
 
@@ -69,7 +70,7 @@ export default function PanelCompra({ eventoId, tipo, onComprada, onTerminar }) 
     return (
       <View style={estilos.panel}>
         <Text style={tipografia.subtitulo}>{tipo.nombre}</Text>
-        {error ? <Text style={estilos.error}>{error}</Text> : null}
+        <MensajeDeError mensaje={error} style={estilos.error} />
         <Text style={tipografia.cuerpo}>Se agotaron las entradas de este tipo. Elegí otro.</Text>
       </View>
     );
@@ -86,7 +87,7 @@ export default function PanelCompra({ eventoId, tipo, onComprada, onTerminar }) 
         <Text style={tipografia.cuerpo}>Total</Text>
         <Text style={estilos.total}>{formatearPrecio(total)}</Text>
       </View>
-      {error ? <Text style={estilos.error}>{error}</Text> : null}
+      <MensajeDeError mensaje={error} style={estilos.error} />
       <Boton titulo="Comprar" onPress={pedirConfirmacion} cargando={comprando} fondoDetras={colores.primarioSuave} />
     </View>
   );

@@ -21,7 +21,9 @@ export default function Boton({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ disabled: inactivo }}
+      // Mientras carga, el texto se reemplaza por el indicador: la etiqueta mantiene el nombre y `busy` avisa que espera.
+      accessibilityLabel={titulo}
+      accessibilityState={{ disabled: inactivo, busy: cargando }}
       disabled={inactivo}
       onPress={onPress}
       style={({ pressed }) => [

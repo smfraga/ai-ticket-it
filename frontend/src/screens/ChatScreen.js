@@ -10,6 +10,7 @@ import Avatar from "../components/Avatar";
 import Estado from "../components/Estado";
 import FondoDelChat from "../components/FondoDelChat";
 import GloboMensaje from "../components/GloboMensaje";
+import MensajeDeError from "../components/MensajeDeError";
 import SeparadorDeDia from "../components/SeparadorDeDia";
 import useFondoChat from "../hooks/useFondoChat";
 import useUltimoPedido from "../hooks/useUltimoPedido";
@@ -151,7 +152,10 @@ export default function ChatScreen({ route, navigation }) {
         keyboardVerticalOffset={alturaDelEncabezado}
       >
         {errorDeCarga ? (
-          <Text style={estilos.avisoDeConexion}>Sin conexión: {errorDeCarga}. Se reintenta solo.</Text>
+          <MensajeDeError
+            mensaje={`Sin conexión: ${errorDeCarga}. Se reintenta solo.`}
+            style={estilos.avisoDeConexion}
+          />
         ) : null}
         <FondoDelChat fondo={fondo} style={estilos.fondo}>
           {elementos.length === 0 ? (
@@ -178,7 +182,7 @@ export default function ChatScreen({ route, navigation }) {
           />
         </FondoDelChat>
         <View style={estilos.redaccion}>
-          {errorDeEnvio ? <Text style={estilos.error}>No se envió: {errorDeEnvio}</Text> : null}
+          {errorDeEnvio ? <MensajeDeError mensaje={`No se envió: ${errorDeEnvio}`} style={estilos.error} /> : null}
           {texto.length >= AVISO_DE_LARGO ? (
             <Text style={tipografia.suave}>
               {texto.length} / {LARGO_MAXIMO_DE_MENSAJE}

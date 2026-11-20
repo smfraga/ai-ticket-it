@@ -8,6 +8,7 @@ import Avatar from "../components/Avatar";
 import Boton from "../components/Boton";
 import Entrada from "../components/Entrada";
 import Estado from "../components/Estado";
+import MensajeDeError from "../components/MensajeDeError";
 import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { elegirFotoDePerfil } from "../services/fotoDePerfil";
@@ -107,7 +108,11 @@ export default function PerfilScreen({ navigation, route }) {
             <Avatar persona={usuario} tamanio={72} />
             <View style={estilos.camara}>
               {subiendoFoto ? (
-                <ActivityIndicator size="small" color={colores.textoSobrePrimario} />
+                <ActivityIndicator
+                  size="small"
+                  color={colores.textoSobrePrimario}
+                  accessibilityLabel="Subiendo la foto"
+                />
               ) : (
                 <Ionicons name="camera" size={14} color={colores.textoSobrePrimario} />
               )}
@@ -133,7 +138,7 @@ export default function PerfilScreen({ navigation, route }) {
 
         {perfil === null && error ? <Estado tipo="error" mensaje={error} onReintentar={cargar} /> : null}
         {perfil === null && !error ? <Estado tipo="cargando" /> : null}
-        {perfil !== null && error ? <Text style={estilos.errorAviso}>{error}</Text> : null}
+        {perfil !== null ? <MensajeDeError mensaje={error} style={estilos.errorAviso} /> : null}
 
         {perfil?.comprador ? <SeccionComprador datos={perfil.comprador} irA={irA} /> : null}
         {perfil?.organizador ? <SeccionOrganizador datos={perfil.organizador} irA={irA} /> : null}
