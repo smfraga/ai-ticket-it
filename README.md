@@ -95,10 +95,10 @@ El repositorio tiene dos paquetes independientes, cada uno con su propio `packag
 Construido con Express 5. Dependencias principales:
 
 - **`express`**: framework web para construir la API.
-- **`cors`**: habilita CORS, necesario para que la app móvil y el navegador puedan llamar a la API desde otro origen.
+- **`cors`**: responde a CORS solo para los orígenes de `CORS_ORIGINS` (por ejemplo, una versión web). La app móvil no lo necesita: CORS lo aplican los navegadores.
 - **`jsonwebtoken`**: firma y verifica los tokens de sesión (JWT).
 - **`bcryptjs`**: guarda las contraseñas como hash, nunca en texto plano.
-- **`zod`**: valida el cuerpo de las requests.
+- **`zod`** (versión 4): valida el cuerpo y los parámetros de las requests. Se pasó de la 3 a la 4 porque la 3 tenía una vulnerabilidad conocida (`npm audit`); hoy `npm audit` no informa ninguna en el backend.
 - **`dotenv`**: carga las variables de entorno desde el archivo `.env`.
 - **`swagger-ui-express`**: sirve la documentación interactiva de la API en `/api-docs`.
 
@@ -159,6 +159,7 @@ cp .env.example .env
 | `PORT`           | `3000`         | Puerto del servidor (opcional, por defecto `3000`)                                       |
 | `JWT_SECRET`     | (cadena larga) | Clave para firmar los tokens de sesión. **Obligatoria**: sin ella el backend no arranca |
 | `JWT_EXPIRES_IN` | `1h`           | Duración del token (opcional, por defecto `1h`)                                          |
+| `CORS_ORIGINS`   | `http://localhost:8081` | Orígenes que pueden llamar a la API desde un navegador, separados por comas (opcional). Sin definir, ningún navegador de otro origen recibe permiso; la app del celular no lo necesita |
 
 Para generar un `JWT_SECRET`:
 

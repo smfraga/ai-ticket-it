@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mensajesDeTipo } from "./mensajesDeTipo.js";
 
 // Nombre y apellido, cada uno opcional, pero al menos uno. El dominio vuelve a validar que no queden vacíos.
 export const editarPerfilValidation = z
@@ -28,7 +29,7 @@ const FORMATO_DE_IMAGEN = /^data:image\/(jpeg|png);base64,[A-Za-z0-9+/]+={0,2}$/
 export const fotoValidation = z
   .object({
     imagen: z
-      .string({ required_error: "Falta la imagen" })
+      .string(mensajesDeTipo({ obligatorio: "Falta la imagen" }))
       .max(90000, "La foto es demasiado grande")
       .regex(FORMATO_DE_IMAGEN, "La foto tiene que ser una imagen JPEG o PNG en base64"),
   })

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { rolUsuario } from "../domain/RolUsuario.js";
+import { mensajesDeTipo } from "./mensajesDeTipo.js";
 
 const BYTES_MAXIMOS_BCRYPT = 72;
 
@@ -14,7 +15,10 @@ const passwordValidation = z
   );
 
 const rolesValidation = z
-  .array(z.nativeEnum(rolUsuario), { required_error: "Los roles son obligatorios" })
+  .array(
+    z.enum(rolUsuario, { error: `El rol del usuario debe ser ${Object.values(rolUsuario).join(" u ")}` }),
+    mensajesDeTipo({ obligatorio: "Los roles son obligatorios" }),
+  )
   .min(1, "El usuario debe tener al menos un rol")
   .refine((roles) => new Set(roles).size === roles.length, "El usuario no puede tener roles repetidos");
 
