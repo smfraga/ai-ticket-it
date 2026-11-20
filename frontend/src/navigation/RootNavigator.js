@@ -13,6 +13,7 @@ import CrearEventoScreen from "../screens/CrearEventoScreen";
 import DetalleCompraScreen from "../screens/DetalleCompraScreen";
 import DetalleEventoScreen from "../screens/DetalleEventoScreen";
 import EditarEventoScreen from "../screens/EditarEventoScreen";
+import EditarPerfilScreen from "../screens/EditarPerfilScreen";
 import FavoritosScreen from "../screens/FavoritosScreen";
 import FondoChatScreen from "../screens/FondoChatScreen";
 import LoginScreen from "../screens/LoginScreen";
@@ -185,6 +186,27 @@ function MensajesStack() {
   );
 }
 
+const PerfilStackNav = createNativeStackNavigator();
+
+// Dentro de la pestaña Perfil: los datos, las estadísticas y el historial; editar el nombre y el fondo del chat.
+function PerfilStack() {
+  return (
+    <PerfilStackNav.Navigator screenOptions={opcionesDePila}>
+      <PerfilStackNav.Screen name="PerfilInicio" component={PerfilScreen} options={{ headerShown: false }} />
+      <PerfilStackNav.Screen
+        name="EditarPerfil"
+        component={EditarPerfilScreen}
+        options={{ title: "Editar perfil", headerBackTitle: "Perfil" }}
+      />
+      <PerfilStackNav.Screen
+        name="FondoChat"
+        component={FondoChatScreen}
+        options={{ title: "Fondo del chat", headerBackTitle: "Perfil" }}
+      />
+    </PerfilStackNav.Navigator>
+  );
+}
+
 // Ícono de Ionicons por pestaña: lleno cuando está activa y de contorno cuando no.
 const ICONOS_DE_PESTANIA = {
   Eventos: "search",
@@ -243,7 +265,7 @@ function TabsPrincipales() {
           tabBarBadgeStyle: estilosDeInsignia,
         }}
       />
-      <Tabs.Screen name="Perfil" component={PerfilScreen} options={{ title: "Perfil" }} />
+      <Tabs.Screen name="Perfil" component={PerfilStack} options={{ title: "Perfil" }} />
     </Tabs.Navigator>
   );
 }

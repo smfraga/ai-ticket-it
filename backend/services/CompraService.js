@@ -6,6 +6,7 @@ import { compraRepository } from "../repositories/CompraRepository.js";
 import { eventoRepository } from "../repositories/EventoRepository.js";
 import { resenaRepository } from "../repositories/ResenaRepository.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
+import { rutaDeFoto } from "./fotos.js";
 
 export class CompraService {
   // `ahora` es un reloj inyectable para poder probar sin depender de la fecha real.
@@ -240,6 +241,7 @@ export class CompraService {
         nombre: autor.nombre,
         apellido: autor.apellido,
         rol: compra.comprador.esElMismo(autor) ? rolUsuario.COMPRADOR : rolUsuario.ORGANIZADOR,
+        foto: rutaDeFoto(autor),
       },
       mensaje: mensaje.mensaje,
       enviado: mensaje.enviado.toISOString(),
@@ -266,6 +268,7 @@ export class CompraService {
         nombre: contraparte.nombre,
         apellido: contraparte.apellido,
         rol: compra.comprador.esElMismo(contraparte) ? rolUsuario.COMPRADOR : rolUsuario.ORGANIZADOR,
+        foto: rutaDeFoto(contraparte),
       },
       ultimoMensaje: {
         texto: ultimo.mensaje,

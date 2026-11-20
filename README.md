@@ -27,6 +27,8 @@ Cada usuario inicia sesión con email y contraseña, y puede ser **comprador**, 
 
 **Los dos** tienen la pestaña **Mensajes**: todos sus chats (uno por compra, cada uno sobre un evento) con el último mensaje y su hora, ordenados como en WhatsApp, y la cantidad de mensajes nuevos sobre el ícono de la pestaña. Dentro del chat, los mensajes se separan por día ("Hoy", "Ayer", el día de la semana o la fecha) y el fondo se puede cambiar (se guarda en el celular).
 
+En la pestaña **Perfil**, cada uno edita su nombre y apellido y ve sus estadísticas y su historial: el comprador, las entradas que compró, cuánto gastó, a cuántos eventos fue, sus reseñas, su categoría preferida, su próximo evento y los eventos a los que fue; el organizador, sus eventos (próximos, realizados y cancelados), las entradas vendidas, la recaudación, su evento más vendido, su puntaje y los eventos que ya hizo.
+
 ## 📋 Casos de uso de la consigna
 
 | Caso de uso | Pantalla | Endpoints |
@@ -110,7 +112,8 @@ App móvil con **React Native** y **Expo**. Se prueba en el celular con **Expo G
 - **`@react-navigation/*`**: pestañas y pilas de pantallas.
 - **`expo-secure-store`**: guarda la sesión (el token JWT) cifrada en el celular.
 - **`@react-native-async-storage/async-storage`**: guarda preferencias del celular que no son secretas (el fondo de los chats).
-- **`expo-image-picker`** y **`expo-file-system`**: elegir una foto de la galería como fondo del chat y guardar una copia en la carpeta de la app.
+- **`expo-image-picker`** y **`expo-file-system`**: elegir una foto de la galería como fondo del chat (y guardar una copia en la carpeta de la app) o como foto de perfil.
+- **`expo-image-manipulator`**: achicar la foto de perfil a 256×256 en JPEG antes de subirla (unos 20 KB).
 - **`@react-native-community/datetimepicker`**: selector nativo de fecha y hora para crear eventos.
 - **`@expo/vector-icons`**: íconos de las pestañas.
 - **`expo-font`**, **`@expo-google-fonts/bebas-neue`** y **`@expo-google-fonts/dm-sans`**: tipografía de la app (títulos con letra de cartel y cuerpo en DM Sans).
@@ -271,6 +274,18 @@ Los compradores pueden guardar eventos para encontrarlos después. Las tres ruta
 | `GET /favoritos`               | La lista del comprador, con el último guardado primero, en el mismo formato que `GET /eventos` (incluye `yaPaso`, el puntaje del organizador y los lugares disponibles) |
 
 El catálogo es público y no sabe quién lo mira, así que no marca cuáles son favoritos: para pintar el corazón en una pantalla, se compara el id de cada evento con los de `GET /favoritos`. En el seed, Carla tiene guardados el recital de rock y el festival de jazz, y Camilo el stand up.
+
+#### Perfil
+
+Los datos del usuario logueado (el del token), que piden token, y la foto de perfil de cualquier usuario, que es pública. Las respuestas con un usuario (la sesión, el perfil, la `contraparte` de `GET /conversaciones` y el `autor` de cada mensaje) traen `foto` con la ruta de su foto, o `null`.
+
+| Método y ruta  | Descripción                                                                                                                                                   |
+|----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `GET /perfil`   | Los datos del usuario y, según sus roles, `comprador` y `organizador` (o `null` si no tiene ese rol), cada uno con `estadisticas` e `historial`. Comprador: entradas compradas, total gastado, eventos a los que fue, reseñas dejadas, categoría preferida y próximo evento; historial con los eventos a los que fue (compras `UTILIZADA`). Organizador: eventos creados (próximos, realizados, cancelados), entradas vendidas, recaudación, evento más vendido, puntaje y cantidad de reseñas; historial con sus eventos realizados y lo vendido en cada uno. Una entrada cuenta si la compra está `CONFIRMADA` o `UTILIZADA` |
+| `PATCH /perfil` | Cambia `nombre` y/o `apellido` (al menos uno, de 1 a 60 caracteres, sin los espacios de los bordes) y devuelve el usuario como en la sesión. El email y los roles no se editan (`400` si vienen). El token sigue sirviendo: solo lleva el id y los roles |
+| `PUT /perfil/foto` | Cambia la foto de perfil. Body: `{ "imagen": "data:image/jpeg;base64,..." }` (JPEG o PNG; la app la achica a 256×256). El tipo se verifica por los primeros bytes y la imagen puede pesar hasta 64 KB (`400` si no). Un body de más de 100 KB lo corta `express.json()` con `413`. Devuelve el usuario con `foto`: la ruta con su versión (`/usuarios/:id/foto?v=2`), que cambia con cada foto nueva |
+| `DELETE /perfil/foto` | Quita la foto (vuelven las iniciales); sin foto no es un error. Devuelve el usuario con `foto: null` |
+| `GET /usuarios/:id/foto` | **Pública.** La imagen (no JSON), con caché de un día. `404` si el usuario no existe o no tiene foto |
 
 #### Registro de errores
 

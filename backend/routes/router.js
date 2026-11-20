@@ -6,6 +6,8 @@ import conversacionRoutes from "./ConversacionRoutes.js";
 import eventoRoutes from "./EventoRoutes.js";
 import favoritoRoutes from "./FavoritoRoutes.js";
 import organizadorRoutes from "./OrganizadorRoutes.js";
+import perfilRoutes from "./PerfilRoutes.js";
+import usuarioRoutes from "./UsuarioRoutes.js";
 
 // Prefijo de cada grupo de rutas. Se exporta para que el test de la documentación (Swagger) pueda listar todas
 // las rutas y comprobar que cada una está documentada.
@@ -17,6 +19,8 @@ export const montajes = Object.freeze({
   "/conversaciones": conversacionRoutes,
   "/favoritos": favoritoRoutes,
   "/organizadores": organizadorRoutes,
+  "/perfil": perfilRoutes,
+  "/usuarios": usuarioRoutes,
 });
 
 const router = express.Router();

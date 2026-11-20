@@ -4,10 +4,11 @@ import compras from "./compras.js";
 import conversaciones from "./conversaciones.js";
 import eventos from "./eventos.js";
 import favoritos from "./favoritos.js";
+import perfil from "./perfil.js";
 import resenias from "./resenias.js";
 
 // Cada módulo trae sus `tags`, `paths` y `schemas`; acá se unen en una sola especificación OpenAPI.
-const modulos = [auth, eventos, compras, conversaciones, resenias, favoritos];
+const modulos = [auth, eventos, compras, conversaciones, resenias, favoritos, perfil];
 
 // Un mismo path o schema en dos módulos es un error de documentación: se pisarían sin avisar.
 function unir(partes, clave) {

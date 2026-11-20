@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { Usuario } from "../domain/Usuario.js";
 import { ConflictError, UnauthorizedError } from "../errors/AppError.js";
 import { usuarioRepository } from "../repositories/UsuarioRepository.js";
+import { rutaDeFoto } from "./fotos.js";
 
 // bcryptjs es JavaScript puro: con costo 12 el seed tardaría demasiado en arrancar.
 const COSTO_BCRYPT = 10;
@@ -10,6 +11,16 @@ const MENSAJE_CREDENCIALES_INVALIDAS = "Email o contraseña incorrectos";
 const MENSAJE_EMAIL_EN_USO = "Ya existe un usuario con ese email";
 
 export const hashearPassword = (password) => bcrypt.hash(password, COSTO_BCRYPT);
+
+// Los datos del usuario que ve la app (en la sesión y en el perfil). Nunca incluye passwordHash.
+export const toUsuarioResponse = (usuario) => ({
+  id: usuario.id,
+  nombre: usuario.nombre,
+  apellido: usuario.apellido,
+  email: usuario.email,
+  roles: usuario.roles,
+  foto: rutaDeFoto(usuario),
+});
 
 export class AuthService {
   constructor(repositorio = usuarioRepository) {
@@ -48,19 +59,8 @@ export class AuthService {
     return this.hashFicticio;
   }
 
-  // Nunca incluye passwordHash.
-  toUsuarioResponse(usuario) {
-    return {
-      id: usuario.id,
-      nombre: usuario.nombre,
-      apellido: usuario.apellido,
-      email: usuario.email,
-      roles: usuario.roles,
-    };
-  }
-
   crearSesion(usuario) {
-    const datos = this.toUsuarioResponse(usuario);
+    const datos = toUsuarioResponse(usuario);
     const token = jwt.sign({ roles: datos.roles }, process.env.JWT_SECRET, {
       subject: datos.id,
       algorithm: "HS256",

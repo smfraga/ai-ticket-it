@@ -6,6 +6,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import { useMensajes } from "../auth/MensajesContext";
+import Avatar from "../components/Avatar";
 import Estado from "../components/Estado";
 import FondoDelChat from "../components/FondoDelChat";
 import GloboMensaje from "../components/GloboMensaje";
@@ -24,7 +25,8 @@ const AVISO_DE_LARGO = LARGO_MAXIMO_DE_MENSAJE - 100;
 
 // Chat de una compra. Sirve para el comprador y para el organizador: no supone el rol, compara el autor con el usuario.
 export default function ChatScreen({ route, navigation }) {
-  const { compraId, titulo } = route.params;
+  // `contraparte` (opcional, desde Mensajes): { nombre, apellido, foto } de la otra parte, para el encabezado.
+  const { compraId, titulo, contraparte: contraparteRecibida } = route.params;
   const { usuario } = useAuth();
   const { recargar: recargarConversaciones } = useMensajes();
   const alturaDelEncabezado = useHeaderHeight();
@@ -39,10 +41,27 @@ export default function ChatScreen({ route, navigation }) {
 
   const { fondo } = useFondoChat();
 
-  // Título con la otra parte y, a la derecha, el acceso para cambiar el fondo de los chats.
+  // La otra parte: la que manda Mensajes o, si se llega desde el detalle de la compra, el autor del primer mensaje
+  // que no es propio (cada autor trae su foto). Sin mensajes de la otra parte, el encabezado va sin foto.
+  const contraparte =
+    contraparteRecibida ?? mensajes?.find((mensaje) => !esMensajePropio(mensaje, usuario.id))?.autor ?? null;
+
+  // Título con la foto de la otra parte y, a la derecha, el acceso para cambiar el fondo de los chats.
   useEffect(() => {
     navigation.setOptions({
       ...(titulo ? { title: titulo } : {}),
+      ...(contraparte
+        ? {
+            headerTitle: ({ children }) => (
+              <View style={estilos.encabezado}>
+                <Avatar persona={contraparte} tamanio={30} />
+                <Text style={estilos.tituloEncabezado} numberOfLines={1}>
+                  {children}
+                </Text>
+              </View>
+            ),
+          }
+        : {}),
       headerRight: () => (
         <Pressable
           accessibilityRole="button"
@@ -54,7 +73,7 @@ export default function ChatScreen({ route, navigation }) {
         </Pressable>
       ),
     });
-  }, [navigation, titulo]);
+  }, [navigation, titulo, contraparte]);
 
   const cargar = useCallback(async () => {
     const esVigente = nuevoPedido();
@@ -187,6 +206,8 @@ export default function ChatScreen({ route, navigation }) {
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
   fondo: { flex: 1 },
+  encabezado: { flexDirection: "row", alignItems: "center", gap: espacio.s, maxWidth: 240 },
+  tituloEncabezado: { fontFamily: fuentes.cartel, fontSize: 24, color: colores.texto, flexShrink: 1 },
   lista: { padding: espacio.l, gap: espacio.s, flexGrow: 1 },
   vacio: { textAlign: "center", marginTop: espacio.xxl },
   avisoDeConexion: {

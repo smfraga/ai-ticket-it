@@ -5,6 +5,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../auth/AuthContext";
 import { useMensajes } from "../auth/MensajesContext";
+import Avatar from "../components/Avatar";
 import Estado from "../components/Estado";
 import { colores, espacio, fuentes, radio, tipografia } from "../theme";
 import { insigniaDeNoLeidos, lineaDeLaConversacion, vistaPreviaDelMensaje } from "../utils/chat";
@@ -45,7 +46,11 @@ export default function ConversacionesScreen({ navigation }) {
             conversacion={item}
             ahora={ahora}
             onPress={() =>
-              navigation.navigate("Chat", { compraId: item.compraId, titulo: `Chat con ${item.contraparte.nombre}` })
+              navigation.navigate("Chat", {
+                compraId: item.compraId,
+                titulo: `Chat con ${item.contraparte.nombre}`,
+                contraparte: item.contraparte,
+              })
             }
           />
         )}
@@ -89,18 +94,24 @@ function FilaDeConversacion({ conversacion, ahora, onPress }) {
       onPress={onPress}
       style={({ pressed }) => [estilos.fila, pressed && estilos.presionada]}
     >
-      {evento.imagen && !imagenFallo ? (
-        <Image
-          source={{ uri: evento.imagen }}
-          style={estilos.imagen}
-          accessibilityIgnoresInvertColors
-          onError={() => setImagenFallo(true)}
-        />
-      ) : (
-        <View style={[estilos.imagen, estilos.sinImagen]}>
-          <Ionicons name="ticket" size={24} color={colores.primario} />
+      <View>
+        {evento.imagen && !imagenFallo ? (
+          <Image
+            source={{ uri: evento.imagen }}
+            style={estilos.imagen}
+            accessibilityIgnoresInvertColors
+            onError={() => setImagenFallo(true)}
+          />
+        ) : (
+          <View style={[estilos.imagen, estilos.sinImagen]}>
+            <Ionicons name="ticket" size={24} color={colores.primario} />
+          </View>
+        )}
+        {/* La otra parte del chat, chiquita sobre la esquina del evento. */}
+        <View style={estilos.avatar}>
+          <Avatar persona={conversacion.contraparte} tamanio={26} />
         </View>
-      )}
+      </View>
       <View style={estilos.centro}>
         <Text style={estilos.evento} numberOfLines={1}>
           {evento.nombre}
@@ -142,6 +153,7 @@ const estilos = StyleSheet.create({
   presionada: { backgroundColor: colores.superficie },
   imagen: { width: LADO_IMAGEN, height: LADO_IMAGEN, borderRadius: radio.control },
   sinImagen: { backgroundColor: colores.superficieAlta, alignItems: "center", justifyContent: "center" },
+  avatar: { position: "absolute", right: -6, bottom: -6, borderRadius: 15, borderWidth: 2, borderColor: colores.fondo },
   centro: { flex: 1, minWidth: 0, gap: 1 },
   evento: { fontFamily: fuentes.negrita, fontSize: 16, color: colores.texto },
   linea: { fontFamily: fuentes.regular, fontSize: 13, color: colores.textoSuave },
