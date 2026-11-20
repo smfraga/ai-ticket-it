@@ -16,8 +16,14 @@ import useUltimoPedido from "../hooks/useUltimoPedido";
 import { mensajeDeError } from "../services/api";
 import { enviarMensaje, listarMensajes } from "../services/comprasService";
 import { ALTO_TOQUE, colores, espacio, fuentes, radio, tipografia } from "../theme";
-import { claveDeMensaje, esMensajePropio, LARGO_MAXIMO_DE_MENSAJE, textoEnviable } from "../utils/chat";
-import { conSeparadores } from "../utils/fechasChat";
+import {
+  claveDeMensaje,
+  elementosDelChat,
+  esMensajePropio,
+  estaCercaDelFinal,
+  LARGO_MAXIMO_DE_MENSAJE,
+  textoEnviable,
+} from "../utils/chat";
 
 const INTERVALO_DE_ACTUALIZACION_MS = 5000;
 const DISTANCIA_PARA_SEGUIR_AL_FINAL = 80;
@@ -109,8 +115,9 @@ export default function ChatScreen({ route, navigation }) {
     try {
       const enviado = await enviarMensaje(compraId, mensaje);
       setTexto("");
-      estaAlFinal.current = true;
       setMensajes((previos) => [...(previos ?? []), enviado]);
+      // Quien escribe vuelve al final aunque estuviera leyendo más arriba (como en WhatsApp).
+      lista.current?.scrollToOffset({ offset: 0, animated: true });
       cargar(); // y deja sin efecto cualquier actualización que haya salido antes del envío
     } catch (e) {
       setErrorDeEnvio(mensajeDeError(e)); // el texto queda en el campo para reintentar
@@ -119,22 +126,22 @@ export default function ChatScreen({ route, navigation }) {
     }
   };
 
+  // La lista está invertida: el final (lo más nuevo) es el desplazamiento 0.
   const alDesplazar = ({ nativeEvent }) => {
-    const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
-    estaAlFinal.current =
-      contentSize.height - (contentOffset.y + layoutMeasurement.height) < DISTANCIA_PARA_SEGUIR_AL_FINAL;
+    estaAlFinal.current = estaCercaDelFinal(nativeEvent.contentOffset.y, DISTANCIA_PARA_SEGUIR_AL_FINAL);
   };
 
-  const bajarSiCorresponde = () => {
-    if (estaAlFinal.current) lista.current?.scrollToEnd({ animated: true });
+  // Llegó un mensaje nuevo: si quien lee estaba en el final, lo sigue; si subió a leer mensajes viejos, no se lo mueve.
+  const seguirElFinal = () => {
+    if (estaAlFinal.current) lista.current?.scrollToOffset({ offset: 0, animated: true });
   };
 
   if (mensajes === null && errorDeCarga) return <Estado tipo="error" mensaje={errorDeCarga} onReintentar={cargar} />;
   if (mensajes === null) return <Estado tipo="cargando" />;
 
   const sePuedeEnviar = textoEnviable(texto) !== null && !enviando;
-  // Separadores "Hoy", "Ayer", día de la semana o fecha entre los mensajes de cada día, como en WhatsApp.
-  const elementos = conSeparadores(mensajes, new Date());
+  // Del más nuevo al más viejo, con separadores "Hoy", "Ayer", día de la semana o fecha, como en WhatsApp.
+  const elementos = elementosDelChat(mensajes, new Date());
 
   return (
     <SafeAreaView style={estilos.pantalla} edges={["bottom"]}>
@@ -147,8 +154,13 @@ export default function ChatScreen({ route, navigation }) {
           <Text style={estilos.avisoDeConexion}>Sin conexión: {errorDeCarga}. Se reintenta solo.</Text>
         ) : null}
         <FondoDelChat fondo={fondo} style={estilos.fondo}>
+          {elementos.length === 0 ? (
+            // Fuera de la lista: dentro de una lista invertida, este texto se vería dado vuelta.
+            <Text style={[tipografia.suave, estilos.vacio]}>Todavía no hay mensajes. Escribí el primero.</Text>
+          ) : null}
           <FlatList
             ref={lista}
+            inverted
             data={elementos}
             keyExtractor={(item) => (item.tipo === "dia" ? item.clave : claveDeMensaje(item.mensaje, item.indice))}
             renderItem={({ item }) =>
@@ -161,11 +173,8 @@ export default function ChatScreen({ route, navigation }) {
             contentContainerStyle={estilos.lista}
             onScroll={alDesplazar}
             scrollEventThrottle={100}
-            onContentSizeChange={bajarSiCorresponde}
+            onContentSizeChange={seguirElFinal}
             keyboardShouldPersistTaps="handled"
-            ListEmptyComponent={
-              <Text style={[tipografia.suave, estilos.vacio]}>Todavía no hay mensajes. Escribí el primero.</Text>
-            }
           />
         </FondoDelChat>
         <View style={estilos.redaccion}>

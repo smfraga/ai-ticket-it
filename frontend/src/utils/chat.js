@@ -1,3 +1,5 @@
+import { conSeparadores } from "./fechasChat";
+
 // Mismo tope que el backend (Zod: 1 a 500 caracteres después de recortar los espacios).
 export const LARGO_MAXIMO_DE_MENSAJE = 500;
 
@@ -12,6 +14,13 @@ export const textoEnviable = (texto) => {
 
 // Los globos propios van a la derecha. Se compara por id, no por rol: el mismo usuario podría tener los dos roles.
 export const esMensajePropio = (mensaje, usuarioId) => mensaje.autor.id === usuarioId;
+
+// Lo que muestra el chat, del más nuevo al más viejo: la lista va invertida (abre abajo, en el último mensaje, como
+// WhatsApp), así que el primer elemento se dibuja abajo de todo. Cada separador de día queda arriba de sus mensajes.
+export const elementosDelChat = (mensajes, ahora = new Date()) => conSeparadores(mensajes, ahora).reverse();
+
+// En la lista invertida el final (lo más nuevo) está en el desplazamiento 0: se sigue el final si quien lee no subió.
+export const estaCercaDelFinal = (desplazamiento, distancia) => desplazamiento < distancia;
 
 // Los mensajes no tienen id en la API: se identifican por autor, fecha y posición.
 export const claveDeMensaje = (mensaje, indice) => `${mensaje.autor.id}-${mensaje.enviado}-${indice}`;
