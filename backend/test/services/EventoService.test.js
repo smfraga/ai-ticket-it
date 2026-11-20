@@ -91,6 +91,7 @@ describe("EventoService", () => {
         organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", foto: null, puntaje: 4.5 },
         precioDesde: 15000,
         yaPaso: false,
+        diasParaElEvento: 30,
         cancelado: false,
         tiposEntrada: [
           { id: "tipo-nuevo-0", nombre: "General", descripcion: "Campo", precio: 15000, cupo: 100, disponibles: 100 },
@@ -507,6 +508,7 @@ describe("EventoService", () => {
         organizador: { id: "olivia", nombre: "Olivia", apellido: "Rossi", foto: null, puntaje: 4.5 },
         precioDesde: 10000,
         yaPaso: false,
+        diasParaElEvento: 10,
         cancelado: false,
         tiposEntrada: [
           {
@@ -530,10 +532,11 @@ describe("EventoService", () => {
       e1.tiposEntrada[0].liberar(4);
     });
 
-    it("marca yaPaso en los eventos ya realizados", async () => {
+    it("marca yaPaso en los eventos ya realizados, sin días para el evento", async () => {
       const [pasado] = await service.buscar({ periodo: "pasados" });
 
       expect(pasado.yaPaso).toBe(true);
+      expect(pasado.diasParaElEvento).toBeNull();
     });
 
     it("no modifica la lista que devuelve el repositorio", async () => {
@@ -562,6 +565,7 @@ describe("EventoService", () => {
         organizador: { id: "olivia", puntaje: 4.5 },
         categoria: { id: "c-rock", nombre: "Rock" },
         yaPaso: false,
+        diasParaElEvento: 15,
       });
       expect(respuesta.tiposEntrada.map((t) => t.id)).toEqual(["t-0", "t-1"]);
     });

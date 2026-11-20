@@ -167,6 +167,12 @@ export default {
         },
         precioDesde: { type: "number", example: 12000 },
         yaPaso: { type: "boolean" },
+        diasParaElEvento: {
+          type: "integer",
+          nullable: true,
+          example: 5,
+          description: "Días de calendario hasta el evento (0 = hoy); null si ya se realizó",
+        },
         cancelado: { type: "boolean" },
         tiposEntrada: lista("TipoEntrada"),
       },

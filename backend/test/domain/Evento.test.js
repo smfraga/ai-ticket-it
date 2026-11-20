@@ -122,6 +122,45 @@ describe("Evento", () => {
     });
   });
 
+  describe("diasRestantes", () => {
+    // Fechas en hora local: los días se cuentan por fecha de calendario, no por horas.
+    const hoyALas = (horas, minutos = 0, dias = 0) => {
+      const fecha = new Date(2026, 10, 19, horas, minutos);
+      fecha.setDate(fecha.getDate() + dias);
+      return fecha;
+    };
+    const diasHasta = (fechaDelEvento, ahora) => crearEvento({ fecha: fechaDelEvento }).diasRestantes(ahora);
+
+    it("un evento de hoy a la noche, visto a la mañana, es hoy (0)", () => {
+      expect(diasHasta(hoyALas(21), hoyALas(9))).toBe(0);
+    });
+
+    it("un evento de mañana a la madrugada está a 1 día aunque falten pocas horas", () => {
+      expect(diasHasta(hoyALas(0, 30, 1), hoyALas(22))).toBe(1);
+    });
+
+    it("un evento de mañana a la noche, visto a la mañana, está a 1 día (no a 2)", () => {
+      expect(diasHasta(hoyALas(21, 0, 1), hoyALas(9))).toBe(1);
+    });
+
+    it("un evento dentro de 5 días, a cualquier hora, está a 5", () => {
+      expect(diasHasta(hoyALas(8, 0, 5), hoyALas(23, 59))).toBe(5);
+    });
+
+    it("es null desde el momento exacto del evento", () => {
+      expect(diasHasta(hoyALas(21), hoyALas(20, 59))).toBe(0);
+      expect(diasHasta(hoyALas(21), hoyALas(21))).toBeNull();
+      expect(diasHasta(hoyALas(21, 0, -3), hoyALas(9))).toBeNull();
+    });
+
+    it("un evento cancelado sigue contando los días (la marca de cancelado la decide quien lo muestra)", () => {
+      const evento = crearEvento({ fecha: hoyALas(21, 0, 5) });
+      evento.cancelar(evento.organizador, hoyALas(9));
+
+      expect(evento.diasRestantes(hoyALas(9))).toBe(5);
+    });
+  });
+
   describe("esOrganizador", () => {
     it("reconoce al organizador aunque sea otra instancia con el mismo id", () => {
       const evento = crearEvento();
